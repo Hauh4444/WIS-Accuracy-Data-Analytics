@@ -1,0 +1,57 @@
+<table
+    cellspacing="0"
+    cellpadding="6"
+    style="
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+        font-size: 10px;
+        color: black;
+        line-height: 1;
+    "
+>
+    <tbody>
+        <tr>
+            <th style="width: 200px; text-align: left; display: table-cell; vertical-align: middle;">
+                DEPT
+            </th>
+            <th style="width: 100px; text-align: center; display: table-cell; vertical-align: middle;">
+                $
+            </th>
+            <th style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
+                TAGS
+            </th>
+            <th style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
+                %
+            </th>
+            <th style="width: 200px; text-align: right; display: table-cell; vertical-align: middle;">
+                TAGS
+            </th>
+            <th style="width: 70px; text-align: right; display: table-cell; vertical-align: middle;">
+                QTY
+            </th>
+        </tr>
+        {% for row in results %}
+        <tr>
+            <td style="width: 200px; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ row.department_number }}
+            </td>
+            <td style="width: 100px; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ row.total_discrepancy_dollars }}
+            </td>
+            <td style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ row.total_discrepancy_tags }}
+            </td>
+            <td style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ row.discrepancy_percent | round(2) }}%
+            </td>
+            <td style="width: 200px; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ row.total_tags }}
+            </td>
+            <td style="width: 70px; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ row.total_quantity }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

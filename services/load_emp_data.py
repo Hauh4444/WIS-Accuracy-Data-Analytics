@@ -1,12 +1,10 @@
+import pyodbc
 from PyQt6 import QtWidgets
 
-from services.database import get_db_connection
-from services.models import DiscrepancyTable
-from services.models import TagTable
-from services.models import EmployeeTable
-from views.emp_hours_input_dialog import EmpHoursInputWindow
+from services.models import DiscrepancyTable, TagTable, EmployeeTable
 
-def load_data(db_path: str) -> None:
+
+def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
     d = DiscrepancyTable()
     t = TagTable()
     e = EmployeeTable()
@@ -37,11 +35,19 @@ def load_data(db_path: str) -> None:
             {t.table}.{t.employee_id},
             {e.table}.{e.employee_name}
     """
-    conn = get_db_connection(db_path)
-    cursor = conn.cursor()
-    cursor.execute(query)
-    rows = cursor.fetchall()
-    conn.close()
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        conn.close()
+    except Exception as ex:
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load employee data:\n{ex}")
+        return []
+
+    if not rows:
+        QtWidgets.QMessageBox.warning(None, "No Data", "No employee records were found.")
+        return []
 
     emp_data = [
         {
@@ -56,7 +62,6 @@ def load_data(db_path: str) -> None:
         for row in rows
     ]
 
-    QtWidgets.QMessageBox.information(None, "Data Loaded Successfully")
+    QtWidgets.QMessageBox.information(None, "Success", "Employee data loaded successfully.")
 
-    window = EmpHoursInputWindow(emp_data)
-    window.show()
+    return emp_data

@@ -122,7 +122,7 @@ QPushButton:pressed {
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="printButton">
+         <widget class="QPushButton" name="btnPrint">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>

@@ -1,19 +1,21 @@
 import os
 from PyQt6 import QtWidgets, uic
 
-from services.load_data import load_data
+from services.load_emp_data import load_emp_data
+from services.load_team_data import load_team_data
+from services.database import get_db_connection
+from views.emp_hours_input_dialog import EmpHoursInputWindow
 
-DEFAULT_DB_PATH = r"C:\path\to\default\database.accdb"
 
-class ReportDialog(QtWidgets.QDialog):
+class LoadDataDialog(QtWidgets.QDialog):
     def __init__(self) -> None:
         super().__init__()
-        ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ui", "dialog_box.ui"))
+        ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ui", "load_data_dialog.ui"))
         uic.loadUi(ui_path, self)
+
         self.btnBrowse.clicked.connect(self.browse_database)
-        ok_button = self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok)
-        ok_button.clicked.connect(self.on_ok_clicked)
-        self.buttonBox.accepted.disconnect()
+        self.btnLoad.clicked.connect(self.on_load_clicked)
+        self.center_on_screen()
 
     def browse_database(self) -> None:
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -25,19 +27,32 @@ class ReportDialog(QtWidgets.QDialog):
         if file_path:
             self.txtDatabasePath.setText(file_path)
 
-    def on_ok_clicked(self) -> None:
-        db_path = self.txtDatabasePath.text().strip() or DEFAULT_DB_PATH
-        hours_text = self.txtHours.text().strip()
-        if not hours_text:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please enter the number of hours.")
+    def center_on_screen(self) -> None:
+        screen = QtWidgets.QApplication.primaryScreen()
+        if not screen:
             return
-        if not os.path.exists(db_path):
-            QtWidgets.QMessageBox.warning(self, "Input Error", f"Database file not found: {db_path}")
+        screen_geometry = screen.availableGeometry()
+        x = (screen_geometry.width() - self.width()) // 2
+        y = (screen_geometry.height() - self.height()) // 2
+        self.move(x, y)
+
+    def on_load_clicked(self) -> None:
+        db_path = self.txtDatabasePath.text().strip()
+
+        conn = get_db_connection(db_path)
+        if not conn:
             return
+
         try:
-            hours_worked = float(hours_text)
-        except ValueError:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please enter a valid number for hours.")
-            return
-        load_data(db_path=db_path)
-        self.accept()
+            emp_data = load_emp_data(conn=conn)
+            team_data = load_team_data(conn=conn)
+
+            self.accept()
+            window = EmpHoursInputWindow(emp_data, team_data)
+            window.show()
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Load Error",
+                f"An error occurred while loading data:\n{e}"
+            )
