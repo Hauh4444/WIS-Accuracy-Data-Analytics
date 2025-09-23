@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>120</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Report Generator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background-color: #c0c0c5;
+    color: #000000; 
+    font-family: &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
+    font-size: 11pt;
+}
+
+QLabel {
+    color: #000000; 
+    font-weight: 500;
+}
+
+QLineEdit {
+    background-color: #e0e0e0; 
+    border: 1px solid #bbbbbb; 
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: #000000; 
+    selection-background-color: #a0aaff; 
+    selection-color: #ffffff;
+}
+
+QLineEdit:focus {
+    border: 1px solid #4a90e2; 
+}
+
+QPushButton {
+    background-color: #e0e0e0;  
+    color: #000000; 
+    border: 1px solid #a0a0a0;  
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-weight: 500;
+}
+
+QPushButton:hover {
+    background-color: #d6d6d6;  
+}
+
+QPushButton:pressed {
+    background-color: #c0c0c0;  
+}
+</string>
+  </property>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>-1</x>
+     <y>-1</y>
+     <width>501</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout">
+    <property name="spacing">
+     <number>15</number>
+    </property>
+    <property name="leftMargin">
+     <number>30</number>
+    </property>
+    <property name="topMargin">
+     <number>15</number>
+    </property>
+    <property name="rightMargin">
+     <number>30</number>
+    </property>
+    <property name="bottomMargin">
+     <number>15</number>
+    </property>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLineEdit" name="txtDatabasePath">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="spacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Maximum</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnBrowse">
+        <property name="text">
+         <string>Browse</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::StandardButton::Ok</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>Dialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
