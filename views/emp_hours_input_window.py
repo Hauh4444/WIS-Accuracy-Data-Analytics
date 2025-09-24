@@ -2,7 +2,7 @@ import os
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
-from services.report_generator import generate_employee_report
+from services.report_generator import generate_accuracy_report
 
 
 def create_employee_row(emp: dict) -> QtWidgets.QWidget:
@@ -11,7 +11,7 @@ def create_employee_row(emp: dict) -> QtWidgets.QWidget:
     layout.setContentsMargins(5, 5, 5, 5)
     layout.setSpacing(10)
 
-    label_id = QtWidgets.QLabel(str(emp.get("employee_id", "")))
+    label_id = QtWidgets.QLabel(emp.get("employee_id", ""))
     label_id.setFixedWidth(120)
     layout.addWidget(label_id)
 
@@ -44,7 +44,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.empRowsLayout = self.scrollAreaWidgetContents.layout()
 
         for emp in emp_data:
-            row = create_employee_row(emp)
+            row = create_employee_row(emp=emp)
             row.setStyleSheet(self.scrollAreaWidgetContents.styleSheet())
             self.empRowsLayout.addWidget(row)
             self.rows_widgets.append(row)
@@ -89,6 +89,5 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
 
-        generate_employee_report(self.emp_data, self.team_data)
-        QtWidgets.QMessageBox.information(self, "Report", "Employee report generated successfully.")
+        generate_accuracy_report(emp_data=self.emp_data, team_data=self.team_data)
         self.close()

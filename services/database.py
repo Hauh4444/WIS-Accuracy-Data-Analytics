@@ -19,6 +19,6 @@ def get_db_connection(db_path: str | None = None) -> pyodbc.Connection | None:
         )
         conn = pyodbc.connect(conn_str)
         return conn
-    except pyodbc.Error as e:
+    except Exception as e:
         QtWidgets.QMessageBox.critical(None, "Database Connection Error", f"Could not connect to database:\n{e}")
         return None

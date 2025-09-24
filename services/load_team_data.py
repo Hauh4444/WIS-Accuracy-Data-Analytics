@@ -5,12 +5,12 @@ from services.models import DiscrepancyTable, TagTable
 
 
 def load_team_data(conn: pyodbc.Connection) -> list[dict]:
-    d = DiscrepancyTable()
-    t = TagTable()
+    d, t = DiscrepancyTable(), TagTable()
 
     query = f"""
         SELECT  
             {d.table}.{d.department_number} AS department_number,
+            {d.table}.{d.department_name} AS department_name
             COALESCE(SUM(ABS({d.table}.{d.dollar_change})), 0) AS total_discrepancy_dollars,
             COUNT(DISTINCT CASE 
                 WHEN {d.table}.{d.dollar_change} IS NOT NULL 
@@ -46,6 +46,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
     team_data = [
         {
             "department_number": row.department_number,
+            "department_name": row.department_name,
             "total_discrepancy_dollars": row.total_discrepancy_dollars,
             "total_discrepancy_tags": row.total_discrepancy_tags,
             "discrepancy_percent": row.discrepancy_percent,
@@ -54,7 +55,5 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
         }
         for row in rows
     ]
-
-    QtWidgets.QMessageBox.information(None, "Success", "Team data loaded successfully.")
 
     return team_data

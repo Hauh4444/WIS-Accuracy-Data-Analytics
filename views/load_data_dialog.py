@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets, uic
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data
 from services.database import get_db_connection
-from views.emp_hours_input_dialog import EmpHoursInputWindow
+from views.emp_hours_input_window import EmpHoursInputWindow
 
 
 class LoadDataDialog(QtWidgets.QDialog):
@@ -15,6 +15,7 @@ class LoadDataDialog(QtWidgets.QDialog):
 
         self.btnBrowse.clicked.connect(self.browse_database)
         self.btnLoad.clicked.connect(self.on_load_clicked)
+
         self.center_on_screen()
 
     def browse_database(self) -> None:
@@ -39,7 +40,7 @@ class LoadDataDialog(QtWidgets.QDialog):
     def on_load_clicked(self) -> None:
         db_path = self.txtDatabasePath.text().strip()
 
-        conn = get_db_connection(db_path)
+        conn = get_db_connection(db_path=db_path)
         if not conn:
             return
 
@@ -47,9 +48,10 @@ class LoadDataDialog(QtWidgets.QDialog):
             emp_data = load_emp_data(conn=conn)
             team_data = load_team_data(conn=conn)
 
-            self.accept()
             window = EmpHoursInputWindow(emp_data, team_data)
             window.show()
+
+            self.accept()
         except Exception as e:
             QtWidgets.QMessageBox.critical(
                 self,

@@ -5,9 +5,7 @@ from services.models import DiscrepancyTable, TagTable, EmployeeTable
 
 
 def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
-    d = DiscrepancyTable()
-    t = TagTable()
-    e = EmployeeTable()
+    d, t, e = DiscrepancyTable(), TagTable(), EmployeeTable()
 
     query = f"""
         SELECT 
@@ -61,7 +59,5 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         }
         for row in rows
     ]
-
-    QtWidgets.QMessageBox.information(None, "Success", "Employee data loaded successfully.")
 
     return emp_data

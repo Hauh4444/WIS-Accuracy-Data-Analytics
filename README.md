@@ -39,6 +39,14 @@ This Python application generates WIS International accuracy reports using inven
 4. The report is generated in memory and opened in your default browser. 
 5. Print the PDF directly from the browser.
 
+## Testing
+
+1. Navigate to the root directory
+2. Run the tests:
+   ```bash
+   PYTHONPATH=. pytest -v
+   ```
+
 ## Dependencies
 
 - Python 3.10+ 
@@ -52,23 +60,25 @@ This Python application generates WIS International accuracy reports using inven
 .
 ├── main.py
 ├── README.md
-├── services
+├── services/
+│   ├── __init__.py
 │   ├── database.py
 │   ├── load_emp_data.py
 │   ├── load_team_data.py
 │   ├── models.py
 │   └── report_generator.py
-├── styles
+├── styles/
 │   └── scrollbar.qss
-├── templates
+├── templates/
 │   ├── emp_report.html
 │   └── team_report.html
-├── test.py
-├── ui
+├── tests/
+├── ui/
 │   ├── emp_hours_window.ui
 │   └── load_data_dialog.ui
-├── venv
-└── views
+├── venv/
+└── views/
+    ├── __init__.py
     ├── emp_hours_input_dialog.py
     └── load_data_dialog.py
 ```

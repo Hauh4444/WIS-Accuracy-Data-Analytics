@@ -6,50 +6,56 @@
         border-collapse: collapse;
         font-family: Arial, sans-serif;
         font-size: 10px;
-        color: black;
+        color: #000000;
         line-height: 1;
     "
 >
     <tbody>
         <tr>
-            <th style="width: 200px; text-align: left; display: table-cell; vertical-align: middle;">
-                DEPT
+            <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                #
             </th>
-            <th style="width: 100px; text-align: center; display: table-cell; vertical-align: middle;">
-                $
+            <th style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
+                NAME
             </th>
-            <th style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
+            <th style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </th>
+            <th style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
                 TAGS
             </th>
-            <th style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
-                %
+            <th style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                &nbsp;&nbsp;%
             </th>
-            <th style="width: 200px; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 20%; text-align: right; display: table-cell; vertical-align: middle;">
                 TAGS
             </th>
-            <th style="width: 70px; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 QTY
             </th>
         </tr>
         {% for row in results %}
         <tr>
-            <td style="width: 200px; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ row.department_number }}
+            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.department_number) }}
             </td>
-            <td style="width: 100px; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ row.total_discrepancy_dollars }}
+            <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.department_name) }}
             </td>
-            <td style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ row.total_discrepancy_tags }}
+            <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
             </td>
-            <td style="width: 70px; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ row.discrepancy_percent | round(2) }}%
+            <td style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_discrepancy_tags) }}
             </td>
-            <td style="width: 200px; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ row.total_tags }}
+            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%.1f"|format(row.discrepancy_percent) }}%
             </td>
-            <td style="width: 70px; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ row.total_quantity }}
+            <td style="width: 20%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_tags) }}
+            </td>
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_quantity) }}
             </td>
         </tr>
         {% endfor %}
