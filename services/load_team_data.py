@@ -1,59 +1,87 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.models import DiscrepancyTable, TagTable
+from services.models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagRangeTable
 
 
 def load_team_data(conn: pyodbc.Connection) -> list[dict]:
-    d, t = DiscrepancyTable(), TagTable()
-
-    query = f"""
-        SELECT  
-            {d.table}.{d.department_number} AS department_number,
-            {d.table}.{d.department_name} AS department_name
-            COALESCE(SUM(ABS({d.table}.{d.dollar_change})), 0) AS total_discrepancy_dollars,
-            COUNT(DISTINCT CASE 
-                WHEN {d.table}.{d.dollar_change} IS NOT NULL 
-                     AND {d.table}.{d.dollar_change} <> 0 
-                THEN {t.table}.{t.tag_number} END
-            ) AS total_discrepancy_tags,
-            CASE 
-                WHEN SUM({t.table}.{t.dollars}) = 0 THEN 0
-                ELSE (COALESCE(SUM(ABS({d.table}.{d.dollar_change})), 0) * 100.0) / SUM({t.table}.{t.dollars})
-            END AS discrepancy_percent,
-            COUNT(DISTINCT {t.table}.{t.tag_number}) AS total_tags,
-            SUM({t.table}.{t.qty}) AS total_quantity
-        FROM {d.table}
-        INNER JOIN {t.table}
-            ON {d.table}.{d.tag_number} = {t.table}.{t.tag_number}
-        GROUP BY {d.table}.{d.department_number}
-        ORDER BY {d.table}.{d.department_number}
+    """Load team/zone data with discrepancy calculations from the database.
+    
+    Args:
+        conn: Database connection object
+        
+    Returns:
+        List of dictionaries containing team data with totals and discrepancies
     """
-
+    zone, queue, info, tag_range = ZoneTable(), ZoneChangeQueueTable(), ZoneChangeInfoTable(), TagRangeTable()
+    
     try:
+        zone_query = f"""
+        SELECT 
+            {zone.table}.{zone.zone_id},
+            {zone.table}.{zone.zone_desc}
+        FROM {zone.table}
+        ORDER BY {zone.table}.{zone.zone_id}
+        """
+        
         cursor = conn.cursor()
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        conn.close()
-    except Exception as ex:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data:\n{ex}")
+        cursor.execute(zone_query)
+        zone_rows = cursor.fetchall()
+        
+        result = []
+        
+        for zone_row in zone_rows:
+            zone_id = zone_row[0]
+            zone_desc = zone_row[1]
+            
+            totals_query = f"""
+            SELECT 
+                Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1) AS total_tags,
+                Sum({tag_range.table}.{tag_range.total_qty}) AS total_quantity,
+                Sum({tag_range.table}.{tag_range.total_ext}) AS total_price
+            FROM {tag_range.table}
+            WHERE {tag_range.table}.{tag_range.zone_id} = {zone_id}
+            """
+            
+            cursor.execute(totals_query)
+            totals_row = cursor.fetchone()
+            
+            total_tags = totals_row[0] if totals_row[0] is not None else 0
+            total_quantity = totals_row[1] if totals_row[1] is not None else 0
+            total_price = totals_row[2] if totals_row[2] is not None else 0
+            
+            discrepancy_query = f"""
+            SELECT 
+                Sum(
+                    Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
+                ) AS discrepancy_dollars,
+                Count(*) AS discrepancy_tags
+            FROM {queue.table}
+            LEFT JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
+            WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
+                AND {queue.table}.{queue.zone_id} = {zone_id}
+            """
+            
+            cursor.execute(discrepancy_query)
+            discrepancy_row = cursor.fetchone()
+            
+            discrepancy_dollars = discrepancy_row[0] if discrepancy_row[0] is not None else 0
+            discrepancy_tags = discrepancy_row[1] if discrepancy_row[1] is not None else 0
+            discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
+            
+            result.append({
+                'department_number': zone_id,
+                'department_name': zone_desc,
+                'total_tags': total_tags,
+                'total_quantity': total_quantity,
+                'total_price': total_price,
+                'total_discrepancy_dollars': discrepancy_dollars,
+                'total_discrepancy_tags': discrepancy_tags,
+                'discrepancy_percent': discrepancy_percent
+            })
+        
+        return result
+        
+    except Exception as e:
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
         return []
-
-    if not rows:
-        QtWidgets.QMessageBox.warning(None, "No Data", "No team records were found.")
-        return []
-
-    team_data = [
-        {
-            "department_number": row.department_number,
-            "department_name": row.department_name,
-            "total_discrepancy_dollars": row.total_discrepancy_dollars,
-            "total_discrepancy_tags": row.total_discrepancy_tags,
-            "discrepancy_percent": row.discrepancy_percent,
-            "total_tags": row.total_tags,
-            "total_quantity": row.total_quantity,
-        }
-        for row in rows
-    ]
-
-    return team_data

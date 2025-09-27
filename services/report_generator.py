@@ -6,7 +6,16 @@ from PyQt6 import QtWidgets
 from xhtml2pdf import pisa
 from jinja2 import Environment, FileSystemLoader
 
+from services.resource_utils import resource_path
+
+
 def generate_accuracy_report(emp_data: list[dict], team_data: list[dict]) -> None:
+    """Generate and display accuracy reports for employees and teams.
+    
+    Args:
+        emp_data: List of employee data dictionaries
+        team_data: List of team data dictionaries
+    """
     if not isinstance(emp_data, list):
         QtWidgets.QMessageBox.critical(None, "Input Error", "emp_data must be a list of dictionaries")
         return
@@ -15,12 +24,16 @@ def generate_accuracy_report(emp_data: list[dict], team_data: list[dict]) -> Non
         return
 
     try:
-        env = Environment(loader=FileSystemLoader("templates"))
+        templates_path = resource_path("templates")
+        env = Environment(loader=FileSystemLoader(templates_path))
 
-        if not Path("templates/emp_report.html").exists():
+        emp_template_path = resource_path("templates/emp_report.html")
+        team_template_path = resource_path("templates/team_report.html")
+        
+        if not Path(emp_template_path).exists():
             QtWidgets.QMessageBox.critical(None, "Template Error", "emp_report.html template not found")
             return
-        if not Path("templates/team_report.html").exists():
+        if not Path(team_template_path).exists():
             QtWidgets.QMessageBox.critical(None, "Template Error", "team_report.html template not found")
             return
 

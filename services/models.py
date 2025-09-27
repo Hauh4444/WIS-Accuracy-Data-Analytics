@@ -2,26 +2,89 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class DiscrepancyTable:
-    table: str = "discrepancies"
-    tag_number: str = "tag_number"
-    dollar_change: str = "dollar_change"
-    department_number: str = "department_number"
-    department_name: str = "department_name"
+class ZoneChangeQueueTable:
+    table: str = "tblZoneChangeQueue"
+    zone_queue_id: int = "ZoneQueueID"
+    zone_id: int = "ZoneID"
+    tag: str = "Tag"
+    upc: str = "UPC"
+    zone_sku: str = "ZoneSku"
+    price: float = "Price"
+    quantity: int = "Quantity"
+    reason: str = "Reason"
 
+
+@dataclass(frozen=True)
+class ZoneChangeInfoTable:
+    table: str = "tblZoneChangeInfo"
+    zone_info_id: int = "ZoneInfoID"
+    zone_queue_id: int = "ZoneQueueID"
+    tag: str = "Tag"
+    upc: str = "UPC"
+    zone_sku: str = "ZoneSku"
+    counted_qty: int = "CountedQty"
+
+
+@dataclass(frozen=True)
+class UPHTable:
+    table: str = "tblUPH"
+    emp_no: str = "EmpNo"
+    emp_name: str = "EmpName"
+    tag_count: int = "TagCount"
+
+@dataclass(frozen=True)
+class DetailsTable:
+    table: str = "tblDetailsOrg"
+    zone_id: int = "ZoneID"
+    details_id: int = "DetailsID"
+    tag_id: int = "TagID"
+    emp_no: str = "empno"
+    tag: str = "tag"
+    sku: str = "sku"
+    price: float = "price"
+    qty: int = "qty"
+    zone_sku: str = "ZoneSku"
+
+
+@dataclass(frozen=True)
+class DetailsEditTable:
+    table: str = "tblDetailsEdit"
+    details_id: int = "DetailsID"
+    emp_no: str = "empno"
+    tag: str = "tag"
+    sku: str = "sku"
+    dept: str = "dept"
+    price: float = "price"
+    qty: int = "qty"
+    zone_sku: str = "ZoneSku"
+
+
+@dataclass(frozen=True)
+class ZoneTable:
+    table: str = "tblZone"
+    zone_id: int = "ZoneID"
+    zone_desc: str = "ZoneDesc"
+
+
+@dataclass(frozen=True)
+class ZoneDeptTable:
+    table: str = "tblZoneDept"
+    zone_id: int = "ZoneID"
+    dept: str = "Dept"
 
 @dataclass(frozen=True)
 class TagTable:
-    table: str = "tags"
-    employee_id: str = "employee_id"
-    employee_name: str = "employee_name"
-    tag_number: str = "tag_number"
-    dollars: str = "dollars"
-    qty: str = "qty"
-
+    table: str = "tblTag"
+    tag_id: int = "Tagid"
+    tag_no: int = "TagNo"
+    total_qty: int = "TotalQty"
+    total_ext: float = "TotalEXTPRICE"
 
 @dataclass(frozen=True)
-class EmployeeTable:
-    table: str = "employees"
-    employee_id: str = "employee_id"
-    employee_name: str = "employee_name"
+class TagRangeTable:
+    table: str = "tblTagRange"
+    tag_val_from: int = "TagValFrom"
+    tag_val_to: int = "TagValTo"
+    total_qty: int = "TotalQty"
+    total_ext: float = "TotalEXTPRICE"
+    zone_id: int = "ZoneID"

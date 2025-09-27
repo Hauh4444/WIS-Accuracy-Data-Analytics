@@ -1,16 +1,16 @@
-import os
 from PyQt6 import QtWidgets, uic
 
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data
 from services.database import get_db_connection
-from views.emp_hours_input_window import EmpHoursInputWindow
+from services.resource_utils import resource_path
 
 
-class LoadDataDialog(QtWidgets.QDialog):
+class LoadDataManualDialog(QtWidgets.QDialog):
+    """Dialog for loading database using file browser."""
     def __init__(self) -> None:
         super().__init__()
-        ui_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ui", "load_data_dialog.ui"))
+        ui_path = resource_path("ui/load_data_manual_dialog.ui")
         uic.loadUi(ui_path, self)
 
         self.btnBrowse.clicked.connect(self.browse_database)
@@ -47,10 +47,10 @@ class LoadDataDialog(QtWidgets.QDialog):
         try:
             emp_data = load_emp_data(conn=conn)
             team_data = load_team_data(conn=conn)
-
-            window = EmpHoursInputWindow(emp_data, team_data)
-            window.show()
-
+            
+            self.emp_data = emp_data
+            self.team_data = team_data
+            
             self.accept()
         except Exception as e:
             QtWidgets.QMessageBox.critical(
@@ -58,3 +58,8 @@ class LoadDataDialog(QtWidgets.QDialog):
                 "Load Error",
                 f"An error occurred while loading data:\n{e}"
             )
+            import traceback
+            traceback.print_exc()
+        finally:
+            if conn:
+                conn.close()
