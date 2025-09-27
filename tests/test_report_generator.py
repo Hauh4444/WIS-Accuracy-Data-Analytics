@@ -1,5 +1,3 @@
-"""Tests for report generation functionality."""
-
 import pytest
 from unittest.mock import patch, MagicMock
 from PyQt6 import QtWidgets
@@ -161,10 +159,7 @@ class TestReportGenerator:
             
             generate_accuracy_report(sample_emp_data, sample_team_data)
             
-            # Verify template was called (it gets called multiple times for different templates)
             assert mock_template.render.called
-            # The exact call structure may vary, so we just verify it was called successfully
-            # This ensures the function completed without errors
 
     def test_empty_data_handling(self, sample_emp_data, sample_team_data):
         """Test handling of empty data lists."""
@@ -183,13 +178,12 @@ class TestReportGenerator:
             
             generate_accuracy_report([], [])
             
-            # Should complete without errors - template gets called multiple times
             assert mock_get_template.return_value.render.called
 
     def test_large_data_handling(self, sample_emp_data, sample_team_data):
         """Test handling of large datasets."""
-        large_emp_data = sample_emp_data * 100  # 200 employees
-        large_team_data = sample_team_data * 50  # 100 teams
+        large_emp_data = sample_emp_data * 100
+        large_team_data = sample_team_data * 50
         
         with patch("services.report_generator.Path.exists", return_value=True), \
              patch("services.report_generator.Environment.get_template") as mock_get_template, \
@@ -206,7 +200,4 @@ class TestReportGenerator:
             
             generate_accuracy_report(large_emp_data, large_team_data)
             
-            # Should complete without errors - template gets called multiple times
             assert mock_get_template.return_value.render.called
-            # The exact call structure may vary, so we just verify it was called successfully
-            # This ensures the function completed without errors

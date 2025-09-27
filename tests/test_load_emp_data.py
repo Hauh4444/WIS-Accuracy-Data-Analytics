@@ -1,5 +1,3 @@
-"""Tests for employee data loading functionality."""
-
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -42,16 +40,14 @@ class TestLoadEmpData:
     @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     def test_successful_data_loading(self, mock_critical):
         """Test successful loading of employee data."""
-        # Mock the actual database row format (tuple, not object)
         mock_emp_row = ("E001", "Alice Johnson", 25)
         
         mock_cursor = MagicMock()
-        # First call returns employee data, second call returns tag data, third call returns tag totals
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],  # Employee query
-            [("TAG001",)]    # Tags query
+            [mock_emp_row],
+            [("TAG001",)]
         ]
-        mock_cursor.fetchone.return_value = (100, 500.0)  # Tag totals query
+        mock_cursor.fetchone.return_value = (100, 500.0)
         
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -72,9 +68,9 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_row1, mock_row2],  # Employee query
-            [("TAG001",)],           # Tags query for E001
-            [("TAG002",)]            # Tags query for E002
+            [mock_row1, mock_row2],
+            [("TAG001",)],
+            [("TAG002",)]
         ]
         mock_cursor.fetchone.return_value = (100, 500.0)
         
@@ -94,8 +90,8 @@ class TestLoadEmpData:
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.side_effect = [
-            [("E001", "Test Employee", 5)],  # Employee query
-            [("TAG001",)]                    # Tags query
+            [("E001", "Test Employee", 5)],
+            [("TAG001",)]
         ]
         mock_cursor.fetchone.return_value = None
         
@@ -105,28 +101,22 @@ class TestLoadEmpData:
 
     def test_zero_discrepancy_calculation(self):
         """Test calculation when discrepancy values are zero."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No employee records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_emp_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []
 
     def test_high_discrepancy_calculation(self):
         """Test calculation with high discrepancy values."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No employee records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_emp_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []

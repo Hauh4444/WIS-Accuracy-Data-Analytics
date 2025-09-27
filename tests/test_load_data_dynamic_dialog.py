@@ -34,7 +34,6 @@ def test_center_on_screen_no_screen(app):
 
     with patch.object(QtWidgets.QApplication, 'primaryScreen', return_value=None):
         dialog.center_on_screen()
-        # Should not raise an exception
 
 
 @patch("views.load_data_dynamic_dialog.get_db_connection")
@@ -195,9 +194,7 @@ def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app)
             with patch("views.load_data_dynamic_dialog.uic.loadUi", side_effect=mock_load_ui):
                 dialog = LoadDataDynamicDialog()
                 
-                # Verify btnLoad is connected
                 assert hasattr(dialog, 'btnLoad')
-                # Verify txtJobID exists (from UI)
                 assert hasattr(dialog, 'txtJobID')
 
 

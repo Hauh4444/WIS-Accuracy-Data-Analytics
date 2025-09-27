@@ -1,5 +1,3 @@
-"""Tests for team data loading functionality."""
-
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -41,30 +39,24 @@ class TestLoadTeamData:
 
     def test_successful_data_loading(self):
         """Test successful loading of team data."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No team records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_team_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []
 
     def test_multiple_teams_loading(self):
         """Test loading multiple team records."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No team records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_team_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []
 
     @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
@@ -82,42 +74,33 @@ class TestLoadTeamData:
 
     def test_zero_discrepancy_calculation(self):
         """Test calculation when discrepancy values are zero."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No team records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_team_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []
 
     def test_high_discrepancy_calculation(self):
         """Test calculation with high discrepancy values."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No team records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_team_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []
 
     def test_department_number_types(self):
         """Test handling of different department number types."""
-        # Since the actual implementation is complex and requires proper model setup,
-        # we test that the function handles empty results gracefully
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []  # No team records
+        mock_cursor.fetchall.return_value = []
         mock_conn.cursor.return_value = mock_cursor
         
         result = load_team_data(mock_conn)
         
-        # Should return empty list when no data is found
         assert result == []

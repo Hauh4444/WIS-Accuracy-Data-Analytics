@@ -1,5 +1,3 @@
-"""Tests for manual dialog with file browser functionality."""
-
 import sys
 import pytest
 from unittest.mock import patch, MagicMock
@@ -55,7 +53,6 @@ class TestLoadDataManualDialog:
 
         with patch.object(QtWidgets.QApplication, 'primaryScreen', return_value=None):
             dialog.center_on_screen()
-            # Should not raise an exception
 
     @patch("views.load_data_manual_dialog.QtWidgets.QFileDialog.getOpenFileName")
     def test_browse_database_sets_text(self, mock_get_file, app):
@@ -199,5 +196,4 @@ class TestLoadDataManualDialog:
         with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
             dialog.on_load_clicked()
             
-            # The actual implementation strips whitespace with .strip()
             mock_conn.assert_called_once_with(db_path="")

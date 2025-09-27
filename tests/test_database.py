@@ -1,5 +1,3 @@
-"""Tests for database connection functionality."""
-
 import pytest
 from unittest.mock import patch, MagicMock
 
