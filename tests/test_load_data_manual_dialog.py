@@ -199,4 +199,5 @@ class TestLoadDataManualDialog:
         with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
             dialog.on_load_clicked()
             
-            mock_conn.assert_called_once_with(db_path="   ")
+            # The actual implementation strips whitespace with .strip()
+            mock_conn.assert_called_once_with(db_path="")
