@@ -15,7 +15,7 @@
             <th style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
                 ID
             </th>
-            <th style="width: 30%; text-align: left; display: table-cell; vertical-align: middle;">
+            <th style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
                 NAME
             </th>
             <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
@@ -27,7 +27,10 @@
             <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 &nbsp;&nbsp;%
             </th>
-            <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </th>
+            <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 TAGS
             </th>
             <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
@@ -35,9 +38,6 @@
             </th>
             <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 UPH
-            </th>
-            <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                HOURS
             </th>
         </tr>
         {% for row in results %}
@@ -51,7 +51,7 @@
             <td style="width: 7%; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(row.employee_id) }}
             </td>
-            <td style="width: 30%; display: table-cell; vertical-align: middle;">
+            <td style="width: 28%; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(row.employee_name) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
@@ -63,7 +63,10 @@
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%.2f"|format(row.discrepancy_percent) }}%
             </td>
-            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+            <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(row.total_price) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(row.total_tags) }}
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
@@ -71,9 +74,6 @@
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(row.uph) }}
-            </td>
-            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%.1f"|format(row.hours) }}
             </td>
         </tr>
         {% endfor %}

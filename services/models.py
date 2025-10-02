@@ -12,15 +12,8 @@ class UPHTable:
 @dataclass(frozen=True)
 class DetailsTable:
     table: str = "tblDetailsOrg"
-    zone_id: int = "ZoneID"
-    details_id: int = "DetailsID"
-    tag_id: int = "TagID"
     emp_no: str = "empno"
     tag: str = "tag"
-    sku: str = "sku"
-    price: float = "price"
-    qty: int = "qty"
-    zone_sku: str = "ZoneSku"
 
 
 @dataclass(frozen=True)
@@ -34,10 +27,7 @@ class ZoneTable:
 class ZoneChangeQueueTable:
     table: str = "tblZoneChangeQueue"
     zone_queue_id: int = "ZoneQueueID"
-    zone_id: int = "ZoneID"
     tag: str = "Tag"
-    upc: str = "UPC"
-    zone_sku: str = "ZoneSku"
     price: float = "Price"
     quantity: int = "Quantity"
     reason: str = "Reason"
@@ -46,18 +36,13 @@ class ZoneChangeQueueTable:
 @dataclass(frozen=True)
 class ZoneChangeInfoTable:
     table: str = "tblZoneChangeInfo"
-    zone_info_id: int = "ZoneInfoID"
     zone_queue_id: int = "ZoneQueueID"
-    tag: str = "Tag"
-    upc: str = "UPC"
-    zone_sku: str = "ZoneSku"
     counted_qty: int = "CountedQty"
 
 
 @dataclass(frozen=True)
 class TagTable:
     table: str = "tblTag"
-    tag_id: int = "Tagid"
     tag_no: int = "TagNo"
     total_qty: int = "TotalQty"
     total_ext: float = "TotalEXTPRICE"
