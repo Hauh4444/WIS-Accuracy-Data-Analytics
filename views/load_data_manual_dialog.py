@@ -8,17 +8,32 @@ from services.resource_utils import resource_path
 
 class LoadDataManualDialog(QtWidgets.QDialog):
     """Dialog for loading database using file browser."""
+    
     def __init__(self) -> None:
+        """Initialize the dialog and connect UI elements."""
         super().__init__()
         ui_path = resource_path("ui/load_data_manual_dialog.ui")
         uic.loadUi(ui_path, self)
 
         self.btnBrowse.clicked.connect(self.browse_database)
-        self.btnLoad.clicked.connect(self.on_load_clicked)
+        self.btnLoad.clicked.connect(self.load_database)
 
         self.center_on_screen()
 
+
+    def center_on_screen(self) -> None:
+        """Center the dialog on the primary screen."""
+        screen = QtWidgets.QApplication.primaryScreen()
+        if not screen:
+            return
+        screen_geometry = screen.availableGeometry()
+        x = (screen_geometry.width() - self.width()) // 2
+        y = (screen_geometry.height() - self.height()) // 2
+        self.move(x, y)
+
+
     def browse_database(self) -> None:
+        """Open file dialog to select database file."""
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select Database File",
@@ -28,16 +43,9 @@ class LoadDataManualDialog(QtWidgets.QDialog):
         if file_path:
             self.txtDatabasePath.setText(file_path)
 
-    def center_on_screen(self) -> None:
-        screen = QtWidgets.QApplication.primaryScreen()
-        if not screen:
-            return
-        screen_geometry = screen.availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)
 
-    def on_load_clicked(self) -> None:
+    def load_database(self) -> None:
+        """Load employee and team data from selected database file."""
         db_path = self.txtDatabasePath.text().strip()
 
         conn = get_db_connection(db_path=db_path)

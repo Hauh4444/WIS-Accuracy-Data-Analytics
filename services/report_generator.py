@@ -39,6 +39,7 @@ def generate_accuracy_report(emp_data: list[dict], team_data: list[dict]) -> Non
 
         sorted_emp_data = sorted(emp_data, key=lambda x: [-x.get("uph", 0), -x.get("total_quantity", 0)])
         html_employee = env.get_template("emp_report.html").render(results=sorted_emp_data)
+        
         sorted_team_data = sorted(team_data, key=lambda x: x.get("department_number", 0))
         html_team = env.get_template("team_report.html").render(results=sorted_team_data)
 

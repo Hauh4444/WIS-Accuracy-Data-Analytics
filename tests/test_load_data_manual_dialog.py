@@ -78,7 +78,7 @@ class TestLoadDataManualDialog:
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    def test_on_load_clicked_success(self, mock_team, mock_emp, mock_conn, app):
+    def test_load_database_success(self, mock_team, mock_emp, mock_conn, app):
         """Test successful database loading with file path."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
@@ -88,7 +88,7 @@ class TestLoadDataManualDialog:
         mock_team.return_value = [{"id": 1, "team": "Engineering"}]
 
         with patch.object(dialog, 'accept') as mock_accept:
-            dialog.on_load_clicked()
+            dialog.load_database()
 
             mock_conn.assert_called_once_with(db_path="/fake/path/database.accdb")
             mock_emp.assert_called_once()
@@ -98,13 +98,13 @@ class TestLoadDataManualDialog:
             assert hasattr(dialog, 'team_data')
 
     @patch("views.load_data_manual_dialog.get_db_connection")
-    def test_on_load_clicked_no_connection(self, mock_conn, app):
+    def test_load_database_no_connection(self, mock_conn, app):
         """Test behavior when database connection fails."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
         mock_conn.return_value = None
 
-        result = dialog.on_load_clicked()
+        result = dialog.load_database()
         
         assert result is None
         assert not hasattr(dialog, 'emp_data')
@@ -114,7 +114,7 @@ class TestLoadDataManualDialog:
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
     @patch("views.load_data_manual_dialog.QtWidgets.QMessageBox.critical")
-    def test_on_load_clicked_emp_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
+    def test_load_database_emp_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
         """Test error handling during employee data loading."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
@@ -122,7 +122,7 @@ class TestLoadDataManualDialog:
         mock_conn.return_value = MagicMock()
         mock_emp.side_effect = Exception("Employee data error")
 
-        dialog.on_load_clicked()
+        dialog.load_database()
         
         mock_critical.assert_called_once()
         assert "Employee data error" in mock_critical.call_args[0][2]
@@ -131,7 +131,7 @@ class TestLoadDataManualDialog:
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
     @patch("views.load_data_manual_dialog.QtWidgets.QMessageBox.critical")
-    def test_on_load_clicked_team_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
+    def test_load_database_team_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
         """Test error handling during team data loading."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
@@ -140,7 +140,7 @@ class TestLoadDataManualDialog:
         mock_emp.return_value = [{"id": 1, "name": "Alice"}]
         mock_team.side_effect = Exception("Team data error")
 
-        dialog.on_load_clicked()
+        dialog.load_database()
         
         mock_critical.assert_called_once()
         assert "Team data error" in mock_critical.call_args[0][2]
@@ -148,7 +148,7 @@ class TestLoadDataManualDialog:
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    def test_on_load_clicked_closes_connection(self, mock_team, mock_emp, mock_conn, app):
+    def test_load_database_closes_connection(self, mock_team, mock_emp, mock_conn, app):
         """Test that database connection is properly closed."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
@@ -158,13 +158,13 @@ class TestLoadDataManualDialog:
         mock_emp.return_value = [{"id": 1, "name": "Alice"}]
         mock_team.return_value = [{"id": 1, "team": "Engineering"}]
 
-        dialog.on_load_clicked()
+        dialog.load_database()
 
         mock_connection.close.assert_called_once()
 
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
-    def test_on_load_clicked_closes_connection_on_error(self, mock_emp, mock_conn, app):
+    def test_load_database_closes_connection_on_error(self, mock_emp, mock_conn, app):
         """Test that database connection is closed even when error occurs."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
@@ -174,7 +174,7 @@ class TestLoadDataManualDialog:
         mock_emp.side_effect = Exception("Test error")
 
         with patch.object(QtWidgets.QMessageBox, 'critical'):
-            dialog.on_load_clicked()
+            dialog.load_database()
 
         mock_connection.close.assert_called_once()
 
@@ -184,7 +184,7 @@ class TestLoadDataManualDialog:
         dialog.txtDatabasePath.setText("")
 
         with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
-            dialog.on_load_clicked()
+            dialog.load_database()
             
             mock_conn.assert_called_once_with(db_path="")
 
@@ -194,6 +194,6 @@ class TestLoadDataManualDialog:
         dialog.txtDatabasePath.setText("   ")
 
         with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
-            dialog.on_load_clicked()
+            dialog.load_database()
             
             mock_conn.assert_called_once_with(db_path="")

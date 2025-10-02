@@ -35,31 +35,31 @@
             </th>
         </tr>
         {% for row in results %}
-            {% if row.total_quantity > 0 %}
-            <tr>
-                <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                    {{ "%s"|format(row.department_number) }}
-                </td>
-                <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
-                    {{ "%s"|format(row.department_name) }}
-                </td>
-                <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
-                    ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
-                </td>
-                <td style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_discrepancy_tags) }}
-                </td>
-                <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
-                    {{ "%.2f"|format(row.discrepancy_percent) }}%
-                </td>
-                <td style="width: 20%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_tags) }}
-                </td>
-                <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_quantity) }}
-                </td>
-            </tr>
-            {% endif %}
+        {% if row.total_quantity > 0 %}
+        <tr>
+            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.department_number) }}
+            </td>
+            <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.department_name) }}
+            </td>
+            <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
+            </td>
+            <td style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_discrepancy_tags) }}
+            </td>
+            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%.2f"|format(row.discrepancy_percent) }}%
+            </td>
+            <td style="width: 20%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_tags) }}
+            </td>
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_quantity) }}
+            </td>
+        </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>

@@ -41,41 +41,41 @@
             </th>
         </tr>
         {% for row in results %}
-            {% if row.discrepancy_percent >= 2.0 %}
-            <tr style="background-color: #ffcccc;">
-            {% elif row.discrepancy_percent >= 1.5 %}
-            <tr style="background-color: #ffffcc;">
-            {% else %}
-            <tr>
-            {% endif %}
-                <td style="width: 7%; display: table-cell; vertical-align: middle;">
-                    {{ "%s"|format(row.employee_id) }}
-                </td>
-                <td style="width: 30%; display: table-cell; vertical-align: middle;">
-                    {{ "%s"|format(row.employee_name) }}
-                </td>
-                <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                    ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
-                </td>
-                <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_discrepancy_tags) }}
-                </td>
-                <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                    {{ "%.2f"|format(row.discrepancy_percent) }}%
-                </td>
-                <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_tags) }}
-                </td>
-                <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.total_quantity) }}
-                </td>
-                <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%i"|format(row.uph) }}
-                </td>
-                <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                    {{ "%.1f"|format(row.hours) }}
-                </td>
-            </tr>
+        {% if row.discrepancy_percent >= 2.0 %}
+        <tr style="background-color: #ffcccc;">
+        {% elif row.discrepancy_percent >= 1.5 %}
+        <tr style="background-color: #ffffcc;">
+        {% else %}
+        <tr>
+        {% endif %}
+            <td style="width: 7%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.employee_id) }}
+            </td>
+            <td style="width: 30%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(row.employee_name) }}
+            </td>
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
+            </td>
+            <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_discrepancy_tags) }}
+            </td>
+            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%.2f"|format(row.discrepancy_percent) }}%
+            </td>
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_tags) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.total_quantity) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(row.uph) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%.1f"|format(row.hours) }}
+            </td>
+        </tr>
         {% endfor %}
     </tbody>
 </table>

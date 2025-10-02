@@ -1,8 +1,3 @@
-"""Resource utilities for PyInstaller compatibility.
-
-This module provides utilities for handling resource files (UI, templates, styles)
-that need to work both in development and when packaged as a Windows executable.
-"""
 import os
 import sys
 from pathlib import Path

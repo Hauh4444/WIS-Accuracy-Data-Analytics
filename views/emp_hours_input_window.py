@@ -7,8 +7,15 @@ from services.resource_utils import resource_path
 
 
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
-    """Main window for displaying employee data and collecting hours input for report generation."""
+    """Main window for employee hours input and report generation."""
+    
     def __init__(self, emp_data: list[dict], team_data: list[dict]):
+        """Initialize the window with employee and team data.
+        
+        Args:
+            emp_data: List of employee data dictionaries
+            team_data: List of team data dictionaries
+        """
         super().__init__()
         ui_path = resource_path("ui/emp_hours_window.ui")
         uic.loadUi(ui_path, self)
@@ -35,7 +42,16 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
 
         self.btnPrint.clicked.connect(self.on_print_clicked)
 
+
     def create_employee_row(self, emp: dict) -> QtWidgets.QWidget:
+        """Create a widget row for employee data input.
+        
+        Args:
+            emp: Employee data dictionary
+            
+        Returns:
+            Widget containing employee ID, name, and hours input field
+        """
         row_widget = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout(row_widget)
         layout.setContentsMargins(5, 5, 5, 5)
@@ -63,21 +79,27 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.apply_emp_hour_input_row_style(row=row_widget)
         return row_widget
 
+
     def apply_emp_hour_input_row_style(self, row: QtWidgets.QWidget) -> None:
+        """Apply stylesheet to employee row widget."""
         if os.path.exists(self.emp_row_qss_path):
             with open(self.emp_row_qss_path, "r") as f:
                 row.setStyleSheet(f.read())
         else:
             print(f"Warning: Employee hour input row style file not found at {self.emp_row_qss_path}")
 
+
     def apply_scrollbar_style(self) -> None:
+        """Apply stylesheet to the scroll area."""
         if os.path.exists(self.scrollbar_qss_path):
             with open(self.scrollbar_qss_path, "r") as f:
                 self.scrollArea.setStyleSheet(f.read())
         else:
             print(f"Warning: Scrollbar style file not found at {self.scrollbar_qss_path}")
 
+
     def center_on_screen(self) -> None:
+        """Center the window on the primary screen."""
         screen = QtWidgets.QApplication.primaryScreen()
         if not screen:
             return
@@ -86,7 +108,9 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         y = (screen_geometry.height() - self.height()) // 2
         self.move(x, y)
 
+
     def on_print_clicked(self) -> None:
+        """Process hours input and generate accuracy report."""
         for i, row_widget in enumerate(self.rows_widgets):
             hours_text = row_widget.txt_hours.text().strip()
             emp_hours = float(hours_text) if hours_text.replace(".", "", 1).isdigit() else 0.0

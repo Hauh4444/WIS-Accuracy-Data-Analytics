@@ -13,36 +13,38 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
     Returns:
         List of dictionaries containing team data with totals and discrepancies
     """
-    zone, queue, info, tag_range = ZoneTable(), ZoneChangeQueueTable(), ZoneChangeInfoTable(), TagRangeTable()
+    result = []
     
     try:
-        zone_query = f"""
-        SELECT 
-            {zone.table}.{zone.zone_id},
-            {zone.table}.{zone.zone_desc}
-        FROM {zone.table}
-        ORDER BY {zone.table}.{zone.zone_id}
-        """
-        
         cursor = conn.cursor()
+
+        zone = ZoneTable();
+        queue = ZoneChangeQueueTable();
+        info = ZoneChangeInfoTable();
+        tag_range = TagRangeTable();
+
+        zone_query = f"""
+            SELECT 
+                {zone.table}.{zone.zone_id},
+                {zone.table}.{zone.zone_desc}
+            FROM {zone.table}
+            ORDER BY {zone.table}.{zone.zone_id}
+        """
         cursor.execute(zone_query)
         zone_rows = cursor.fetchall()
-        
-        result = []
         
         for zone_row in zone_rows:
             zone_id = zone_row[0]
             zone_desc = zone_row[1]
             
             totals_query = f"""
-            SELECT 
-                Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1) AS total_tags,
-                Sum({tag_range.table}.{tag_range.total_qty}) AS total_quantity,
-                Sum({tag_range.table}.{tag_range.total_ext}) AS total_price
-            FROM {tag_range.table}
-            WHERE {tag_range.table}.{tag_range.zone_id} = {zone_id}
+                SELECT 
+                    Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1) AS total_tags,
+                    Sum({tag_range.table}.{tag_range.total_qty}) AS total_quantity,
+                    Sum({tag_range.table}.{tag_range.total_ext}) AS total_price
+                FROM {tag_range.table}
+                WHERE {tag_range.table}.{tag_range.zone_id} = {zone_id}
             """
-            
             cursor.execute(totals_query)
             totals_row = cursor.fetchone()
             
@@ -50,23 +52,35 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             total_quantity = totals_row[1] if totals_row[1] is not None else 0
             total_price = totals_row[2] if totals_row[2] is not None else 0
             
-            discrepancy_query = f"""
-            SELECT 
-                Sum(
-                    Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
-                ) AS discrepancy_dollars,
-                Count(*) AS discrepancy_tags
-            FROM {queue.table}
-            LEFT JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
-            WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                AND {queue.table}.{queue.zone_id} = {zone_id}
+            discrepancy_dollars_query = f"""
+                SELECT 
+                    Sum(
+                        Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
+                    ) AS discrepancy_dollars
+                FROM {queue.table}
+                INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
+                WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
+                    AND {queue.table}.{queue.zone_id} = {zone_id}
             """
             
-            cursor.execute(discrepancy_query)
-            discrepancy_row = cursor.fetchone()
+            discrepancy_tags_query = f"""
+                SELECT Count(*) AS discrepancy_tags
+                FROM (
+                    SELECT DISTINCT {queue.table}.{queue.tag}
+                    FROM {queue.table}
+                    INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
+                    WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
+                        AND {queue.table}.{queue.zone_id} = {zone_id}
+                )
+            """
             
-            discrepancy_dollars = discrepancy_row[0] if discrepancy_row[0] is not None else 0
-            discrepancy_tags = discrepancy_row[1] if discrepancy_row[1] is not None else 0
+            cursor.execute(discrepancy_dollars_query)
+            discrepancy_dollars_row = cursor.fetchone()
+            discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
+            
+            cursor.execute(discrepancy_tags_query)
+            discrepancy_tags_row = cursor.fetchone()
+            discrepancy_tags = discrepancy_tags_row[0] if discrepancy_tags_row and discrepancy_tags_row[0] is not None else 0
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
             
             result.append({
@@ -79,9 +93,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                 'total_discrepancy_tags': discrepancy_tags,
                 'discrepancy_percent': discrepancy_percent
             })
-        
         return result
-        
     except Exception as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
         return []

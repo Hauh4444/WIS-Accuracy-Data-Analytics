@@ -8,7 +8,9 @@ from services.resource_utils import resource_path
 
 class LoadDataDynamicDialog(QtWidgets.QDialog):
     """Dialog for loading database using job ID input."""
+    
     def __init__(self) -> None:
+        """Initialize the dialog and connect UI elements."""
         super().__init__()
         ui_path = resource_path("ui/load_data_dynamic_dialog.ui")
         uic.loadUi(ui_path, self)
@@ -17,7 +19,20 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
 
         self.center_on_screen()
 
+
+    def center_on_screen(self) -> None:
+        """Center the dialog on the primary screen."""
+        screen = QtWidgets.QApplication.primaryScreen()
+        if not screen:
+            return
+        screen_geometry = screen.availableGeometry()
+        x = (screen_geometry.width() - self.width()) // 2
+        y = (screen_geometry.height() - self.height()) // 2
+        self.move(x, y)
+
+        
     def load_database(self) -> None:
+        """Load employee and team data from database using job ID."""
         job_id = self.txtJobID.text().strip()
         
         if not job_id:
@@ -53,12 +68,3 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
         finally:
             if conn:
                 conn.close()
-
-    def center_on_screen(self) -> None:
-        screen = QtWidgets.QApplication.primaryScreen()
-        if not screen:
-            return
-        screen_geometry = screen.availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)

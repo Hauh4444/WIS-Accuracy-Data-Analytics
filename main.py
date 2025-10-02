@@ -1,7 +1,9 @@
 import sys
 from PyQt6 import QtWidgets
+
 from views.load_data_manual_dialog import LoadDataManualDialog
 from views.load_data_dynamic_dialog import LoadDataDynamicDialog
+from views.emp_hours_input_window import EmpHoursInputWindow
 
 
 def load_data_with_fallback():
@@ -28,8 +30,6 @@ if __name__ == "__main__":
         emp_data, team_data = load_data_with_fallback()
         
         if emp_data is not None and team_data is not None:
-            from views.emp_hours_input_window import EmpHoursInputWindow
-            
             window = EmpHoursInputWindow(emp_data, team_data)
             window.setWindowTitle("WIS Accuracy Data Analytics")
             window.show()

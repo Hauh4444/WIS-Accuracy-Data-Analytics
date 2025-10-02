@@ -2,6 +2,35 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class UPHTable:
+    table: str = "tblUPH"
+    emp_no: str = "EmpNo"
+    emp_name: str = "EmpName"
+    tag_count: int = "TagCount"
+
+
+@dataclass(frozen=True)
+class DetailsTable:
+    table: str = "tblDetailsOrg"
+    zone_id: int = "ZoneID"
+    details_id: int = "DetailsID"
+    tag_id: int = "TagID"
+    emp_no: str = "empno"
+    tag: str = "tag"
+    sku: str = "sku"
+    price: float = "price"
+    qty: int = "qty"
+    zone_sku: str = "ZoneSku"
+
+
+@dataclass(frozen=True)
+class ZoneTable:
+    table: str = "tblZone"
+    zone_id: int = "ZoneID"
+    zone_desc: str = "ZoneDesc"
+
+
+@dataclass(frozen=True)
 class ZoneChangeQueueTable:
     table: str = "tblZoneChangeQueue"
     zone_queue_id: int = "ZoneQueueID"
@@ -26,59 +55,13 @@ class ZoneChangeInfoTable:
 
 
 @dataclass(frozen=True)
-class UPHTable:
-    table: str = "tblUPH"
-    emp_no: str = "EmpNo"
-    emp_name: str = "EmpName"
-    tag_count: int = "TagCount"
-
-@dataclass(frozen=True)
-class DetailsTable:
-    table: str = "tblDetailsOrg"
-    zone_id: int = "ZoneID"
-    details_id: int = "DetailsID"
-    tag_id: int = "TagID"
-    emp_no: str = "empno"
-    tag: str = "tag"
-    sku: str = "sku"
-    price: float = "price"
-    qty: int = "qty"
-    zone_sku: str = "ZoneSku"
-
-
-@dataclass(frozen=True)
-class DetailsEditTable:
-    table: str = "tblDetailsEdit"
-    details_id: int = "DetailsID"
-    emp_no: str = "empno"
-    tag: str = "tag"
-    sku: str = "sku"
-    dept: str = "dept"
-    price: float = "price"
-    qty: int = "qty"
-    zone_sku: str = "ZoneSku"
-
-
-@dataclass(frozen=True)
-class ZoneTable:
-    table: str = "tblZone"
-    zone_id: int = "ZoneID"
-    zone_desc: str = "ZoneDesc"
-
-
-@dataclass(frozen=True)
-class ZoneDeptTable:
-    table: str = "tblZoneDept"
-    zone_id: int = "ZoneID"
-    dept: str = "Dept"
-
-@dataclass(frozen=True)
 class TagTable:
     table: str = "tblTag"
     tag_id: int = "Tagid"
     tag_no: int = "TagNo"
     total_qty: int = "TotalQty"
     total_ext: float = "TotalEXTPRICE"
+
 
 @dataclass(frozen=True)
 class TagRangeTable:

@@ -1,5 +1,6 @@
 from PyInstaller.utils.hooks import collect_submodules
 
+
 hiddenimports = [
     'reportlab.rl_config',
     'reportlab.pdfbase',
