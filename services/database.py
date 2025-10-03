@@ -4,23 +4,23 @@ from PyQt6 import QtWidgets
 from pathlib import Path
 
 
-def get_db_connection(db_path: str | None = None, job_id: str | None = None) -> pyodbc.Connection | None:
+def get_db_connection(db_path: str | None = None, job_number: str | None = None) -> pyodbc.Connection | None:
     """Establishes a connection to the Microsoft Access database.
     
     Args:
-        db_path: Full path to the database file. If not provided, constructs path using job_id.
-        job_id: Job identifier for default database path construction.
+        db_path: Full path to the database file. If not provided, constructs path using job_number.
+        job_number: Job number for default database path construction.
         
     Returns:
         Active database connection or None if connection fails.
     """
-    if db_path is None and job_id is not None:
-        db_path = rf"C:\WISDOM\JOBS\{job_id}\11355\{job_id}.MDB"
-    elif db_path is None and job_id is None:
+    if db_path is None and job_number is not None:
+        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
+    elif db_path is None and job_number is None:
         try:
-            QtWidgets.QMessageBox.critical(None, "Database Error", "Database path or job ID required for connection.")
+            QtWidgets.QMessageBox.critical(None, "Database Error", "Database path or job number required for connection.")
         except:
-            print("Database Error: Database path or job ID required for connection.")
+            print("Database Error: Database path or job number required for connection.")
         return None
 
     if not Path(db_path).exists():

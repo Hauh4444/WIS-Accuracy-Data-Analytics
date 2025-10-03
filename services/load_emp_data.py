@@ -18,11 +18,11 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
     try:
         cursor = conn.cursor()
 
-        uph = UPHTable();
-        details = DetailsTable();
-        queue = ZoneChangeQueueTable();
-        info = ZoneChangeInfoTable();
-        tag = TagTable();
+        uph = UPHTable()
+        details = DetailsTable()
+        queue = ZoneChangeQueueTable()
+        info = ZoneChangeInfoTable()
+        tag = TagTable()
 
         emp_query = f"""
             SELECT 
@@ -80,6 +80,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
                     AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
+                    AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
             
             discrepancy_tags_query = f"""
@@ -90,6 +91,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                     INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                     WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
                         AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
+                        AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
                 )
             """
             cursor.execute(discrepancy_dollars_query)

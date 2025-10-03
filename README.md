@@ -1,16 +1,17 @@
 # WIS Accuracy Data Analytics
 
-A professional Python application for generating WIS International accuracy reports using inventory data. Features a Qt6-based graphical interface with two-step database loading and Jinja2 templating for professional PDF report generation.
+A professional Python application for generating WIS International accuracy reports using inventory data. Features a Qt6-based graphical interface with two-step database loading, employee hours input, and Jinja2 templating for professional PDF report generation.
 
 ## Features
 
 - **Two-Step Database Loading**: 
-  - Primary: Job ID input for automatic database path resolution
+  - Primary: Job Number input for automatic database path resolution (`C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`)
   - Fallback: Manual file browser for custom database selection
+- **Employee Hours Input**: Interactive interface for entering employee work hours
 - **Qt6 GUI**: Clean, professional interface for data input and report generation
-- **Professional Reports**: HTML templates rendered as PDFs in browser for printing
-- **Cross-Platform**: Works on Windows and Linux with appropriate database drivers
-- **Standalone Executable**: Can be packaged for Windows distribution
+- **Professional Reports**: HTML templates rendered as PDFs and opened in browser for printing
+- **Data Models**: Comprehensive database table models for UPH, Details, Zone, Tag, and TagRange tables
+- **Windows-Only**: Designed for Windows with Microsoft Access database connectivity
 
 ## Installation
 
@@ -51,18 +52,16 @@ A professional Python application for generating WIS International accuracy repo
 
 ## Usage
 
-### Database Loading Process
+### Application Workflow
 
 1. **Launch the application** (`python main.py`)
-2. **Primary Method - Job ID Input**:
-   - Enter a Job ID in the first dialog
-   - Application attempts to connect to: `C:\WISDOM\JOBS\{job_id}\11355\{job_id}.MDB`
-3. **Fallback Method - File Browser** (if Job ID fails):
-   - Browse and select database file manually
-   - Supports `.mdb` and `.accdb` files
-4. **Data Processing**: Employee and team data is loaded and validated
-5. **Report Generation**: Professional accuracy reports are generated
-6. **PDF Output**: Reports open in browser for printing
+2. **Database Loading**:
+   - **Primary Method - Job Number Input**: Enter a Job Number to automatically connect to `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
+   - **Fallback Method - File Browser**: If Job Number fails, browse and select database file manually (supports `.mdb` and `.accdb` files)
+3. **Employee Hours Input**: Enter work hours for each employee in the interactive interface
+4. **Data Processing**: Employee and team data is loaded, validated, and processed
+5. **Report Generation**: Click "Print" to generate professional accuracy reports
+6. **PDF Output**: Reports are generated as PDF and opened in browser for printing
 
 ### Building Standalone Executable
 
@@ -102,8 +101,8 @@ WIS-Accuracy-Data-Analytics/
 │   ├── database.py                 # Database connection management
 │   ├── load_emp_data.py           # Employee data loading
 │   ├── load_team_data.py          # Team data loading
-│   ├── models.py                  # Data models
-│   ├── report_generator.py        # Report generation
+│   ├── models.py                  # Database table models (UPH, Details, Zone, Tag, etc.)
+│   ├── report_generator.py        # PDF report generation
 │   └── resource_utils.py          # Resource path utilities
 ├── styles/                        # Qt stylesheets
 │   ├── emp_hour_input_row.qss
@@ -111,9 +110,11 @@ WIS-Accuracy-Data-Analytics/
 ├── templates/                     # HTML report templates
 │   ├── emp_report.html
 │   └── team_report.html
-├── tests/                        # Test suite
+├── tests/                        # Comprehensive test suite
 │   ├── test_database.py
+│   ├── test_emp_hours_input_window.py
 │   ├── test_load_data_dynamic_dialog.py
+│   ├── test_load_data_manual_dialog.py
 │   ├── test_load_emp_data.py
 │   ├── test_load_team_data.py
 │   └── test_report_generator.py
@@ -130,17 +131,21 @@ WIS-Accuracy-Data-Analytics/
 
 ## Dependencies
 
-- **Python 3.10+**
+- **Python 3.12+**
 - **PyQt6** - GUI framework
-- **pyodbc** - Database connectivity
-- **Jinja2** - HTML templating
+- **pyodbc** - Microsoft Access database connectivity
+- **Jinja2** - HTML templating engine
 - **xhtml2pdf** - HTML-to-PDF rendering
+- **reportlab** - PDF generation support
+- **pillow** - Image processing
+- **pytest** - Testing framework
 - **PyInstaller** - Executable packaging (optional)
 
 ## Database Requirements
 
-- **Windows**: Microsoft Access Driver (*.mdb, *.accdb)
-- **Linux**: MDBTools (`sudo apt-get install mdbtools`)
+- **Windows Only**: Microsoft Access Driver (*.mdb, *.accdb)
+- **Database Path**: `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
+- **Supported Formats**: `.mdb` and `.accdb` files
 
 ## Development
 

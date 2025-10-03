@@ -40,9 +40,9 @@ def test_center_on_screen_no_screen(app):
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
 def test_load_database_success(mock_team, mock_emp, mock_conn, app):
-    """Test successful database loading with job ID."""
+    """Test successful database loading with job number."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]
@@ -50,27 +50,27 @@ def test_load_database_success(mock_team, mock_emp, mock_conn, app):
 
     dialog.load_database()
 
-    mock_conn.assert_called_once_with(job_id="TEST123")
+    mock_conn.assert_called_once_with(job_number="TEST123")
     mock_emp.assert_called_once()
     mock_team.assert_called_once()
     assert hasattr(dialog, 'emp_data')
     assert hasattr(dialog, 'team_data')
 
 
-def test_load_database_empty_job_id_shows_warning(app):
-    """Test that empty job ID shows warning and returns early."""
+def test_load_database_empty_job_number_shows_warning(app):
+    """Test that empty job number shows warning and returns early."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("")
+    dialog.txtJobNumber.setText("")
 
     with patch.object(QtWidgets.QMessageBox, 'warning') as mock_warning:
         dialog.load_database()
         mock_warning.assert_called_once()
 
 
-def test_load_database_whitespace_job_id_shows_warning(app):
-    """Test that whitespace-only job ID shows warning and returns early."""
+def test_load_database_whitespace_job_number_shows_warning(app):
+    """Test that whitespace-only job number shows warning and returns early."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("   ")
+    dialog.txtJobNumber.setText("   ")
 
     with patch.object(QtWidgets.QMessageBox, 'warning') as mock_warning:
         dialog.load_database()
@@ -81,7 +81,7 @@ def test_load_database_whitespace_job_id_shows_warning(app):
 def test_load_database_no_connection_rejects_dialog(mock_conn, app):
     """Test that failed connection rejects dialog."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
     mock_conn.return_value = None
 
     with patch.object(dialog, 'reject') as mock_reject:
@@ -94,7 +94,7 @@ def test_load_database_no_connection_rejects_dialog(mock_conn, app):
 def test_load_database_emp_data_error_handling(mock_emp, mock_conn, app):
     """Test error handling during employee data loading."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
     mock_emp.side_effect = Exception("Database error")
@@ -112,7 +112,7 @@ def test_load_database_emp_data_error_handling(mock_emp, mock_conn, app):
 def test_load_database_team_data_error_handling(mock_team, mock_emp, mock_conn, app):
     """Test error handling during team data loading."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]
@@ -131,7 +131,7 @@ def test_load_database_team_data_error_handling(mock_team, mock_emp, mock_conn, 
 def test_load_database_closes_connection(mock_team, mock_emp, mock_conn, app):
     """Test that database connection is properly closed."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_connection = MagicMock()
     mock_conn.return_value = mock_connection
@@ -148,7 +148,7 @@ def test_load_database_closes_connection(mock_team, mock_emp, mock_conn, app):
 def test_load_database_closes_connection_on_error(mock_emp, mock_conn, app):
     """Test that database connection is closed even when error occurs."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_connection = MagicMock()
     mock_conn.return_value = mock_connection
@@ -167,7 +167,7 @@ def test_load_database_closes_connection_on_error(mock_emp, mock_conn, app):
 def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app):
     """Test that employee and team data are properly set as attributes."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     emp_data = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
     team_data = [{"id": 1, "team": "Engineering"}, {"id": 2, "team": "Sales"}]
@@ -189,13 +189,13 @@ def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app)
             
             def mock_load_ui(ui_path, dialog):
                 dialog.btnLoad = MagicMock()
-                dialog.txtJobID = MagicMock()
+                dialog.txtJobNumber = MagicMock()
             
             with patch("views.load_data_dynamic_dialog.uic.loadUi", side_effect=mock_load_ui):
                 dialog = LoadDataDynamicDialog()
                 
                 assert hasattr(dialog, 'btnLoad')
-                assert hasattr(dialog, 'txtJobID')
+                assert hasattr(dialog, 'txtJobNumber')
 
 
 @patch("views.load_data_dynamic_dialog.get_db_connection")
@@ -204,7 +204,7 @@ def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app)
 def test_load_database_accepts_dialog_on_success(mock_team, mock_emp, mock_conn, app):
     """Test that dialog accepts when data loading succeeds."""
     dialog = LoadDataDynamicDialog()
-    dialog.txtJobID.setText("TEST123")
+    dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]

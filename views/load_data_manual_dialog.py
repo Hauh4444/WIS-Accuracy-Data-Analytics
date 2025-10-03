@@ -1,9 +1,9 @@
 from PyQt6 import QtWidgets, uic
 
-from services.load_emp_data import load_emp_data
-from services.load_team_data import load_team_data
 from services.database import get_db_connection
 from services.resource_utils import resource_path
+from services.load_emp_data import load_emp_data
+from services.load_team_data import load_team_data
 
 
 class LoadDataManualDialog(QtWidgets.QDialog):
@@ -67,7 +67,7 @@ class LoadDataManualDialog(QtWidgets.QDialog):
                 f"An error occurred while loading data:\n{e}"
             )
             import traceback
-            traceback.print_exc()
+            traceback.print_exc()        
         finally:
             if conn:
                 conn.close()

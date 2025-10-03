@@ -7,7 +7,7 @@ from views.emp_hours_input_window import EmpHoursInputWindow
 
 
 def load_data_with_fallback():
-    """Load data using dynamic dialog first (job_id), fallback to manual dialog if needed."""
+    """Load data using dynamic dialog first (job_number), fallback to manual dialog if needed."""
     dynamic_dialog = LoadDataDynamicDialog()
     
     if dynamic_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:

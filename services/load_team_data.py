@@ -18,10 +18,10 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
     try:
         cursor = conn.cursor()
 
-        zone = ZoneTable();
-        queue = ZoneChangeQueueTable();
-        info = ZoneChangeInfoTable();
-        tag_range = TagRangeTable();
+        zone = ZoneTable()
+        queue = ZoneChangeQueueTable()
+        info = ZoneChangeInfoTable()
+        tag_range = TagRangeTable()
 
         zone_query = f"""
             SELECT 
@@ -61,6 +61,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
                     AND {queue.table}.{queue.zone_id} = {zone_id}
+                    AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
             
             discrepancy_tags_query = f"""
@@ -71,6 +72,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                     INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                     WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
                         AND {queue.table}.{queue.zone_id} = {zone_id}
+                        AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
                 )
             """
             

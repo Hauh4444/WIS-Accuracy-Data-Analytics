@@ -1,13 +1,13 @@
 from PyQt6 import QtWidgets, uic
 
-from services.load_emp_data import load_emp_data
-from services.load_team_data import load_team_data
 from services.database import get_db_connection
 from services.resource_utils import resource_path
+from services.load_emp_data import load_emp_data
+from services.load_team_data import load_team_data
 
 
 class LoadDataDynamicDialog(QtWidgets.QDialog):
-    """Dialog for loading database using job ID input."""
+    """Dialog for loading database using job number input."""
     
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""
@@ -32,18 +32,18 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
 
         
     def load_database(self) -> None:
-        """Load employee and team data from database using job ID."""
-        job_id = self.txtJobID.text().strip()
+        """Load employee and team data from database using job number."""
+        job_number = self.txtJobNumber.text().strip()
         
-        if not job_id:
+        if not job_number:
             QtWidgets.QMessageBox.warning(
                 self,
                 "Input Required",
-                "Please enter a Job ID."
+                "Please enter a Job Number."
             )
             return
 
-        conn = get_db_connection(job_id=job_id)
+        conn = get_db_connection(job_number=job_number)
         if not conn:
             self.reject()
             return
@@ -64,7 +64,7 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
             )
             import traceback
             traceback.print_exc()
-            self.reject()
+            self.reject()        
         finally:
             if conn:
                 conn.close()

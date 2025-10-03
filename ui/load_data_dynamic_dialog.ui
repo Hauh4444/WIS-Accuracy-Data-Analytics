@@ -86,7 +86,7 @@ QPushButton:pressed {
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
-       <string>JobID: </string>
+       <string>Job Number: </string>
       </property>
      </widget>
     </item>
@@ -107,7 +107,7 @@ QPushButton:pressed {
      </spacer>
     </item>
     <item>
-     <widget class="QLineEdit" name="txtJobID">
+     <widget class="QLineEdit" name="txtJobNumber">
       <property name="minimumSize">
        <size>
         <width>100</width>
