@@ -14,9 +14,17 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
     Returns:
         Dictionary containing store information for report page headers
     """
+    now = datetime.now()
+    store_data = {
+        "inventory_datetime": "",
+        "print_date": f"{now.month}/{now.day}/{now.year}",
+        "store": "",
+        "print_time": now.strftime("%I:%M:%S%p"),
+        "store_address": ""
+    }
+
     try:
         cursor = conn.cursor()
-
         wise = WISEInfoTable()
 
         zone_query = f"""
@@ -28,31 +36,13 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         """
         cursor.execute(zone_query)
         wise_row = cursor.fetchone()
-
-        if wise_row is None:
-            raise Exception("No WISE data found in database - tblWISEInfo table is empty")
-
-        now = datetime.now()
-
-        return {
-            "inventory_datetime": wise_row[0],
-            "print_date": f"{now.month}/{now.day}/{now.year}",
-            "store": wise_row[1],
-            "print_time": now.strftime("%I:%M:%S%p"),
-            "store_address": wise_row[2]
-        }
+        store_data["inventory_datetime"] = wise_row[0].strftime("%m/%d/%Y %I:%M:%S%p") if wise_row and wise_row[0] is not None else ""
+        store_data["store"] = wise_row[1] if wise_row and wise_row[1] is not None else ""
+        store_data["store_address"] = wise_row[2] if wise_row and wise_row[2] is not None else ""
     except Exception as e:
         try:
             QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load store data: {str(e)}")
         except:
             pass
 
-        now = datetime.now()
-
-        return {
-            "inventory_datetime": "",
-            "print_date": f"{now.month}/{now.day}/{now.year}",
-            "store": "",
-            "print_time": now.strftime("%I:%M:%S%p"),
-            "store_address": ""
-        }
+    return store_data

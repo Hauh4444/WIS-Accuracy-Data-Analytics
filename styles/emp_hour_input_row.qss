@@ -2,7 +2,7 @@ QWidget {
     background-color: #c0c0c5;
     color: #000000;
     font-family: "Segoe UI", "Arial", sans-serif;
-    font-size: 11pt;
+    font-size: 10pt;
 }
 
 QScrollArea {

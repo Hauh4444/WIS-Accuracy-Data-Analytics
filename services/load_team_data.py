@@ -13,11 +13,10 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
     Returns:
         List of dictionaries containing team data with totals and discrepancies
     """
-    result = []
+    team_data = []
     
     try:
         cursor = conn.cursor()
-
         zone = ZoneTable()
         queue = ZoneChangeQueueTable()
         info = ZoneChangeInfoTable()
@@ -34,24 +33,24 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
         zone_rows = cursor.fetchall()
         
         for zone_row in zone_rows:
-            zone_id = zone_row[0]
-            zone_desc = zone_row[1]
-            
+            zone_id = zone_row[0] if zone_row and zone_row[0] else ""
+            zone_desc = zone_row[1] if zone_row and zone_row[1] else ""
+
             totals_query = f"""
                 SELECT 
                     Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1) AS total_tags,
                     Sum({tag_range.table}.{tag_range.total_qty}) AS total_quantity,
                     Sum({tag_range.table}.{tag_range.total_ext}) AS total_price
                 FROM {tag_range.table}
-                WHERE {tag_range.table}.{tag_range.zone_id} = {zone_id}
+                WHERE {tag_range.table}.{tag_range.zone_id} = ?
             """
-            cursor.execute(totals_query)
+            cursor.execute(totals_query, (zone_id,))
             totals_row = cursor.fetchone()
             
-            total_tags = totals_row[0] if totals_row[0] is not None else 0
-            total_quantity = totals_row[1] if totals_row[1] is not None else 0
-            total_price = totals_row[2] if totals_row[2] is not None else 0
-            
+            total_tags = totals_row[0] if totals_row and totals_row[0] is not None else 0
+            total_quantity = totals_row[1] if totals_row and totals_row[1] is not None else 0
+            total_price = totals_row[2] if totals_row and totals_row[2] is not None else 0
+
             discrepancy_dollars_query = f"""
                 SELECT 
                     Sum(
@@ -60,10 +59,13 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                    AND {queue.table}.{queue.zone_id} = {zone_id}
+                    AND {queue.table}.{queue.zone_id} = ?
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
-            
+            cursor.execute(discrepancy_dollars_query, (zone_id,))
+            discrepancy_dollars_row = cursor.fetchone()
+            discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
+
             discrepancy_tags_query = f"""
                 SELECT Count(*) AS discrepancy_tags
                 FROM (
@@ -71,21 +73,16 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                     FROM {queue.table}
                     INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                     WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                        AND {queue.table}.{queue.zone_id} = {zone_id}
+                        AND {queue.table}.{queue.zone_id} = ?
                         AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
                 )
             """
-            
-            cursor.execute(discrepancy_dollars_query)
-            discrepancy_dollars_row = cursor.fetchone()
-            discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
-            
-            cursor.execute(discrepancy_tags_query)
+            cursor.execute(discrepancy_tags_query, (zone_id,))
             discrepancy_tags_row = cursor.fetchone()
             discrepancy_tags = discrepancy_tags_row[0] if discrepancy_tags_row and discrepancy_tags_row[0] is not None else 0
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
             
-            result.append({
+            team_data.append({
                 'department_number': zone_id,
                 'department_name': zone_desc,
                 'total_tags': total_tags,
@@ -95,7 +92,10 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                 'total_discrepancy_tags': discrepancy_tags,
                 'discrepancy_percent': discrepancy_percent
             })
-        return result
     except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
-        return []
+        try:
+            QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
+        except:
+            pass
+
+    return team_data

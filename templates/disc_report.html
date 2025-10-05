@@ -1,0 +1,73 @@
+<table
+    cellspacing="0"
+    cellpadding="5"
+    style="
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Times New Roman;
+        font-size: 10px;
+        color: #000000;
+        line-height: 1;
+    "
+>
+    <tbody>
+        <tr style="border-bottom: 1px solid black">
+            <th style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                EMP_ID
+            </th>
+            <th style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                ZONE_ID
+            </th>
+            <th style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                TAG
+            </th>
+            <th style="width: 20%; text-align: left; display: table-cell; vertical-align: middle;">
+                UPC
+            </th>
+            <th style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
+                PRICE
+            </th>
+            <th style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+                ORIG_QTY
+            </th>
+            <th style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+                NEW_QTY
+            </th>
+            <th style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
+                DISCREPANCY
+            </th>
+        </tr>
+        {% for emp in employee_data %}
+        {% if emp.discrepancies %}
+        {% for disc in emp.discrepancies %}
+        <tr>
+            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(emp.employee_id) }}
+            </td>
+            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(disc.zone_id) }}
+            </td>
+            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(disc.tag) }}
+            </td>
+            <td style="width: 20%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(disc.upc) }}
+            </td>
+            <td style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(disc.price) }}
+            </td>
+            <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(disc.counted_qty) }}
+            </td>
+            <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(disc.new_quantity) }}
+            </td>
+            <td style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(disc.discrepancy_dollars) }}
+            </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+    </tbody>
+</table>

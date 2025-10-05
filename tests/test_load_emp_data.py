@@ -45,7 +45,8 @@ class TestLoadEmpData:
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_emp_row],
-            [("TAG001",)]
+            [("TAG001",)],
+            []  # no discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
@@ -68,6 +69,7 @@ class TestLoadEmpData:
         assert result[0]["total_discrepancy_dollars"] == 0
         assert result[0]["total_discrepancy_tags"] == 0
         assert result[0]["discrepancy_percent"] == 0
+        assert result[0]["discrepancies"] == []
 
     @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     def test_multiple_employees_loading(self, mock_critical):
@@ -79,9 +81,18 @@ class TestLoadEmpData:
         mock_cursor.fetchall.side_effect = [
             [mock_row1, mock_row2],
             [("TAG001",)],
-            [("TAG002",)]
+            [],  # no discrepancies for employee 1
+            [("TAG002",)],
+            []   # no discrepancies for employee 2
         ]
-        mock_cursor.fetchone.return_value = (100, 500.0)
+        mock_cursor.fetchone.side_effect = [
+            (100, 500.0),  # tag totals for employee 1
+            (0,),          # discrepancy dollars for employee 1
+            (0,),          # discrepancy tags for employee 1
+            (100, 500.0),  # tag totals for employee 2
+            (0,),          # discrepancy dollars for employee 2
+            (0,)           # discrepancy tags for employee 2
+        ]
         
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
@@ -126,7 +137,8 @@ class TestLoadEmpData:
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_emp_row],
-            [("TAG001",)]
+            [("TAG001",)],
+            []  # no discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
@@ -144,6 +156,7 @@ class TestLoadEmpData:
         assert emp_data["total_discrepancy_dollars"] == 0
         assert emp_data["total_discrepancy_tags"] == 0
         assert emp_data["discrepancy_percent"] == 0
+        assert emp_data["discrepancies"] == []
 
     def test_high_discrepancy_calculation(self):
         """Test calculation with high discrepancy values."""
@@ -152,7 +165,8 @@ class TestLoadEmpData:
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_emp_row],
-            [("TAG001",)]
+            [("TAG001",)],
+            [(100.0, 5, 10, 10.0, "E001", "111111111", 1), (150.0, 3, 8, 18.75, "E001", "222222222", 2)]  # high discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
@@ -170,6 +184,11 @@ class TestLoadEmpData:
         assert emp_data["total_discrepancy_dollars"] == 250.0
         assert emp_data["total_discrepancy_tags"] == 5
         assert emp_data["discrepancy_percent"] == 50.0  # 250/500 * 100
+        
+        # Check discrepancies data
+        assert len(emp_data["discrepancies"]) == 2
+        assert emp_data["discrepancies"][0]["discrepancy_dollars"] == 100.0
+        assert emp_data["discrepancies"][1]["discrepancy_dollars"] == 150.0
 
     @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     def test_discrepancy_calculation_with_data(self, mock_critical):
@@ -179,7 +198,8 @@ class TestLoadEmpData:
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_emp_row],
-            [("TAG001",)]
+            [("TAG001",)],
+            [(50.0, 10, 5, 10.0, "E001", "123456789", 1), (25.0, 8, 3, 8.33, "E001", "987654321", 2)]  # discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
@@ -197,6 +217,16 @@ class TestLoadEmpData:
         assert emp_data["total_discrepancy_dollars"] == 75.0
         assert emp_data["total_discrepancy_tags"] == 2
         assert emp_data["discrepancy_percent"] == 15.0  # 75/500 * 100
+        
+        # Check discrepancies data
+        assert len(emp_data["discrepancies"]) == 2
+        assert emp_data["discrepancies"][0]["discrepancy_dollars"] == 50.0
+        assert emp_data["discrepancies"][0]["counted_qty"] == 10
+        assert emp_data["discrepancies"][0]["quantity"] == 5
+        assert emp_data["discrepancies"][0]["price"] == 10.0
+        assert emp_data["discrepancies"][0]["emp_no"] == "E001"
+        assert emp_data["discrepancies"][0]["upc"] == "123456789"
+        assert emp_data["discrepancies"][0]["zone_id"] == 1
 
     def test_discrepancy_percent_zero_division(self):
         """Test that discrepancy percent is 0 when total_price is 0."""
@@ -205,7 +235,8 @@ class TestLoadEmpData:
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_emp_row],
-            [("TAG001",)]
+            [("TAG001",)],
+            [(50.0, 5, 3, 16.67, "E001", "333333333", 1)]  # discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 0.0),    # tag totals with 0 price

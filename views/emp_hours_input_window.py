@@ -37,11 +37,9 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             self.rows_widgets.append(row)
 
         self.empRowsLayout.addStretch()
-
         self.apply_scrollbar_style()
         self.resize(600, 600)
         self.center_on_screen()
-
         self.btnPrint.clicked.connect(self.on_print_clicked)
 
 
@@ -116,16 +114,13 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         for i, row_widget in enumerate(self.rows_widgets):
             hours_text = row_widget.txt_hours.text().strip()
             emp_hours = float(hours_text) if hours_text.replace(".", "", 1).isdigit() else 0.0
-
             self.emp_data[i]["hours"] = emp_hours
             if emp_hours > 0:
                 self.emp_data[i]["uph"] = self.emp_data[i]["total_quantity"] / emp_hours
             else:
                 self.emp_data[i]["uph"] = 0
-
         if not self.emp_data:
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
-
         generate_accuracy_report(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
         self.close()

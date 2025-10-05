@@ -37,6 +37,7 @@ class ZoneChangeQueueTable:
     zone_queue_id: int = "ZoneQueueID"
     zone_id: int = "ZoneID"
     tag: str = "Tag"
+    upc: str = "UPC"
     price: float = "Price"
     quantity: int = "Quantity"
     reason: str = "Reason"

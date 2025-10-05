@@ -1,48 +1,3 @@
-<body style="margin: 0;">
-<table
-    cellspacing="0"
-    cellpadding="3"
-    style="
-        width: 100%;
-        border-collapse: collapse;
-        font-family: Times New Roman;
-        font-size: 10px;
-        margin-bottom: 20px;
-        line-height: 1;
-    "
->
-    <tbody>
-        <tr>
-            <td style="font-weight: bold; text-align: left;">
-                Inventory Date: {{ "%s"|format(page_headers.inventory_datetime) }}
-            </td>
-            <td style="font-weight: bold; text-align: center;">
-                Accuracy Report
-            </td>
-            <td style="font-weight: bold; text-align: right;">
-                Page #: 1 of 2
-            </td>
-        </tr>
-        <tr>
-            <td style="font-weight: bold; text-align: left;">
-                Print Date: {{ "%s"|format(page_headers.print_date) }}
-            </td>
-            <td style="font-weight: bold; text-align: center;">
-                {{ "%s"|format(page_headers.store) }}
-            </td>
-            <td style="font-weight: bold; text-align: right;"></td>
-        </tr>
-        <tr>
-            <td style="font-weight: bold; text-align: left;">
-                Print Time: {{ "%s"|format(page_headers.print_time) }}
-            </td>
-            <td style="font-weight: bold; text-align: center;">
-                {{ "%s"|format(page_headers.store_address) }}
-            </td>
-            <td style="font-weight: bold; text-align: right;"></td>
-        </tr>
-    </tbody>
-</table>
 <table
     cellspacing="0"
     cellpadding="5"
@@ -73,7 +28,7 @@
                 &nbsp;&nbsp;%
             </th>
             <th style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
-                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </th>
             <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 TAGS
@@ -85,43 +40,42 @@
                 UPH
             </th>
         </tr>
-        {% for row in results %}
-        {% if row.discrepancy_percent >= 2.0 %}
+        {% for emp in employee_data %}
+        {% if emp.discrepancy_percent >= 2.0 %}
         <tr style="background-color: #ffcccc;">
-        {% elif row.discrepancy_percent >= 1.5 %}
+        {% elif emp.discrepancy_percent >= 1.5 %}
         <tr style="background-color: #ffffcc;">
         {% else %}
         <tr>
         {% endif %}
             <td style="width: 7%; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(row.employee_id) }}
+                {{ "%s"|format(emp.employee_id) }}
             </td>
             <td style="width: 28%; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(row.employee_name) }}
+                {{ "%s"|format(emp.employee_name) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
+                ${{ "%.2f"|format(emp.total_discrepancy_dollars) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(row.total_discrepancy_tags) }}
+                {{ "%i"|format(emp.total_discrepancy_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%.2f"|format(row.discrepancy_percent) }}%
+                {{ "%.2f"|format(emp.discrepancy_percent) }}%
             </td>
             <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(row.total_price) }}
+                ${{ "%.2f"|format(emp.total_price) }}
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(row.total_tags) }}
+                {{ "%i"|format(emp.total_tags) }}
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(row.total_quantity) }}
+                {{ "%i"|format(emp.total_quantity) }}
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(row.uph) }}
+                {{ "%i"|format(emp.uph) }}
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-</body>

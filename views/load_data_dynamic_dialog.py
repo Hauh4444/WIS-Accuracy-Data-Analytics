@@ -15,9 +15,7 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
         super().__init__()
         ui_path = resource_path("ui/load_data_dynamic_dialog.ui")
         uic.loadUi(ui_path, self)
-
         self.btnLoad.clicked.connect(self.load_database)
-
         self.center_on_screen()
 
 
@@ -35,36 +33,21 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
     def load_database(self) -> None:
         """Load employee and team data from database using job number."""
         job_number = self.txtJobNumber.text().strip()
-        
         if not job_number:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Input Required",
-                "Please enter a Job Number."
-            )
+            QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Job Number.")
             return
-
         conn = get_db_connection(job_number=job_number)
         if not conn:
             self.reject()
             return
 
         try:
-            store_data = load_store_data(conn=conn)
-            emp_data = load_emp_data(conn=conn)
-            team_data = load_team_data(conn=conn)
-
-            self.store_data = store_data
-            self.emp_data = emp_data
-            self.team_data = team_data
-
+            self.store_data = load_store_data(conn=conn)
+            self.emp_data = load_emp_data(conn=conn)
+            self.team_data = load_team_data(conn=conn)
             self.accept()
         except Exception as e:
-            QtWidgets.QMessageBox.critical(
-                self,
-                "Load Error",
-                f"An error occurred while loading data:\n{e}"
-            )
+            QtWidgets.QMessageBox.critical(self, "Load Error", f"An error occurred while loading data:\n{e}")
             import traceback
             traceback.print_exc()
             self.reject()        
