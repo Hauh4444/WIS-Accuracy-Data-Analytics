@@ -1,19 +1,24 @@
 # WIS Accuracy Data Analytics
 
-A professional Python application for generating WIS International accuracy reports using inventory data. Features a Qt6-based graphical interface with two-step database loading, employee hours input, and Jinja2 templating for professional PDF report generation.
+A professional **Windows-only** Python application for generating WIS International accuracy reports using inventory data. Features a Qt6-based graphical interface with two-step database loading, employee hours input, store data integration, and Jinja2 templating for professional PDF report generation.
 
 ## Features
 
+- **Windows-Only Application**: Designed exclusively for Windows with Microsoft Access database connectivity
 - **Two-Step Database Loading**: 
   - Primary: Job Number input for automatic database path resolution (`C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`)
   - Fallback: Manual file browser for custom database selection
-- **Employee Hours Input**: Interactive interface for entering employee work hours
+- **Store Data Integration**: Automatic loading of store information (name, address, inventory datetime) from WISE database
+- **Employee Hours Input**: Interactive interface for entering employee work hours with UPH calculations
+- **Team/Zone Analytics**: Comprehensive team and zone-based discrepancy analysis
+- **Professional Reports**: HTML templates rendered as PDFs with store headers and opened in browser for printing
 - **Qt6 GUI**: Clean, professional interface for data input and report generation
-- **Professional Reports**: HTML templates rendered as PDFs and opened in browser for printing
-- **Data Models**: Comprehensive database table models for UPH, Details, Zone, Tag, and TagRange tables
-- **Windows-Only**: Designed for Windows with Microsoft Access database connectivity
+- **Comprehensive Testing**: 98+ test cases covering all functionality with mock database connections
+- **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
 ## Installation
+
+**⚠️ Windows Only**: This application requires Windows with Microsoft Access database drivers.
 
 1. Clone the repository:
    ```bash 
@@ -24,9 +29,7 @@ A professional Python application for generating WIS International accuracy repo
 2. Create and activate virtual environment:
    ```bash 
    python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # or
-   venv\Scripts\activate     # Windows
+   .\venv\Scripts\activate     # Windows only
    ```
 
 3. Install dependencies:
@@ -58,10 +61,11 @@ A professional Python application for generating WIS International accuracy repo
 2. **Database Loading**:
    - **Primary Method - Job Number Input**: Enter a Job Number to automatically connect to `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
    - **Fallback Method - File Browser**: If Job Number fails, browse and select database file manually (supports `.mdb` and `.accdb` files)
-3. **Employee Hours Input**: Enter work hours for each employee in the interactive interface
-4. **Data Processing**: Employee and team data is loaded, validated, and processed
-5. **Report Generation**: Click "Print" to generate professional accuracy reports
-6. **PDF Output**: Reports are generated as PDF and opened in browser for printing
+3. **Store Data Loading**: Store information (name, address, inventory datetime) is automatically loaded from the WISE database
+4. **Employee Hours Input**: Enter work hours for each employee in the interactive interface with UPH calculations
+5. **Data Processing**: Employee, team, and store data is loaded, validated, and processed with discrepancy calculations
+6. **Report Generation**: Click "Print" to generate professional accuracy reports with store headers
+7. **PDF Output**: Reports are generated as PDF and opened in browser for printing
 
 ### Building Standalone Executable
 
@@ -77,15 +81,31 @@ pyinstaller --onefile --noconsole \
 
 ## Testing
 
-Run the comprehensive test suite:
+Run the comprehensive test suite (98+ test cases):
 
 ```bash
-# From project root
-PYTHONPATH=. pytest -v
+# Run all tests
+python -m pytest tests/ -v
 
-# Run specific test file
-pytest tests/test_load_data_dynamic_dialog.py -v
+# Run specific test files
+python -m pytest tests/test_load_store_data.py -v
+python -m pytest tests/test_load_emp_data.py -v
+python -m pytest tests/test_load_team_data.py -v
+python -m pytest tests/test_report_generator.py -v
+
+# Run with coverage (optional)
+python -m pytest tests/ --cov=services --cov-report=html
 ```
+
+### Test Coverage
+
+The test suite includes comprehensive coverage for:
+- **Store Data Loading**: Database connectivity, error handling, data validation
+- **Employee Data Processing**: UPH calculations, discrepancy analysis, null value handling
+- **Team Data Processing**: Zone-based analytics, department number handling
+- **Report Generation**: PDF creation, template rendering, error scenarios
+- **UI Components**: Window initialization, user interactions, data validation
+- **Database Operations**: Connection management, query execution, error recovery
 
 ## Project Structure
 
@@ -99,10 +119,11 @@ WIS-Accuracy-Data-Analytics/
 ├── services/                       # Core business logic
 │   ├── __init__.py
 │   ├── database.py                 # Database connection management
-│   ├── load_emp_data.py           # Employee data loading
-│   ├── load_team_data.py          # Team data loading
-│   ├── models.py                  # Database table models (UPH, Details, Zone, Tag, etc.)
-│   ├── report_generator.py        # PDF report generation
+│   ├── load_emp_data.py           # Employee data loading with UPH calculations
+│   ├── load_team_data.py          # Team/zone data loading with discrepancy analysis
+│   ├── load_store_data.py         # Store data loading from WISE database
+│   ├── models.py                  # Database table models (WISE Info, UPH, Details, Zone, Tag, etc.)
+│   ├── report_generator.py        # PDF report generation with store headers
 │   └── resource_utils.py          # Resource path utilities
 ├── styles/                        # Qt stylesheets
 │   ├── emp_hour_input_row.qss
@@ -110,12 +131,13 @@ WIS-Accuracy-Data-Analytics/
 ├── templates/                     # HTML report templates
 │   ├── emp_report.html
 │   └── team_report.html
-├── tests/                        # Comprehensive test suite
+├── tests/                        # Comprehensive test suite (98+ tests)
 │   ├── test_database.py
 │   ├── test_emp_hours_input_window.py
 │   ├── test_load_data_dynamic_dialog.py
 │   ├── test_load_data_manual_dialog.py
 │   ├── test_load_emp_data.py
+│   ├── test_load_store_data.py
 │   ├── test_load_team_data.py
 │   └── test_report_generator.py
 ├── ui/                          # Qt Designer UI files
@@ -143,9 +165,18 @@ WIS-Accuracy-Data-Analytics/
 
 ## Database Requirements
 
-- **Windows Only**: Microsoft Access Driver (*.mdb, *.accdb)
+- **Windows Only**: Requires Microsoft Access Driver (*.mdb, *.accdb) - **NOT compatible with Linux/Mac**
 - **Database Path**: `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
 - **Supported Formats**: `.mdb` and `.accdb` files
+- **Required Tables**: 
+  - `tblWISEInfo` - Store information (name, address, inventory datetime)
+  - `tblUPH` - Employee data (employee number, name, tag count)
+  - `tblDetailsOrg` - Employee tag assignments
+  - `tblZone` - Zone/department information
+  - `tblZoneChangeQueue` - Discrepancy tracking
+  - `tblZoneChangeInfo` - Discrepancy details
+  - `tblTag` - Tag totals and pricing
+  - `tblTagRange` - Tag range summaries
 
 ## Development
 
@@ -156,9 +187,14 @@ WIS-Accuracy-Data-Analytics/
 - Remove unused imports and dead code
 
 ### Testing
-- Comprehensive test coverage for all major components
-- Mock external dependencies (database connections, file I/O)
+- **98+ comprehensive test cases** covering all major components
+- Mock external dependencies (database connections, file I/O, Qt widgets)
 - Test both success and failure scenarios
+- **Store data loading tests** with proper error handling
+- **Employee/team data processing tests** with discrepancy calculations
+- **Report generation tests** with template validation
+- **UI component tests** with proper mocking
+- Fixed duplicate/useless tests to provide meaningful coverage
 
 ## License
 
