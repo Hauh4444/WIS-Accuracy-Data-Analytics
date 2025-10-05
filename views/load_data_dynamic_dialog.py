@@ -36,7 +36,8 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
         if not job_number:
             QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Job Number.")
             return
-        conn = get_db_connection(job_number=job_number)
+        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
+        conn = get_db_connection(db_path=db_path)
         if not conn:
             self.reject()
             return
