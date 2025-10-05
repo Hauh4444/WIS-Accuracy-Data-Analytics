@@ -73,7 +73,7 @@ emp_data = [
 team_data = [
     {
         "department_number": 1,
-        "department_name": "ELECTRONICS",
+        "department_name": "Entertainment",
         "total_discrepancy_dollars": 4532.13,
         "total_discrepancy_tags": 5,
         "discrepancy_percent": 0.70,
@@ -83,7 +83,7 @@ team_data = [
     },
     {
         "department_number": 2,
-        "department_name": "HOME",
+        "department_name": "Home",
         "total_discrepancy_dollars": 2731.62,
         "total_discrepancy_tags": 15,
         "discrepancy_percent": 0.52,

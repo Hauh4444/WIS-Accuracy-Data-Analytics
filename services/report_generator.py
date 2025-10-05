@@ -17,47 +17,30 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         emp_data: List of employee data dictionaries
         team_data: List of team data dictionaries
     """
-    if not isinstance(store_data, dict):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "store_data must be a dictionary")
-        return
-    if not isinstance(emp_data, list):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "emp_data must be a list of dictionaries")
-        return
-    if not isinstance(team_data, list):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "team_data must be a list of dictionaries")
-        return
+    for var, expected_type, name in [(store_data, dict, "store_data"), (emp_data, list, "emp_data"), (team_data, list, "team_data")]:
+        if not isinstance(var, expected_type):
+            QtWidgets.QMessageBox.critical(None, "Input Error", f"{name} must be a {expected_type.__name__}")
+            return
 
     try:
         templates_path = resource_path("templates")
         env = Environment(loader=FileSystemLoader(templates_path))
 
-        header_template_path = resource_path("templates/page_header.html")
-        emp_template_path = resource_path("templates/emp_report.html")
-        team_template_path = resource_path("templates/team_report.html")
-        disc_template_path = resource_path("templates/disc_report.html")
-        if not Path(header_template_path).exists():
-            QtWidgets.QMessageBox.critical(None, "Template Error", "page_header.html template not found")
-            return
-        if not Path(emp_template_path).exists():
-            QtWidgets.QMessageBox.critical(None, "Template Error", "emp_report.html template not found")
-            return
-        if not Path(team_template_path).exists():
-            QtWidgets.QMessageBox.critical(None, "Template Error", "team_report.html template not found")
-            return
-        if not Path(disc_template_path).exists():
-            QtWidgets.QMessageBox.critical(None, "Template Error", "disc_report.html template not found")
-            return
+        for template in ["emp_report.html", "team_report.html", "disc_report.html"]:
+            if not Path(resource_path(f"templates/{template}")).exists():
+                QtWidgets.QMessageBox.critical(None, "Template Error", f"{template} template not found")
+                return
 
-        sorted_emp_data = sorted(emp_data, key=lambda x: [-x.get("uph", 0), -x.get("total_quantity", 0)])
-        sorted_team_data = sorted(team_data, key=lambda x: x.get("department_number", 0))
-        html_header = env.get_template("page_header.html").render(page_headers=store_data)
-        html_employee = env.get_template("emp_report.html").render(employee_data=sorted_emp_data)
-        html_team = env.get_template("team_report.html").render(team_data=sorted_team_data)
-        html_disc = env.get_template("disc_report.html").render(employee_data=sorted_emp_data)
+        emp_template = env.get_template("emp_report.html")
+        team_template = env.get_template("team_report.html")
+        disc_template = env.get_template("disc_report.html")
+        html_emp = emp_template.render(page_headers=store_data, emp_data=emp_data)
+        html_team = team_template.render(page_headers=store_data, team_data=team_data)
+        html_disc = disc_template.render(page_headers=store_data, emp_data=emp_data)
         full_html = (
-            html_header + html_employee + '<div style="page-break-before: always;"></div>' +
-            html_header + html_team + '<div style="page-break-before: always;"></div>' +
-            html_header + html_disc
+            html_emp + "<div style='page-break-before: always;'></div>" +
+            html_team + "<div style='page-break-before: always;'></div>" +
+            html_disc
         )
 
         pdf_buffer = BytesIO()
