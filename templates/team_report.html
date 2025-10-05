@@ -1,12 +1,13 @@
+<body style="margin: 0;">
 <table
     cellspacing="0"
-    cellpadding="1"
+    cellpadding="3"
     style="
         width: 100%;
         border-collapse: collapse;
         font-family: Times New Roman;
-        font-size: 12px;
-        margin-bottom: 10px;
+        font-size: 10px;
+        margin-bottom: 20px;
         line-height: 1;
     "
 >
@@ -29,6 +30,7 @@
             <td style="font-weight: bold; text-align: center;">
                 {{ "%s"|format(page_headers.store) }}
             </td>
+            <td style="font-weight: bold; text-align: right;"></td>
         </tr>
         <tr>
             <td style="font-weight: bold; text-align: left;">
@@ -37,24 +39,25 @@
             <td style="font-weight: bold; text-align: center;">
                 {{ "%s"|format(page_headers.store_address) }}
             </td>
+            <td style="font-weight: bold; text-align: right;"></td>
         </tr>
     </tbody>
 </table>
 <table
     cellspacing="0"
-    cellpadding="3"
+    cellpadding="5"
     style="
         width: 100%;
         border-collapse: collapse;
         font-family: Times New Roman;
-        font-size: 12px;
+        font-size: 10px;
         color: #000000;
         line-height: 1;
     "
 >
     <tbody>
         <tr style="border-bottom: 1px solid black">
-            <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+            <th style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
                 #
             </th>
             <th style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
@@ -63,26 +66,26 @@
             <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </th>
-            <th style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
+            <th style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
                 TAGS
             </th>
-            <th style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+            <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 &nbsp;&nbsp;%
             </th>
-            <th style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 17%; text-align: right; display: table-cell; vertical-align: middle;">
                 $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </th>
-            <th style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 TAGS
             </th>
-            <th style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 QTY
             </th>
         </tr>
         {% for row in results %}
         {% if row.total_quantity > 0 %}
         <tr>
-            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+            <td style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(row.department_number) }}
             </td>
             <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
@@ -91,19 +94,19 @@
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 ${{ "%.2f"|format(row.total_discrepancy_dollars) }}
             </td>
-            <td style="width: 10%; text-align: center; display: table-cell; vertical-align: middle;">
+            <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(row.total_discrepancy_tags) }}
             </td>
-            <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
+            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%.2f"|format(row.discrepancy_percent) }}%
             </td>
-            <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+            <td style="width: 17%; text-align: right; display: table-cell; vertical-align: middle;">
                 ${{ "%.2f"|format(row.total_price) }}
             </td>
-            <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(row.total_tags) }}
             </td>
-            <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
+            <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(row.total_quantity) }}
             </td>
         </tr>
@@ -111,3 +114,4 @@
         {% endfor %}
     </tbody>
 </table>
+</body>
