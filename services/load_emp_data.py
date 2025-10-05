@@ -30,6 +30,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 {uph.table}.{uph.emp_name},
                 {uph.table}.{uph.tag_count}
             FROM {uph.table}
+            WHERE {uph.table}.{uph.emp_no} != 'ZZ9999'
             ORDER BY {uph.table}.{uph.emp_no}
         """
         cursor.execute(emp_query)

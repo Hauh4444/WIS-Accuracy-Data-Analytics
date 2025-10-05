@@ -44,6 +44,19 @@ emp_data = [
     },
 ]
 
+for i in range(42):
+    emp_data.append({
+        "employee_id": 103,
+        "employee_name": "Charlie Davis",
+        "total_discrepancy_dollars": 5.00,
+        "total_discrepancy_tags": 2,
+        "discrepancy_percent": 1.2,
+        "total_price": 100.00,
+        "total_tags": 50,
+        "total_quantity": 80,
+        "uph": 20
+    })
+
 team_data = [
     {
         "department_number": 1,
