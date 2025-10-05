@@ -36,7 +36,7 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         """
         cursor.execute(zone_query)
         wise_row = cursor.fetchone()
-        store_data["inventory_datetime"] = wise_row[0].strftime("%m/%d/%Y %I:%M:%S%p") if wise_row and wise_row[0] is not None else ""
+        store_data["inventory_datetime"] = wise_row[0] if wise_row and wise_row[0] is not None else ""
         store_data["store"] = wise_row[1] if wise_row and wise_row[1] is not None else ""
         store_data["store_address"] = wise_row[2] if wise_row and wise_row[2] is not None else ""
     except Exception as e:
