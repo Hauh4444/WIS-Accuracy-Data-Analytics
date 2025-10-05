@@ -2,6 +2,14 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class WISEInfoTable:
+    table: str = "tblWISEInfo"
+    job_datetime: str = "JobDateTime"
+    name: str = "Name"
+    address: str = "Address"
+
+
+@dataclass(frozen=True)
 class UPHTable:
     table: str = "tblUPH"
     emp_no: str = "EmpNo"

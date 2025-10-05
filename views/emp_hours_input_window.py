@@ -9,10 +9,11 @@ from services.resource_utils import resource_path
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
     """Main window for employee hours input and report generation."""
     
-    def __init__(self, emp_data: list[dict], team_data: list[dict]):
+    def __init__(self, store_data: dict, emp_data: list[dict], team_data: list[dict]):
         """Initialize the window with employee and team data.
         
         Args:
+            store_data: Dictionary containing store data
             emp_data: List of employee data dictionaries
             team_data: List of team data dictionaries
         """
@@ -23,6 +24,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.emp_row_qss_path = resource_path("styles/emp_hour_input_row.qss")
         self.scrollbar_qss_path = resource_path("styles/scrollbar.qss")
 
+        self.store_data = store_data
         self.emp_data = emp_data
         self.team_data = team_data
 
@@ -125,5 +127,5 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
 
-        generate_accuracy_report(emp_data=self.emp_data, team_data=self.team_data)
+        generate_accuracy_report(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
         self.close()

@@ -9,10 +9,11 @@ from jinja2 import Environment, FileSystemLoader
 from services.resource_utils import resource_path
 
 
-def generate_accuracy_report(emp_data: list[dict], team_data: list[dict]) -> None:
+def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: list[dict]) -> None:
     """Generate and display accuracy reports for employees and teams.
     
     Args:
+        store_data: Dictionary containing store data
         emp_data: List of employee data dictionaries
         team_data: List of team data dictionaries
     """
@@ -38,10 +39,10 @@ def generate_accuracy_report(emp_data: list[dict], team_data: list[dict]) -> Non
             return
 
         sorted_emp_data = sorted(emp_data, key=lambda x: [-x.get("uph", 0), -x.get("total_quantity", 0)])
-        html_employee = env.get_template("emp_report.html").render(results=sorted_emp_data)
+        html_employee = env.get_template("emp_report.html").render(page_headers=store_data, results=sorted_emp_data)
         
         sorted_team_data = sorted(team_data, key=lambda x: x.get("department_number", 0))
-        html_team = env.get_template("team_report.html").render(results=sorted_team_data)
+        html_team = env.get_template("team_report.html").render(page_headers=store_data, results=sorted_team_data)
 
         full_html = html_employee + '<div style="page-break-before: always;"></div>' + html_team
 

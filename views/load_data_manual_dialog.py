@@ -2,6 +2,7 @@ from PyQt6 import QtWidgets, uic
 
 from services.database import get_db_connection
 from services.resource_utils import resource_path
+from services.load_store_data import load_store_data
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data
 
@@ -53,9 +54,11 @@ class LoadDataManualDialog(QtWidgets.QDialog):
             return
 
         try:
+            store_data = load_store_data(conn=conn)
             emp_data = load_emp_data(conn=conn)
             team_data = load_team_data(conn=conn)
-            
+
+            self.store_data = store_data
             self.emp_data = emp_data
             self.team_data = team_data
             
