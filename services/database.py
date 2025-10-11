@@ -13,9 +13,6 @@ def get_db_connection(db_path: str) -> pyodbc.Connection | None:
     Returns:
         Active database connection or None if connection fails.
     """
-    if db_path is None:
-        QtWidgets.QMessageBox.critical(None, "Database Error", "Database path or job number required for connection.")
-        return None
     if not Path(db_path).exists():
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database file not found:\n{db_path}")
         return None

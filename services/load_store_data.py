@@ -6,7 +6,7 @@ from services.models import WISEInfoTable
 
 
 def load_store_data(conn: pyodbc.Connection) -> dict:
-    """Load store data with from the database.
+    """Load store data from the database.
 
     Args:
         conn: Database connection object
@@ -27,22 +27,19 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         cursor = conn.cursor()
         wise = WISEInfoTable()
 
-        zone_query = f"""
+        store_query = f"""
             SELECT TOP 1
                 {wise.table}.{wise.job_datetime},
                 {wise.table}.{wise.name},
                 {wise.table}.{wise.address}
             FROM {wise.table}
         """
-        cursor.execute(zone_query)
+        cursor.execute(store_query)
         wise_row = cursor.fetchone()
         store_data["inventory_datetime"] = wise_row[0] if wise_row and wise_row[0] is not None else ""
         store_data["store"] = wise_row[1] if wise_row and wise_row[1] is not None else ""
         store_data["store_address"] = wise_row[2] if wise_row and wise_row[2] is not None else ""
     except Exception as e:
-        try:
-            QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load store data: {str(e)}")
-        except:
-            pass
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load store data: {str(e)}")
 
     return store_data

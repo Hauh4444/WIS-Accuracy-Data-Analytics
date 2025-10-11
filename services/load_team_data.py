@@ -67,19 +67,16 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
 
             discrepancy_tags_query = f"""
-                SELECT Count(*) AS discrepancy_tags
-                FROM (
-                    SELECT DISTINCT {queue.table}.{queue.tag}
-                    FROM {queue.table}
-                    INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
-                    WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                        AND {queue.table}.{queue.zone_id} = ?
-                        AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
-                )
+                SELECT DISTINCT {queue.table}.{queue.tag}
+                FROM {queue.table}
+                INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
+                WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
+                    AND {queue.table}.{queue.zone_id} = ?
+                    AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
             cursor.execute(discrepancy_tags_query, (zone_id,))
-            discrepancy_tags_row = cursor.fetchone()
-            discrepancy_tags = discrepancy_tags_row[0] if discrepancy_tags_row and discrepancy_tags_row[0] is not None else 0
+            discrepancy_tags_rows = cursor.fetchall()
+            discrepancy_tags = len(discrepancy_tags_rows)
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
             
             team_data.append({
@@ -93,9 +90,6 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                 'discrepancy_percent': discrepancy_percent
             })
     except Exception as e:
-        try:
-            QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
-        except:
-            pass
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load team data: {str(e)}")
 
     return team_data

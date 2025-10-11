@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -10,16 +11,21 @@ class WISEInfoTable:
 
 
 @dataclass(frozen=True)
-class UPHTable:
-    table: str = "tblUPH"
+class TerminalControlTable:
+    table: str = "tblTerminalControl"
+    emp_no: str = "TerminalUser"
+
+
+@dataclass(frozen=True)
+class EmpNamesTable:
+    table: str = "tblEmpNames"
     emp_no: str = "EmpNo"
-    emp_name: str = "EmpName"
-    tag_count: int = "TagCount"
+    emp_name: str = "Name"
 
 
 @dataclass(frozen=True)
 class DetailsTable:
-    table: str = "tblDetailsOrg"
+    table: str = "tblDetails"
     emp_no: str = "empno"
     tag: str = "tag"
 

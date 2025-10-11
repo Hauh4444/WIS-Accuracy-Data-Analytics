@@ -1,23 +1,24 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.models import UPHTable, DetailsTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagTable
+from services.models import TerminalControlTable, EmpNamesTable, DetailsTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagTable
 
 
 def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
     """Load employee data with discrepancy calculations from the database.
-    
+
     Args:
         conn: Database connection object
-        
+
     Returns:
         List of dictionaries containing employee data with totals and discrepancies
     """
     emp_data = []
-    
+
     try:
         cursor = conn.cursor()
-        uph = UPHTable()
+        term = TerminalControlTable()
+        emp = EmpNamesTable()
         details = DetailsTable()
         queue = ZoneChangeQueueTable()
         info = ZoneChangeInfoTable()
@@ -25,33 +26,29 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
 
         emp_query = f"""
             SELECT 
-                {uph.table}.{uph.emp_no},
-                {uph.table}.{uph.emp_name},
-                {uph.table}.{uph.tag_count}
-            FROM {uph.table}
-            WHERE {uph.table}.{uph.emp_no} <> 'ZZ9999'
-            ORDER BY {uph.table}.{uph.emp_no}
+                {emp.table}.{emp.emp_no},
+                {emp.table}.{emp.emp_name}
+            FROM {emp.table}
+            INNER JOIN {term.table} ON {term.table}.{term.emp_no} = {emp.table}.{emp.emp_no}
         """
         cursor.execute(emp_query)
         emp_rows = cursor.fetchall()
-        
+
         for emp_row in emp_rows:
-            emp_no = emp_row[0] if emp_row and emp_row[0] is not None else ""
-            emp_name = emp_row[1] if emp_row and emp_row[1] is not None else ""
-            tag_count = emp_row[2] if emp_row and emp_row[2] is not None else 0
-            
+            emp_no = emp_row[0]
+            emp_name = emp_row[1]
+
             tags_query = f"""
                 SELECT DISTINCT {details.table}.{details.tag}
                 FROM {details.table}
-                WHERE {details.table}.{details.emp_no} = ?
+                WHERE {details.table}.{details.emp_no} = '{emp_no}'
             """
-            cursor.execute(tags_query, (emp_no,))
+            cursor.execute(tags_query)
             tag_rows = cursor.fetchall()
-            
+            tag_count = len(tag_rows)
+
             total_quantity = 0
             total_price = 0
-
-            employee_tags = [str(tag_row[0]) for tag_row in tag_rows]
 
             for tag_row in tag_rows:
                 tag_value = tag_row[0]
@@ -61,17 +58,17 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                         {tag.table}.{tag.total_qty},
                         {tag.table}.{tag.total_ext}
                     FROM {tag.table}
-                    WHERE CInt({tag.table}.{tag.tag_no}) = CInt(?)
+                    WHERE CInt({tag.table}.{tag.tag_no}) = CInt({tag_value})
                 """
-                cursor.execute(tag_totals_query, (tag_value,))
+                cursor.execute(tag_totals_query)
                 tag_totals_row = cursor.fetchone()
-                
+
                 if tag_totals_row:
-                    total_quantity += tag_totals_row[0] if tag_totals_row and tag_totals_row[0] is not None else 0
-                    total_price += tag_totals_row[1] if tag_totals_row and tag_totals_row[1] is not None else 0
-            
-            placeholders = ','.join('?' for _ in employee_tags)
-            tags_params = tuple(employee_tags)
+                    total_quantity += tag_totals_row[0] if tag_totals_row[0] is not None else 0
+                    total_price += tag_totals_row[1] if tag_totals_row[1] is not None else 0
+
+            employee_tags = [str(tag_row[0]) for tag_row in tag_rows]
+            tags_filter = ','.join(employee_tags) if employee_tags else "''"
 
             discrepancy_dollars_query = f"""
                 SELECT 
@@ -81,10 +78,10 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                    AND CInt({queue.table}.{queue.tag}) IN ({placeholders})
+                    AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
-            cursor.execute(discrepancy_dollars_query, tags_params)
+            cursor.execute(discrepancy_dollars_query)
             discrepancy_dollars_row = cursor.fetchone()
             discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
 
@@ -95,43 +92,44 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                     FROM {queue.table}
                     INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                     WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                        AND CInt({queue.table}.{queue.tag}) IN ({placeholders})
+                        AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
                         AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
                 )
             """
-            cursor.execute(discrepancy_tags_query, tags_params)
+            cursor.execute(discrepancy_tags_query)
             discrepancy_tags_row = cursor.fetchone()
             discrepancy_tags = discrepancy_tags_row[0] if discrepancy_tags_row and discrepancy_tags_row[0] is not None else 0
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
-            
-            discrepancies_query = f"""
-                SELECT 
-                    {queue.table}.{queue.zone_id},
-                    {queue.table}.{queue.tag},
-                    {queue.table}.{queue.upc},
-                    {queue.table}.{queue.price},
-                    {info.table}.{info.counted_qty},
-                    {queue.table}.{queue.quantity},
-                    Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) AS discrepancy_dollars
+
+            discrepancy_query = f"""
+                SELECT
+                    {queue.table}.{queue.zone_id}
+                    {queue.table}.{queue.tag}
+                    {queue.table}.{queue.upc}
+                    {queue.table}.{queue.price}
+                    {info.table}.{info.counted_qty}
+                    {queue.table}.{queue.quantity}
+                    Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                    AND CInt({queue.table}.{queue.tag}) IN ({placeholders})
+                    AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
-                ORDER BY {queue.table}.{queue.tag} ASC
+                ORDER BY {queue.table}.{queue.tag}
             """
-            cursor.execute(discrepancies_query, tags_params)
+            cursor.execute(discrepancy_query)
             discrepancy_rows = cursor.fetchall()
             discrepancies = []
-            for row in discrepancy_rows:
+
+            for discrepancy_row in discrepancy_rows:
                 discrepancies.append({
-                    'zone_id': row[0],
-                    'tag': row[1],
-                    'upc': row[2],
-                    'price': row[3],
-                    'counted_qty': row[4],
-                    'new_quantity': row[5],
-                    'discrepancy_dollars': row[6]
+                    "zone_id": discrepancy_row[0],
+                    "tag": discrepancy_row[1],
+                    "upc": discrepancy_row[2],
+                    "price": discrepancy_row[3],
+                    "counted_qty": discrepancy_row[4],
+                    "new_quantity": discrepancy_row[5],
+                    "discrepancy_dollars": discrepancy_row[6]
                 })
 
             emp_data.append({
@@ -145,10 +143,9 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 'discrepancy_percent': discrepancy_percent,
                 'discrepancies': discrepancies
             })
+
+        return emp_data
     except Exception as e:
-        try:
-            QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load employee data: {str(e)}")
-        except:
-            pass
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load employee data: {str(e)}")
 
     return emp_data

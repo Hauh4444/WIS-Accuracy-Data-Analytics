@@ -19,7 +19,7 @@
                 UPH Report
             </td>
             <td style="font-weight: bold; text-align: right;">
-                Page #: 1 of 3
+                Page #: 1 of 4
             </td>
         </tr>
         <tr>
@@ -85,9 +85,9 @@
             </th>
         </tr>
         {% for emp in emp_data %}
-        {% if emp.discrepancy_percent >= 2.0 %}
+        {% if emp.discrepancy_percent >= 1.5 %}
         <tr style="background-color: #ffcccc;">
-        {% elif emp.discrepancy_percent >= 1.5 %}
+        {% elif emp.discrepancy_percent >= 1.0 %}
         <tr style="background-color: #ffffcc;">
         {% else %}
         <tr>

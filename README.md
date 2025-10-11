@@ -29,7 +29,7 @@ A professional **Windows-only** Python application for generating WIS Internatio
 2. Create and activate virtual environment:
    ```bash 
    python -m venv venv
-   .\venv\Scripts\activate     # Windows only
+   venv\Scripts\activate
    ```
 
 3. Install dependencies:

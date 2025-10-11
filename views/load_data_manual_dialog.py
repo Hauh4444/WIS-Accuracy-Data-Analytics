@@ -41,6 +41,9 @@ class LoadDataManualDialog(QtWidgets.QDialog):
     def load_database(self) -> None:
         """Load employee and team data from selected database file."""
         db_path = self.txtDatabasePath.text().strip()
+        if not db_path:
+            QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Database Path.")
+            return
         conn = get_db_connection(db_path=db_path)
         if not conn:
             return

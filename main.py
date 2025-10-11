@@ -18,7 +18,7 @@ def load_data_with_fallback():
         if hasattr(manual_dialog, 'store_data') and hasattr(manual_dialog, 'emp_data') and hasattr(manual_dialog, 'team_data'):
             return manual_dialog.store_data,  manual_dialog.emp_data, manual_dialog.team_data
     
-    return None, None
+    return None, None, None
 
 
 if __name__ == "__main__":
