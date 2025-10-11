@@ -11,14 +11,14 @@ A professional **Windows-only** Python application for generating WIS Internatio
 - **Store Data Integration**: Automatic loading of store information (name, address, inventory datetime) from WISE database
 - **Employee Hours Input**: Interactive interface for entering employee work hours with UPH calculations
 - **Team/Zone Analytics**: Comprehensive team and zone-based discrepancy analysis
-- **Professional Reports**: HTML templates rendered as PDFs with store headers and opened in browser for printing
+- **Professional Reports**: Three integrated reports (Employee, Team, Discrepancy) rendered as PDF with store headers and opened in browser for printing
 - **Qt6 GUI**: Clean, professional interface for data input and report generation
 - **Comprehensive Testing**: 98+ test cases covering all functionality with mock database connections
 - **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
 ## Installation
 
-**⚠️ Windows Only**: This application requires Windows with Microsoft Access database drivers.
+**Windows Only**: This application requires Windows with Microsoft Access database drivers.
 
 1. Clone the repository:
    ```bash 
@@ -64,8 +64,8 @@ A professional **Windows-only** Python application for generating WIS Internatio
 3. **Store Data Loading**: Store information (name, address, inventory datetime) is automatically loaded from the WISE database
 4. **Employee Hours Input**: Enter work hours for each employee in the interactive interface with UPH calculations
 5. **Data Processing**: Employee, team, and store data is loaded, validated, and processed with discrepancy calculations
-6. **Report Generation**: Click "Print" to generate professional accuracy reports with store headers
-7. **PDF Output**: Reports are generated as PDF and opened in browser for printing
+6. **Report Generation**: Click "Print" to generate three integrated accuracy reports (Employee, Team, and Discrepancy) with store headers
+7. **PDF Output**: Combined report is generated as a single PDF with page breaks and opened in browser for printing
 
 ### Building Standalone Executable
 
@@ -103,7 +103,7 @@ The test suite includes comprehensive coverage for:
 - **Store Data Loading**: Database connectivity, error handling, data validation
 - **Employee Data Processing**: UPH calculations, discrepancy analysis, null value handling
 - **Team Data Processing**: Zone-based analytics, department number handling
-- **Report Generation**: PDF creation, template rendering, error scenarios
+- **Report Generation**: PDF creation with three integrated reports (Employee, Team, Discrepancy), template rendering, error scenarios
 - **UI Components**: Window initialization, user interactions, data validation
 - **Database Operations**: Connection management, query execution, error recovery
 
@@ -129,8 +129,9 @@ WIS-Accuracy-Data-Analytics/
 │   ├── emp_hour_input_row.qss
 │   └── scrollbar.qss
 ├── templates/                     # HTML report templates
-│   ├── emp_report.html
-│   └── team_report.html
+│   ├── disc_report.html           # Discrepancy report template
+│   ├── emp_report.html            # Employee report template
+│   └── team_report.html           # Team report template
 ├── tests/                        # Comprehensive test suite (98+ tests)
 │   ├── test_database.py
 │   ├── test_emp_hours_input_window.py
