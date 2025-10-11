@@ -39,9 +39,13 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         emp_template = env.get_template("emp_report.html")
         team_template = env.get_template("team_report.html")
         disc_template = env.get_template("disc_report.html")
-        html_emp = emp_template.render(page_headers=store_data, emp_data=emp_data)
-        html_team = team_template.render(page_headers=store_data, team_data=team_data)
-        html_disc = disc_template.render(page_headers=store_data, emp_data=emp_data)
+
+        sorted_emp_data = sorted(emp_data, key=lambda x: (-x["uph"], -x["total_quantity"]))
+        sorted_team_data = sorted(team_data, key=lambda x: x["department_number"])
+
+        html_emp = emp_template.render(page_headers=store_data, emp_data=sorted_emp_data)
+        html_team = team_template.render(page_headers=store_data, team_data=sorted_team_data)
+        html_disc = disc_template.render(page_headers=store_data, emp_data=sorted_emp_data)
         full_html = (
             html_emp + "<div style='page-break-before: always;'></div>" +
             html_team + "<div style='page-break-before: always;'></div>" +

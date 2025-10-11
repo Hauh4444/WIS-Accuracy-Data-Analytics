@@ -52,10 +52,9 @@ class TestLoadEmpData:
             []               # no discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
-            (100, 500.0),  # tag totals (repeated 25 times for each tag)
-        ] * 25 + [
-            (0,),          # discrepancy dollars
-            (0,)           # discrepancy tags
+            (2500, 12500.0),  # tag totals aggregated: 100 * 25 tags, 500.0 * 25 tags
+            (0,),             # discrepancy dollars
+            (0,)              # discrepancy tags
         ]
         
         mock_conn = MagicMock()

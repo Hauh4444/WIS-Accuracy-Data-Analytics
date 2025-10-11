@@ -22,7 +22,7 @@ def get_db_connection(db_path: str) -> pyodbc.Connection | None:
 
     try:
         conn_str = f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={db_path};"
-        conn = pyodbc.connect(conn_str)
+        conn = pyodbc.connect(conn_str, autocommit=False)
         return conn
     except Exception as e:
         QtWidgets.QMessageBox.critical(None, "Connection Error", f"Database connection failed:\n{e}")

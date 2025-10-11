@@ -25,7 +25,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         tag = TagTable()
 
         emp_query = f"""
-            SELECT 
+            SELECT DISTINCT
                 {emp.table}.{emp.emp_no},
                 {emp.table}.{emp.emp_name}
             FROM {emp.table}
@@ -47,28 +47,34 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             tag_rows = cursor.fetchall()
             tag_count = len(tag_rows)
 
-            total_quantity = 0
-            total_price = 0
-
-            for tag_row in tag_rows:
-                tag_value = tag_row[0]
-
-                tag_totals_query = f"""
-                    SELECT 
-                        {tag.table}.{tag.total_qty},
-                        {tag.table}.{tag.total_ext}
-                    FROM {tag.table}
-                    WHERE CInt({tag.table}.{tag.tag_no}) = CInt({tag_value})
-                """
-                cursor.execute(tag_totals_query)
-                tag_totals_row = cursor.fetchone()
-
-                if tag_totals_row:
-                    total_quantity += tag_totals_row[0] if tag_totals_row[0] is not None else 0
-                    total_price += tag_totals_row[1] if tag_totals_row[1] is not None else 0
-
             employee_tags = [str(tag_row[0]) for tag_row in tag_rows]
-            tags_filter = ','.join(employee_tags) if employee_tags else "''"
+            if not employee_tags:
+                emp_data.append({
+                    'employee_id': emp_no,
+                    'employee_name': emp_name,
+                    'total_tags': 0,
+                    'total_quantity': 0,
+                    'total_price': 0,
+                    'total_discrepancy_dollars': 0,
+                    'total_discrepancy_tags': 0,
+                    'discrepancy_percent': 0,
+                    'discrepancies': []
+                })
+                continue
+
+            tags_filter = ','.join(employee_tags)
+
+            tag_totals_query = f"""
+                SELECT 
+                    Sum(IIf(IsNull({tag.table}.{tag.total_qty}),0,{tag.table}.{tag.total_qty})) AS total_qty_sum,
+                    Sum(IIf(IsNull({tag.table}.{tag.total_ext}),0,{tag.table}.{tag.total_ext})) AS total_ext_sum
+                FROM {tag.table}
+                WHERE CInt({tag.table}.{tag.tag_no}) IN ({tags_filter})
+            """
+            cursor.execute(tag_totals_query)
+            totals_row = cursor.fetchone()
+            total_quantity = totals_row[0] or 0
+            total_price = totals_row[1] or 0
 
             discrepancy_dollars_query = f"""
                 SELECT 
@@ -119,18 +125,18 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             """
             cursor.execute(discrepancy_query)
             discrepancy_rows = cursor.fetchall()
-            discrepancies = []
-
-            for discrepancy_row in discrepancy_rows:
-                discrepancies.append({
-                    "zone_id": discrepancy_row[0],
-                    "tag": discrepancy_row[1],
-                    "upc": discrepancy_row[2],
-                    "price": discrepancy_row[3],
-                    "counted_qty": discrepancy_row[4],
-                    "new_quantity": discrepancy_row[5],
-                    "discrepancy_dollars": discrepancy_row[6]
-                })
+            discrepancies = [
+                {
+                    "zone_id": row[0],
+                    "tag": row[1],
+                    "upc": row[2],
+                    "price": row[3],
+                    "counted_qty": row[4],
+                    "new_quantity": row[5],
+                    "discrepancy_dollars": row[6],
+                }
+                for row in discrepancy_rows
+            ]
 
             emp_data.append({
                 'employee_id': emp_no,
