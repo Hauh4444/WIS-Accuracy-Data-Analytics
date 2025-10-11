@@ -36,9 +36,13 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         """
         cursor.execute(store_query)
         wise_row = cursor.fetchone()
-        store_data["inventory_datetime"] = wise_row[0] if wise_row and wise_row[0] is not None else ""
-        store_data["store"] = wise_row[1] if wise_row and wise_row[1] is not None else ""
-        store_data["store_address"] = wise_row[2] if wise_row and wise_row[2] is not None else ""
+        
+        if wise_row is None:
+            QtWidgets.QMessageBox.critical(None, "Database Error", "No WISE data found in database")
+        else:
+            store_data["inventory_datetime"] = wise_row[0]
+            store_data["store"] = wise_row[1]
+            store_data["store_address"] = wise_row[2]
     except Exception as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Failed to load store data: {str(e)}")
 

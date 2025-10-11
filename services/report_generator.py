@@ -17,10 +17,15 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         emp_data: List of employee data dictionaries
         team_data: List of team data dictionaries
     """
-    for var, expected_type, name in [(store_data, dict, "store_data"), (emp_data, list, "emp_data"), (team_data, list, "team_data")]:
-        if not isinstance(var, expected_type):
-            QtWidgets.QMessageBox.critical(None, "Input Error", f"{name} must be a {expected_type.__name__}")
-            return
+    if not isinstance(store_data, dict):
+        QtWidgets.QMessageBox.critical(None, "Input Error", "store_data must be a dict")
+        return
+    if not isinstance(emp_data, list):
+        QtWidgets.QMessageBox.critical(None, "Input Error", "emp_data must be a list of dictionaries")
+        return
+    if not isinstance(team_data, list):
+        QtWidgets.QMessageBox.critical(None, "Input Error", "team_data must be a list of dictionaries")
+        return
 
     try:
         templates_path = resource_path("templates")

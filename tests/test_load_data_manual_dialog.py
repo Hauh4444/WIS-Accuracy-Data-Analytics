@@ -183,17 +183,25 @@ class TestLoadDataManualDialog:
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("")
 
-        with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
+        with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn, \
+             patch.object(QtWidgets.QMessageBox, "warning") as mock_warning:
             dialog.load_database()
             
-            mock_conn.assert_called_once_with(db_path="")
+            # Should show warning and not call connection
+            mock_warning.assert_called_once()
+            mock_conn.assert_not_called()
+            assert "Input Required" in mock_warning.call_args[0][1]
 
     def test_whitespace_database_path(self, app):
         """Test behavior with whitespace-only database path."""
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("   ")
 
-        with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn:
+        with patch("views.load_data_manual_dialog.get_db_connection") as mock_conn, \
+             patch.object(QtWidgets.QMessageBox, "warning") as mock_warning:
             dialog.load_database()
             
-            mock_conn.assert_called_once_with(db_path="")
+            # Should show warning and not call connection after stripping whitespace
+            mock_warning.assert_called_once()
+            mock_conn.assert_not_called()
+            assert "Input Required" in mock_warning.call_args[0][1]

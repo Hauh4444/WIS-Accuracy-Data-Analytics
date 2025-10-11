@@ -39,20 +39,25 @@ def test_center_on_screen_no_screen(app):
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
-def test_load_database_success(mock_team, mock_emp, mock_conn, app):
+@patch("views.load_data_dynamic_dialog.load_store_data")
+def test_load_database_success(mock_store, mock_team, mock_emp, mock_conn, app):
     """Test successful database loading with job number."""
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
+    mock_store.return_value = {"store": "Test Store"}
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]
     mock_team.return_value = [{"id": 1, "team": "Engineering"}]
 
     dialog.load_database()
 
-    mock_conn.assert_called_once_with(job_number="TEST123")
+    expected_path = r"C:\WISDOM\JOBS\TEST123\11355\TEST123.MDB"
+    mock_conn.assert_called_once_with(db_path=expected_path)
+    mock_store.assert_called_once()
     mock_emp.assert_called_once()
     mock_team.assert_called_once()
+    assert hasattr(dialog, 'store_data')
     assert hasattr(dialog, 'emp_data')
     assert hasattr(dialog, 'team_data')
 

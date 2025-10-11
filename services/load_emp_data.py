@@ -103,12 +103,12 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
 
             discrepancy_query = f"""
                 SELECT
-                    {queue.table}.{queue.zone_id}
-                    {queue.table}.{queue.tag}
-                    {queue.table}.{queue.upc}
-                    {queue.table}.{queue.price}
-                    {info.table}.{info.counted_qty}
-                    {queue.table}.{queue.quantity}
+                    {queue.table}.{queue.zone_id},
+                    {queue.table}.{queue.tag},
+                    {queue.table}.{queue.upc},
+                    {queue.table}.{queue.price},
+                    {info.table}.{info.counted_qty},
+                    {queue.table}.{queue.quantity},
                     Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}

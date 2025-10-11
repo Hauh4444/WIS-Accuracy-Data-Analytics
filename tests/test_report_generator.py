@@ -133,13 +133,15 @@ class TestReportGenerator:
 
     def test_tempfile_creation_failure(self, sample_emp_data, sample_team_data, sample_store_data):
         """Test error handling when temporary file creation fails."""
-        with patch("services.report_generator.Path.exists", side_effect=[True, True, False]), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
+        with patch("services.report_generator.Path.exists", side_effect=[True, True, True, False]), \
+             patch("services.report_generator.Environment") as mock_env, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
              patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
              patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
             
-            mock_get_template.return_value.render.return_value = "<html></html>"
+            mock_template = MagicMock()
+            mock_template.render.return_value = "<html></html>"
+            mock_env.return_value.get_template.return_value = mock_template
             mock_create_pdf.return_value.err = 0
             
             fake_file = MagicMock()

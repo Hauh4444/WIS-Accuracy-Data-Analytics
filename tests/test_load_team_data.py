@@ -43,12 +43,12 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
+            [mock_zone_row],  # zones
+            [("TAG001",), ("TAG002",)]  # 2 discrepancy tags
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),  # totals: tags, quantity, price
             (75.0,),           # discrepancy dollars
-            (2,)               # discrepancy tags
         ]
         
         mock_conn = MagicMock()
@@ -74,15 +74,15 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2]
+            [mock_zone_row1, mock_zone_row2],  # zones
+            [("TAG001",)],                      # discrepancy tags for zone 101 (1 tag)
+            [("TAG002",)]                       # discrepancy tags for zone 102 (1 tag)
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),  # totals for zone 101
             (25.0,),           # discrepancy dollars for zone 101
-            (1,),              # discrepancy tags for zone 101
             (30, 75, 300.0),   # totals for zone 102
             (15.0,),           # discrepancy dollars for zone 102
-            (1,)               # discrepancy tags for zone 102
         ]
         
         mock_conn = MagicMock()
@@ -126,12 +126,12 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
+            [mock_zone_row],  # zones
+            []                # no discrepancy tags
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),  # totals: tags, quantity, price
             (0,),              # discrepancy dollars = 0
-            (0,)               # discrepancy tags = 0
         ]
         
         mock_conn = MagicMock()
@@ -149,14 +149,17 @@ class TestLoadTeamData:
         """Test calculation with high discrepancy values."""
         mock_zone_row = (101, "Finance Department")
         
+        # Create 8 mock discrepancy tag rows
+        discrepancy_tags = [(f"TAG{i:03d}",) for i in range(1, 9)]
+        
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
+            [mock_zone_row],     # zones
+            discrepancy_tags     # 8 discrepancy tags
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),  # totals: tags, quantity, price
             (300.0,),          # high discrepancy dollars
-            (8,)               # high discrepancy tags
         ]
         
         mock_conn = MagicMock()
@@ -178,15 +181,15 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2]
+            [mock_zone_row1, mock_zone_row2],  # zones
+            [("TAG001",)],                      # discrepancy tags for zone 101
+            [("TAG002",)]                       # discrepancy tags for zone 102
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),  # totals for zone 101
             (25.0,),           # discrepancy dollars for zone 101
-            (1,),              # discrepancy tags for zone 101
             (30, 75, 300.0),   # totals for zone 102
             (15.0,),           # discrepancy dollars for zone 102
-            (1,)               # discrepancy tags for zone 102
         ]
         
         mock_conn = MagicMock()
@@ -207,12 +210,12 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
+            [mock_zone_row],  # zones
+            [("TAG001",)]     # discrepancy tags
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 0.0),   # totals with 0 price
             (25.0,),          # discrepancy dollars
-            (1,)              # discrepancy tags
         ]
         
         mock_conn = MagicMock()
@@ -231,12 +234,12 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
+            [mock_zone_row],  # zones
+            []                # no discrepancy tags
         ]
         mock_cursor.fetchone.side_effect = [
             (None, None, None),  # totals are None
             (None,),             # discrepancy dollars is None
-            (None,)              # discrepancy tags is None
         ]
         
         mock_conn = MagicMock()

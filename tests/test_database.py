@@ -30,22 +30,25 @@ class TestDatabaseConnection:
 
     @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_file_not_found_with_job_number(self, mock_msg, mock_exists, app):
-        """Test error handling when job number database file doesn't exist."""
-        result = get_db_connection(job_number="TEST123")
+    def test_file_not_found_with_constructed_path(self, mock_msg, mock_exists, app):
+        """Test error handling when constructed database path doesn't exist."""
+        job_number = "TEST123"
+        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
+        result = get_db_connection(db_path=db_path)
         
         assert result is None
         mock_msg.assert_called_once()
         assert "Database file not found" in mock_msg.call_args[0][2]
 
+    @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_no_parameters_provided(self, mock_msg, app):
-        """Test error handling when neither db_path nor job_number is provided."""
-        result = get_db_connection()
+    def test_empty_path_error(self, mock_msg, mock_exists, app):
+        """Test error handling when empty database path is provided."""
+        result = get_db_connection(db_path="")
         
         assert result is None
         mock_msg.assert_called_once()
-        assert "Database path or job number required for connection" in mock_msg.call_args[0][2]
+        assert "Database file not found" in mock_msg.call_args[0][2]
 
     @patch("services.database.platform.system", return_value="Windows")
     @patch("services.database.Path.exists", return_value=True)
@@ -78,12 +81,14 @@ class TestDatabaseConnection:
     @patch("services.database.platform.system", return_value="Windows")
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
-    def test_connection_success_with_job_number(self, mock_connect, mock_exists, mock_platform, app):
-        """Test successful connection with job number."""
+    def test_connection_success_with_constructed_path(self, mock_connect, mock_exists, mock_platform, app):
+        """Test successful connection with constructed path from job number."""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
-        result = get_db_connection(job_number="TEST123")
+        job_number = "TEST123"
+        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
+        result = get_db_connection(db_path=db_path)
         
         assert result == mock_conn
         mock_connect.assert_called_once()

@@ -40,16 +40,20 @@ class TestLoadEmpData:
     @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     def test_successful_data_loading(self, mock_critical):
         """Test successful loading of employee data."""
-        mock_emp_row = ("E001", "Alice Johnson", 25)
+        mock_emp_row = ("E001", "Alice Johnson")
+        
+        # Generate 25 tag rows for total_tags to be 25
+        tag_rows = [(f"TAG{i:03d}",) for i in range(1, 26)]
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
-            [("TAG001",)],
-            []  # no discrepancies
+            [mock_emp_row],  # employee rows
+            tag_rows,        # 25 distinct tags
+            []               # no discrepancies
         ]
         mock_cursor.fetchone.side_effect = [
-            (100, 500.0),  # tag totals
+            (100, 500.0),  # tag totals (repeated 25 times for each tag)
+        ] * 25 + [
             (0,),          # discrepancy dollars
             (0,)           # discrepancy tags
         ]
@@ -64,8 +68,8 @@ class TestLoadEmpData:
         assert result[0]["employee_name"] == "Alice Johnson"
         assert result[0]["employee_id"] == "E001"
         assert result[0]["total_tags"] == 25
-        assert result[0]["total_quantity"] == 100
-        assert result[0]["total_price"] == 500.0
+        assert result[0]["total_quantity"] == 2500  # 100 * 25 tags
+        assert result[0]["total_price"] == 12500.0  # 500.0 * 25 tags
         assert result[0]["total_discrepancy_dollars"] == 0
         assert result[0]["total_discrepancy_tags"] == 0
         assert result[0]["discrepancy_percent"] == 0
@@ -160,18 +164,20 @@ class TestLoadEmpData:
 
     def test_high_discrepancy_calculation(self):
         """Test calculation with high discrepancy values."""
-        mock_emp_row = ("E001", "Alice Johnson", 25)
+        mock_emp_row = ("E001", "Alice Johnson")
         
         mock_cursor = MagicMock()
+        # Discrepancy rows: zone_id, tag, upc, price, counted_qty, quantity, discrepancy_dollars
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
-            [("TAG001",)],
-            [(100.0, 5, 10, 10.0, "E001", "111111111", 1), (150.0, 3, 8, 18.75, "E001", "222222222", 2)]  # high discrepancies
+            [mock_emp_row],  # employee rows
+            [("TAG001",)],   # tags
+            [(1, "TAG001", "111111111", 10.0, 5, 15, 100.0),   # discrepancy 1: 10.0 * |5 - 15| = 100.0
+             (2, "TAG001", "222222222", 18.75, 3, 11, 150.0)]  # discrepancy 2: 18.75 * |3 - 11| = 150.0
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
             (250.0,),      # high discrepancy dollars
-            (5,)           # high discrepancy tags
+            (2,)           # discrepancy tags (2 distinct tags with discrepancies)
         ]
         
         mock_conn = MagicMock()
@@ -182,24 +188,32 @@ class TestLoadEmpData:
         assert len(result) == 1
         emp_data = result[0]
         assert emp_data["total_discrepancy_dollars"] == 250.0
-        assert emp_data["total_discrepancy_tags"] == 5
+        assert emp_data["total_discrepancy_tags"] == 2
         assert emp_data["discrepancy_percent"] == 50.0  # 250/500 * 100
         
         # Check discrepancies data
         assert len(emp_data["discrepancies"]) == 2
+        assert emp_data["discrepancies"][0]["zone_id"] == 1
+        assert emp_data["discrepancies"][0]["tag"] == "TAG001"
+        assert emp_data["discrepancies"][0]["upc"] == "111111111"
+        assert emp_data["discrepancies"][0]["price"] == 10.0
+        assert emp_data["discrepancies"][0]["counted_qty"] == 5
+        assert emp_data["discrepancies"][0]["new_quantity"] == 15
         assert emp_data["discrepancies"][0]["discrepancy_dollars"] == 100.0
         assert emp_data["discrepancies"][1]["discrepancy_dollars"] == 150.0
 
     @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     def test_discrepancy_calculation_with_data(self, mock_critical):
         """Test discrepancy calculation when discrepancy data exists."""
-        mock_emp_row = ("E001", "Alice Johnson", 25)
+        mock_emp_row = ("E001", "Alice Johnson")
         
         mock_cursor = MagicMock()
+        # Discrepancy rows: zone_id, tag, upc, price, counted_qty, quantity, discrepancy_dollars
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
-            [("TAG001",)],
-            [(50.0, 10, 5, 10.0, "E001", "123456789", 1), (25.0, 8, 3, 8.33, "E001", "987654321", 2)]  # discrepancies
+            [mock_emp_row],  # employee rows
+            [("TAG001",)],   # tags
+            [(1, "TAG001", "123456789", 10.0, 5, 10, 50.0),   # discrepancy 1
+             (2, "TAG001", "987654321", 8.33, 3, 6, 25.0)]    # discrepancy 2
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),  # tag totals
@@ -220,13 +234,13 @@ class TestLoadEmpData:
         
         # Check discrepancies data
         assert len(emp_data["discrepancies"]) == 2
-        assert emp_data["discrepancies"][0]["discrepancy_dollars"] == 50.0
-        assert emp_data["discrepancies"][0]["counted_qty"] == 10
-        assert emp_data["discrepancies"][0]["quantity"] == 5
-        assert emp_data["discrepancies"][0]["price"] == 10.0
-        assert emp_data["discrepancies"][0]["emp_no"] == "E001"
-        assert emp_data["discrepancies"][0]["upc"] == "123456789"
         assert emp_data["discrepancies"][0]["zone_id"] == 1
+        assert emp_data["discrepancies"][0]["tag"] == "TAG001"
+        assert emp_data["discrepancies"][0]["upc"] == "123456789"
+        assert emp_data["discrepancies"][0]["price"] == 10.0
+        assert emp_data["discrepancies"][0]["counted_qty"] == 5
+        assert emp_data["discrepancies"][0]["new_quantity"] == 10
+        assert emp_data["discrepancies"][0]["discrepancy_dollars"] == 50.0
 
     def test_discrepancy_percent_zero_division(self):
         """Test that discrepancy percent is 0 when total_price is 0."""
@@ -256,12 +270,13 @@ class TestLoadEmpData:
 
     def test_null_values_handling(self):
         """Test handling of None values from database."""
-        mock_emp_row = ("E001", "Alice Johnson", 25)
+        mock_emp_row = ("E001", "Alice Johnson")
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
-            [("TAG001",)]
+            [mock_emp_row],  # employees
+            [("TAG001",)],   # tags
+            []               # discrepancies (empty)
         ]
         mock_cursor.fetchone.side_effect = [
             (None, None),  # tag totals are None
@@ -276,6 +291,7 @@ class TestLoadEmpData:
         
         assert len(result) == 1
         emp_data = result[0]
+        assert emp_data["total_tags"] == 1
         assert emp_data["total_quantity"] == 0  # Should handle None as 0
         assert emp_data["total_price"] == 0     # Should handle None as 0
         assert emp_data["total_discrepancy_dollars"] == 0  # Should handle None as 0
