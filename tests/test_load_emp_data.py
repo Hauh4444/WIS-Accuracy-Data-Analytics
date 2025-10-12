@@ -42,9 +42,10 @@ class TestLoadEmpData:
         tag_rows = [("E001", f"TAG{i:03d}") for i in range(1, 26)]
         
         mock_cursor = MagicMock()
+        # First fetchall is tags query, second is emp query
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             tag_rows,
+            [mock_emp_row],
             []
         ]
         mock_cursor.fetchone.side_effect = [
@@ -76,9 +77,10 @@ class TestLoadEmpData:
         mock_row2 = ("E002", "Bob Smith")
         
         mock_cursor = MagicMock()
+        # First fetchall is tags query, second is emp query
         mock_cursor.fetchall.side_effect = [
-            [mock_row1, mock_row2],
             [("E001", "TAG001"), ("E002", "TAG002")],
+            [mock_row1, mock_row2],
             [],
             []
         ]
@@ -116,8 +118,8 @@ class TestLoadEmpData:
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.side_effect = [
-            [("E001", "Test Employee")],
-            [("E001", "TAG001")]
+            [("E001", "TAG001")],
+            [("E001", "Test Employee")]
         ]
         mock_cursor.fetchone.return_value = None
         
@@ -130,8 +132,8 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             [("E001", "TAG001")],
+            [mock_emp_row],
             []
         ]
         mock_cursor.fetchone.side_effect = [
@@ -157,8 +159,8 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             [("E001", "TAG001")],
+            [mock_emp_row],
             [(1, "TAG001", "111111111", 10.0, 5, 15, 100.0),
              (2, "TAG001", "222222222", 18.75, 3, 11, 150.0)]
         ]
@@ -195,8 +197,8 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             [("E001", "TAG001")],
+            [mock_emp_row],
             [(1, "TAG001", "123456789", 10.0, 5, 10, 50.0),
              (2, "TAG001", "987654321", 8.33, 3, 6, 25.0)]
         ]
@@ -232,8 +234,8 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             [("E001", "TAG001")],
+            [mock_emp_row],
             [(50.0, 5, 3, 16.67, "E001", "333333333", 1)]
         ]
         mock_cursor.fetchone.side_effect = [
@@ -258,8 +260,8 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_emp_row],
             [("E001", "TAG001")],
+            [mock_emp_row],
             []
         ]
         mock_cursor.fetchone.side_effect = [
