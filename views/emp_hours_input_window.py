@@ -1,3 +1,4 @@
+"""Main employee hours input window for calculating UPH and generating reports."""
 import os
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
@@ -119,8 +120,10 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
                 self.emp_data[i]["uph"] = self.emp_data[i]["total_quantity"] / emp_hours
             else:
                 self.emp_data[i]["uph"] = 0
+        
         if not self.emp_data:
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
+        
         generate_accuracy_report(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
         self.close()

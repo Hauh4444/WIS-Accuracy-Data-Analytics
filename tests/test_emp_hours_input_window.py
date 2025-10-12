@@ -7,7 +7,6 @@ from views.emp_hours_input_window import EmpHoursInputWindow
 
 @pytest.fixture(scope="session", autouse=True)
 def qapp():
-    """Create QApplication instance for testing."""
     app = QtWidgets.QApplication.instance()
     if app is None:
         app = QtWidgets.QApplication([])
@@ -16,7 +15,6 @@ def qapp():
 
 @pytest.fixture
 def mock_ui(monkeypatch):
-    """Mock UI components for testing."""
     class FakeScrollContents(QtWidgets.QWidget):
         def __init__(self):
             super().__init__()
@@ -42,7 +40,6 @@ def mock_ui(monkeypatch):
 
 @pytest.fixture
 def sample_store_data():
-    """Sample store data for testing."""
     return {
         "inventory_datetime": "2024-01-15 10:00:00",
         "print_date": "1/15/2024",
@@ -53,10 +50,8 @@ def sample_store_data():
 
 
 class TestCreateEmployeeRow:
-    """Test cases for employee row creation."""
 
     def test_create_employee_row_properties(self, mock_ui, sample_store_data):
-        """Test that employee row is created with correct properties."""
         emp = {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8}
         emp_data = [emp]
         team_data = [{"department_number": 1, "department_name": "HR"}]
@@ -72,7 +67,6 @@ class TestCreateEmployeeRow:
         assert hasattr(row, "label_name")
 
     def test_create_employee_row_with_zero_hours(self, mock_ui, sample_store_data):
-        """Test employee row creation with zero hours."""
         emp = {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 0}
         emp_data = [emp]
         team_data = [{"department_number": 1, "department_name": "HR"}]
@@ -85,7 +79,6 @@ class TestCreateEmployeeRow:
         assert row.txt_hours.text() == "0"
 
     def test_create_employee_row_with_decimal_hours(self, mock_ui, sample_store_data):
-        """Test employee row creation with decimal hours."""
         emp = {"employee_id": "E003", "employee_name": "Charlie Brown", "hours": 7.5}
         emp_data = [emp]
         team_data = [{"department_number": 1, "department_name": "HR"}]
@@ -99,10 +92,8 @@ class TestCreateEmployeeRow:
 
 
 class TestEmpHoursInputWindow:
-    """Test cases for the main employee hours input window."""
 
     def test_window_initialization(self, mock_ui, sample_store_data):
-        """Test that window initializes properly with employee data."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
@@ -117,7 +108,6 @@ class TestEmpHoursInputWindow:
         assert row_widget.label_name.text() == "Alice Johnson"
 
     def test_multiple_employees_initialization(self, mock_ui, sample_store_data):
-        """Test window initialization with multiple employees."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80},
             {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 6, "total_quantity": 60},
@@ -136,7 +126,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_updates_emp_data(self, mock_report, mock_ui, sample_store_data):
-        """Test that print button updates employee data correctly."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
         ]
@@ -156,7 +145,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_non_numeric_hours(self, mock_report, mock_ui, sample_store_data):
-        """Test handling of non-numeric hours input."""
         emp_data = [
             {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 0, "total_quantity": 50}
         ]
@@ -176,7 +164,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_empty_hours(self, mock_report, mock_ui, sample_store_data):
-        """Test handling of empty hours input."""
         emp_data = [
             {"employee_id": "E003", "employee_name": "Charlie Brown", "hours": 0, "total_quantity": 60}
         ]
@@ -196,7 +183,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_empty_emp_data(self, mock_report, mock_ui, sample_store_data):
-        """Test handling when no employee data is available."""
         emp_data = []
         team_data = [
             {"department_number": 1, "department_name": "Human Resources"}
@@ -212,7 +198,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_decimal_hours(self, mock_report, mock_ui, sample_store_data):
-        """Test handling of decimal hours input."""
         emp_data = [
             {"employee_id": "E004", "employee_name": "Diana Prince", "hours": 0, "total_quantity": 100}
         ]
@@ -232,7 +217,6 @@ class TestEmpHoursInputWindow:
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_zero_quantity(self, mock_report, mock_ui, sample_store_data):
-        """Test handling when total quantity is zero."""
         emp_data = [
             {"employee_id": "E005", "employee_name": "Eve Adams", "hours": 0, "total_quantity": 0}
         ]
@@ -251,7 +235,6 @@ class TestEmpHoursInputWindow:
         mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
 
     def test_apply_scrollbar_style_file_not_exists(self, mock_ui, sample_store_data):
-        """Test scrollbar style application when file doesn't exist."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
@@ -267,7 +250,6 @@ class TestEmpHoursInputWindow:
         assert isinstance(window.scrollArea.styleSheet(), str)
 
     def test_center_on_screen_moves_window(self, mock_ui, sample_store_data):
-        """Test that center_on_screen properly positions the window."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
@@ -282,7 +264,6 @@ class TestEmpHoursInputWindow:
         assert pos.x() >= 0 and pos.y() >= 0
 
     def test_center_on_screen_no_screen(self, mock_ui, sample_store_data):
-        """Test center_on_screen handles missing screen gracefully."""
         emp_data = [
             {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
@@ -294,4 +275,3 @@ class TestEmpHoursInputWindow:
         
         with patch.object(QtWidgets.QApplication, 'primaryScreen', return_value=None):
             window.center_on_screen()
-            # Should not raise an exception

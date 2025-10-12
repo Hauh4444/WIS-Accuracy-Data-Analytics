@@ -1,3 +1,4 @@
+"""Database connection management for Microsoft Access databases via ODBC."""
 import pyodbc
 import platform
 from PyQt6 import QtWidgets
@@ -8,7 +9,7 @@ def get_db_connection(db_path: str) -> pyodbc.Connection | None:
     """Establishes a connection to the Microsoft Access database.
     
     Args:
-        db_path: Full path to the database file.
+        db_path: Full path to the database file (.mdb or .accdb).
 
     Returns:
         Active database connection or None if connection fails.
@@ -16,6 +17,7 @@ def get_db_connection(db_path: str) -> pyodbc.Connection | None:
     if not Path(db_path).exists():
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database file not found:\n{db_path}")
         return None
+    
     if platform.system() != "Windows":
         QtWidgets.QMessageBox.critical(None, "Platform Error", "Windows platform required for Microsoft Access database connectivity.")
         return None

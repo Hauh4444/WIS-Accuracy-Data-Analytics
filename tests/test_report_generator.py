@@ -6,11 +6,9 @@ from services.report_generator import generate_accuracy_report
 
 
 class TestReportGenerator:
-    """Test cases for accuracy report generation."""
 
     @pytest.fixture
     def sample_emp_data(self):
-        """Sample employee data for testing."""
         return [
             {
                 "employee_id": "E001",
@@ -34,7 +32,6 @@ class TestReportGenerator:
 
     @pytest.fixture
     def sample_team_data(self):
-        """Sample team data for testing."""
         return [
             {
                 "department_name": "Finance",
@@ -56,7 +53,6 @@ class TestReportGenerator:
 
     @pytest.fixture
     def sample_store_data(self):
-        """Sample store data for testing."""
         return {
             "inventory_datetime": "2024-01-15 10:00:00",
             "print_date": "1/15/2024",
@@ -67,7 +63,6 @@ class TestReportGenerator:
 
     @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
     def test_emp_data_type_validation(self, invalid_input, sample_team_data, sample_store_data):
-        """Test validation of employee data type."""
         with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
             generate_accuracy_report(sample_store_data, invalid_input, sample_team_data)
             mock_critical.assert_called_once()
@@ -75,14 +70,12 @@ class TestReportGenerator:
 
     @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
     def test_team_data_type_validation(self, invalid_input, sample_emp_data, sample_store_data):
-        """Test validation of team data type."""
         with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
             generate_accuracy_report(sample_store_data, sample_emp_data, invalid_input)
             mock_critical.assert_called_once()
             assert "team_data must be a list of dictionaries" in mock_critical.call_args[0][2]
 
     def test_employee_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test error handling when employee template file is missing."""
         with patch("pathlib.Path.exists", side_effect=[False, True]), \
              patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
             generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
@@ -90,7 +83,6 @@ class TestReportGenerator:
             assert "emp_report.html template not found" in mock_critical.call_args[0][2]
 
     def test_team_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test error handling when team template file is missing."""
         with patch("pathlib.Path.exists", side_effect=[True, False]), \
              patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
             generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
@@ -98,7 +90,6 @@ class TestReportGenerator:
             assert "team_report.html template not found" in mock_critical.call_args[0][2]
 
     def test_pdf_generation_error(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test error handling when PDF generation fails."""
         with patch("services.report_generator.Path.exists", return_value=True), \
              patch("services.report_generator.Environment.get_template") as mock_get_template, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
@@ -113,7 +104,6 @@ class TestReportGenerator:
             assert "An error occurred while generating the PDF" in mock_critical.call_args[0][2]
 
     def test_successful_pdf_generation(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test successful PDF generation and browser opening."""
         with patch("services.report_generator.Path.exists", return_value=True), \
              patch("services.report_generator.Environment.get_template") as mock_get_template, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
@@ -132,7 +122,6 @@ class TestReportGenerator:
             mock_web_open.assert_called_once_with(f"file://{fake_file.name}")
 
     def test_tempfile_creation_failure(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test error handling when temporary file creation fails."""
         with patch("services.report_generator.Path.exists", side_effect=[True, True, True, False]), \
              patch("services.report_generator.Environment") as mock_env, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
@@ -154,7 +143,6 @@ class TestReportGenerator:
             assert "Failed to create temporary PDF file" in mock_critical.call_args[0][2]
 
     def test_template_rendering_with_data(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test that templates are rendered with correct data."""
         with patch("services.report_generator.Path.exists", return_value=True), \
              patch("services.report_generator.Environment.get_template") as mock_get_template, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
@@ -175,7 +163,6 @@ class TestReportGenerator:
             assert mock_template.render.called
 
     def test_empty_data_handling(self, sample_store_data):
-        """Test handling of empty data lists."""
         with patch("services.report_generator.Path.exists", return_value=True), \
              patch("services.report_generator.Environment.get_template") as mock_get_template, \
              patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
@@ -194,7 +181,6 @@ class TestReportGenerator:
             assert mock_get_template.return_value.render.called
 
     def test_large_data_handling(self, sample_emp_data, sample_team_data, sample_store_data):
-        """Test handling of large datasets."""
         large_emp_data = sample_emp_data * 100
         large_team_data = sample_team_data * 50
         

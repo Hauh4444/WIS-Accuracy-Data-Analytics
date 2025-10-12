@@ -1,5 +1,9 @@
+"""Database table schema definitions for the WIS inventory system.
+
+Immutable dataclass mappings for database table and column names.
+All table models are frozen to prevent accidental modification.
+"""
 from dataclasses import dataclass
-from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -39,6 +43,7 @@ class ZoneTable:
 
 @dataclass(frozen=True)
 class ZoneChangeQueueTable:
+    """Discrepancy queue. Reason='SERVICE_MISCOUNTED' indicates counting errors >$50."""
     table: str = "tblZoneChangeQueue"
     zone_queue_id: int = "ZoneQueueID"
     zone_id: int = "ZoneID"

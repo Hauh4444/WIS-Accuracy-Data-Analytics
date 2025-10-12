@@ -8,7 +8,6 @@ from services.database import get_db_connection
 
 @pytest.fixture(scope="session")
 def app():
-    """Create QApplication instance for testing."""
     app = QtWidgets.QApplication.instance()
     if not app:
         app = QtWidgets.QApplication(sys.argv)
@@ -16,12 +15,10 @@ def app():
 
 
 class TestDatabaseConnection:
-    """Test cases for database connection management."""
 
     @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_file_not_found_with_db_path(self, mock_msg, mock_exists, app):
-        """Test error handling when database file doesn't exist."""
         result = get_db_connection(db_path="nonexistent.accdb")
         
         assert result is None
@@ -31,7 +28,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_file_not_found_with_constructed_path(self, mock_msg, mock_exists, app):
-        """Test error handling when constructed database path doesn't exist."""
         job_number = "TEST123"
         db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
         result = get_db_connection(db_path=db_path)
@@ -43,7 +39,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_empty_path_error(self, mock_msg, mock_exists, app):
-        """Test error handling when empty database path is provided."""
         result = get_db_connection(db_path="")
         
         assert result is None
@@ -55,7 +50,6 @@ class TestDatabaseConnection:
     @patch("services.database.pyodbc.connect", side_effect=Exception("Connection failed"))
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_connection_error(self, mock_msg, mock_connect, mock_exists, mock_platform, app):
-        """Test error handling when database connection fails."""
         result = get_db_connection(db_path="valid_path.accdb")
         
         assert result is None
@@ -67,7 +61,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
     def test_connection_success_with_db_path(self, mock_connect, mock_exists, mock_platform, app):
-        """Test successful connection with direct database path."""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
@@ -82,7 +75,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
     def test_connection_success_with_constructed_path(self, mock_connect, mock_exists, mock_platform, app):
-        """Test successful connection with constructed path from job number."""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
@@ -99,7 +91,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
     def test_windows_driver_selection(self, mock_connect, mock_exists, mock_platform, app):
-        """Test Windows-specific driver selection."""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
@@ -112,7 +103,6 @@ class TestDatabaseConnection:
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
     def test_linux_platform_error(self, mock_connect, mock_exists, mock_platform, app):
-        """Test Linux platform error handling."""
         with patch("services.database.QtWidgets.QMessageBox.critical") as mock_msg:
             result = get_db_connection(db_path="test.accdb")
             
@@ -125,7 +115,6 @@ class TestDatabaseConnection:
     @patch("services.database.pyodbc.connect", side_effect=Exception("Connection failed"))
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_linux_connection_error_with_help_text(self, mock_msg, mock_connect, mock_exists, mock_platform, app):
-        """Test Linux platform error message."""
         get_db_connection(db_path="test.accdb")
         
         error_message = mock_msg.call_args[0][2]

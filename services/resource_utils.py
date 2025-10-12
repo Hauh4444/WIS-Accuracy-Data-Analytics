@@ -1,3 +1,4 @@
+"""Resource path resolution for development and PyInstaller bundled environments."""
 import os
 import sys
 from pathlib import Path
@@ -5,6 +6,8 @@ from pathlib import Path
 
 def resource_path(relative_path: str) -> str:
     """Get absolute path to resource, works for dev and for PyInstaller.
+    
+    PyInstaller extracts bundled files to a temp folder and sets sys._MEIPASS.
     
     Args:
         relative_path: Path relative to the project root

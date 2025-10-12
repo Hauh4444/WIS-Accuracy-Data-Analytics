@@ -1,3 +1,4 @@
+"""PDF report generator using Jinja2 templates and xhtml2pdf."""
 import tempfile
 import webbrowser
 from io import BytesIO
@@ -58,6 +59,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
             QtWidgets.QMessageBox.critical(None, "PDF Error", "An error occurred while generating the PDF")
             return
 
+        # delete=False keeps the PDF on disk after viewing
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             tmp_file.write(pdf_buffer.getvalue())
             tmp_file.flush()

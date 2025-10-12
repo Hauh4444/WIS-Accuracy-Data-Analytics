@@ -1,3 +1,4 @@
+"""WIS Accuracy Data Analytics - Inventory accuracy reporting tool."""
 import sys
 from PyQt6 import QtWidgets
 
@@ -25,12 +26,14 @@ if __name__ == "__main__":
     try:
         app = QtWidgets.QApplication(sys.argv)
         store_data, emp_data, team_data = load_data_with_fallback()
+        
         if store_data is not None and emp_data is not None and team_data is not None:
             window = EmpHoursInputWindow(store_data=store_data, emp_data=emp_data, team_data=team_data)
             window.setWindowTitle("WIS Accuracy Data Analytics")
             window.show()
             window.raise_()
             window.activateWindow()
+        
         app.exec()
     except Exception as e:
         QtWidgets.QMessageBox.critical(

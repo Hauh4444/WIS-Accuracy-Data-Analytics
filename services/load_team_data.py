@@ -1,3 +1,4 @@
+"""Team/zone data loader with inventory accuracy metrics."""
 import pyodbc
 from PyQt6 import QtWidgets
 
@@ -5,7 +6,9 @@ from services.models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable
 
 
 def load_team_data(conn: pyodbc.Connection) -> list[dict]:
-    """Load team/zone data with discrepancy calculations from the database.
+    """Load team/zone data with discrepancy calculations.
+    
+    Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
     
     Args:
         conn: Database connection object
@@ -36,26 +39,23 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             zone_id = zone_row[0] if zone_row and zone_row[0] else ""
             zone_desc = zone_row[1] if zone_row and zone_row[1] else ""
 
-            totals_query = f"""
+            zone_totals_query = f"""
                 SELECT 
-                    Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1) AS total_tags,
-                    Sum({tag_range.table}.{tag_range.total_qty}) AS total_quantity,
-                    Sum({tag_range.table}.{tag_range.total_ext}) AS total_price
+                    Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1),
+                    Sum({tag_range.table}.{tag_range.total_qty}),
+                    Sum({tag_range.table}.{tag_range.total_ext})
                 FROM {tag_range.table}
                 WHERE {tag_range.table}.{tag_range.zone_id} = ?
             """
-            cursor.execute(totals_query, (zone_id,))
-            totals_row = cursor.fetchone()
+            cursor.execute(zone_totals_query, (zone_id,))
+            zone_totals_row = cursor.fetchone()
             
-            total_tags = totals_row[0] if totals_row and totals_row[0] is not None else 0
-            total_quantity = totals_row[1] if totals_row and totals_row[1] is not None else 0
-            total_price = totals_row[2] if totals_row and totals_row[2] is not None else 0
+            total_tags = zone_totals_row[0] if zone_totals_row and zone_totals_row[0] is not None else 0
+            total_quantity = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
+            total_price = zone_totals_row[2] if zone_totals_row and zone_totals_row[2] is not None else 0
 
             discrepancy_dollars_query = f"""
-                SELECT 
-                    Sum(
-                        Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))
-                    ) AS discrepancy_dollars
+                SELECT Sum(Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})))
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'

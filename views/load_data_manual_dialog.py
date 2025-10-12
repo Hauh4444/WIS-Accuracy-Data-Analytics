@@ -1,3 +1,4 @@
+"""Manual database loading dialog with file browser."""
 from PyQt6 import QtWidgets, uic
 
 from services.database import get_db_connection
@@ -33,7 +34,12 @@ class LoadDataManualDialog(QtWidgets.QDialog):
 
     def browse_database(self) -> None:
         """Open file dialog to select database file."""
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select Database File", "", "Access Databases (*.mdb *.accdb);;All Files (*)")
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, 
+            "Select Database File", 
+            "", 
+            "Access Databases (*.mdb *.accdb);;All Files (*)"
+        )
         if file_path:
             self.txtDatabasePath.setText(file_path)
 

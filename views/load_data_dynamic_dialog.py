@@ -1,3 +1,4 @@
+"""Dynamic database loading dialog using WISDOM job number convention."""
 from PyQt6 import QtWidgets, uic
 
 from services.database import get_db_connection
@@ -31,11 +32,12 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
 
         
     def load_database(self) -> None:
-        """Load employee and team data from database using job number."""
+        """Load database using WISDOM path convention: C:\\WISDOM\\JOBS\\{job_number}\\11355\\{job_number}.MDB"""
         job_number = self.txtJobNumber.text().strip()
         if not job_number:
             QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Job Number.")
             return
+        
         db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
         conn = get_db_connection(db_path=db_path)
         if not conn:

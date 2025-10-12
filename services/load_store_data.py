@@ -1,3 +1,4 @@
+"""Store metadata loader for report headers."""
 import pyodbc
 from PyQt6 import QtWidgets
 from datetime import datetime
@@ -28,7 +29,7 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         wise = WISEInfoTable()
 
         store_query = f"""
-            SELECT TOP 1
+            SELECT
                 {wise.table}.{wise.job_datetime},
                 {wise.table}.{wise.name},
                 {wise.table}.{wise.address}
