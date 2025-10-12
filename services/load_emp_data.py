@@ -27,16 +27,6 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         info = ZoneChangeInfoTable()
         tag = TagTable()
 
-        emp_query = f"""
-            SELECT DISTINCT
-                {emp.table}.{emp.emp_no},
-                {emp.table}.{emp.emp_name}
-            FROM {emp.table}
-            INNER JOIN {term.table} ON {term.table}.{term.emp_no} = {emp.table}.{emp.emp_no}
-        """
-        cursor.execute(emp_query)
-        emp_rows = cursor.fetchall()
-
         tags_query = f"""
             SELECT DISTINCT 
                 {details.table}.{details.emp_no},
@@ -50,6 +40,16 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         emp_tags_map = {}
         for tag_row in tag_rows:
             emp_tags_map.setdefault(tag_row[0], []).append(tag_row[1])
+
+        emp_query = f"""
+            SELECT DISTINCT
+                {emp.table}.{emp.emp_no},
+                {emp.table}.{emp.emp_name}
+            FROM {emp.table}
+            INNER JOIN {term.table} ON {term.table}.{term.emp_no} = {emp.table}.{emp.emp_no}
+        """
+        cursor.execute(emp_query)
+        emp_rows = cursor.fetchall()
 
         for emp_row in emp_rows:
             emp_no = emp_row[0]
@@ -118,8 +118,9 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             """
             cursor.execute(discrepancy_query)
             discrepancy_rows = cursor.fetchall()
-            discrepancies = [
-                {
+            discrepancies = []
+            for discrepancy_row in discrepancy_rows:
+                discrepancies.append({
                     "zone_id": discrepancy_row[0] if discrepancy_row and discrepancy_row[0] is not None else 0,
                     "tag": discrepancy_row[1] if discrepancy_row and discrepancy_row[1] is not None else 0,
                     "upc": discrepancy_row[2] if discrepancy_row and discrepancy_row[2] is not None else 0,
@@ -127,9 +128,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                     "counted_qty": discrepancy_row[4] if discrepancy_row and discrepancy_row[4] is not None else 0,
                     "new_quantity": discrepancy_row[5] if discrepancy_row and discrepancy_row[5] is not None else 0,
                     "discrepancy_dollars": discrepancy_row[6] if discrepancy_row and discrepancy_row[6] is not None else 0,
-                }
-                for discrepancy_row in discrepancy_rows
-            ]
+                })
 
             emp_data.append({
                 'employee_id': emp_no,
