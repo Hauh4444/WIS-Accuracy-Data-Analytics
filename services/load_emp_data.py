@@ -8,7 +8,7 @@ from services.models import TerminalControlTable, EmpNamesTable, DetailsTable, Z
 def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
     """Load employee data with discrepancy calculations.
     
-    Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted.
+    Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
 
     Args:
         conn: Database connection object
@@ -27,19 +27,17 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         info = ZoneChangeInfoTable()
         tag = TagTable()
 
-        tags_query = f"""
+        emp_tags_query = f"""
             SELECT DISTINCT 
                 {details.table}.{details.emp_no},
                 {details.table}.{details.tag}
             FROM {details.table}
         """
-        cursor.execute(tags_query)
-        tag_rows = cursor.fetchall()
-        
-        # Build employee-to-tags mapping once to avoid N+1 queries in the main loop
+        cursor.execute(emp_tags_query)
+        emp_tags_rows = cursor.fetchall()
         emp_tags_map = {}
-        for tag_row in tag_rows:
-            emp_tags_map.setdefault(tag_row[0], []).append(tag_row[1])
+        for emp_tags_row in emp_tags_rows: # Build employee-to-tags mapping once to avoid N+1 queries in the main loop
+            emp_tags_map.setdefault(emp_tags_row[0], []).append(emp_tags_row[1])
 
         emp_query = f"""
             SELECT DISTINCT
@@ -60,47 +58,45 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             tags_filter = ','.join(employee_tags)
             tag_count = len(employee_tags)
 
-            tag_totals_query = f"""
+            emp_totals_query = f"""
                 SELECT 
                     Sum({tag.table}.{tag.total_qty}),
                     Sum({tag.table}.{tag.total_ext})
                 FROM {tag.table}
                 WHERE CInt({tag.table}.{tag.tag_no}) IN ({tags_filter})
             """
-            cursor.execute(tag_totals_query)
-            totals_row = cursor.fetchone()
-            total_quantity = totals_row[0] or 0
-            total_price = totals_row[1] or 0
+            cursor.execute(emp_totals_query)
+            emp_totals_row = cursor.fetchone()
+            total_quantity = emp_totals_row[0] or 0
+            total_price = emp_totals_row[1] or 0
 
-            discrepancy_dollars_query = f"""
-                SELECT Sum(Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})))
+            emp_discrepancy_query = f"""
+                SELECT 
+                    Sum(Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))),
+                    (
+                        SELECT Count(*)
+                        FROM (
+                            SELECT DISTINCT {queue.table}.{queue.tag}
+                            FROM {queue.table}
+                            INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
+                            WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
+                                AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
+                                AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
+                        )
+                    )
                 FROM {queue.table}
                 INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
                 WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
                     AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
-            cursor.execute(discrepancy_dollars_query)
-            discrepancy_dollars_row = cursor.fetchone()
-            discrepancy_dollars = discrepancy_dollars_row[0] if discrepancy_dollars_row and discrepancy_dollars_row[0] is not None else 0
-
-            discrepancy_tags_query = f"""
-                SELECT Count(*)
-                FROM (
-                    SELECT DISTINCT {queue.table}.{queue.tag}
-                    FROM {queue.table}
-                    INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
-                    WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                        AND CInt({queue.table}.{queue.tag}) IN ({tags_filter})
-                        AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
-                )
-            """
-            cursor.execute(discrepancy_tags_query)
-            discrepancy_tags_row = cursor.fetchone()
-            discrepancy_tags = discrepancy_tags_row[0] if discrepancy_tags_row and discrepancy_tags_row[0] is not None else 0
+            cursor.execute(emp_discrepancy_query)
+            emp_discrepancy_row = cursor.fetchone()
+            discrepancy_dollars = emp_discrepancy_row[0] if emp_discrepancy_row and emp_discrepancy_row[0] is not None else 0
+            discrepancy_tags = emp_discrepancy_row[1] if emp_discrepancy_row and emp_discrepancy_row[1] is not None else 0
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
 
-            discrepancy_query = f"""
+            discrepancies_query = f"""
                 SELECT
                     {queue.table}.{queue.zone_id},
                     {queue.table}.{queue.tag},
@@ -116,18 +112,18 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
                 ORDER BY {queue.table}.{queue.tag}
             """
-            cursor.execute(discrepancy_query)
-            discrepancy_rows = cursor.fetchall()
+            cursor.execute(discrepancies_query)
+            discrepancies_rows = cursor.fetchall()
             discrepancies = []
-            for discrepancy_row in discrepancy_rows:
+            for discrepancies_row in discrepancies_rows:
                 discrepancies.append({
-                    "zone_id": discrepancy_row[0] if discrepancy_row and discrepancy_row[0] is not None else 0,
-                    "tag": discrepancy_row[1] if discrepancy_row and discrepancy_row[1] is not None else 0,
-                    "upc": discrepancy_row[2] if discrepancy_row and discrepancy_row[2] is not None else 0,
-                    "price": discrepancy_row[3] if discrepancy_row and discrepancy_row[3] is not None else 0,
-                    "counted_qty": discrepancy_row[4] if discrepancy_row and discrepancy_row[4] is not None else 0,
-                    "new_quantity": discrepancy_row[5] if discrepancy_row and discrepancy_row[5] is not None else 0,
-                    "discrepancy_dollars": discrepancy_row[6] if discrepancy_row and discrepancy_row[6] is not None else 0,
+                    "zone_id": discrepancies_row[0] if discrepancies_row and discrepancies_row[0] is not None else 0,
+                    "tag": discrepancies_row[1] if discrepancies_row and discrepancies_row[1] is not None else 0,
+                    "upc": discrepancies_row[2] if discrepancies_row and discrepancies_row[2] is not None else 0,
+                    "price": discrepancies_row[3] if discrepancies_row and discrepancies_row[3] is not None else 0,
+                    "counted_qty": discrepancies_row[4] if discrepancies_row and discrepancies_row[4] is not None else 0,
+                    "new_quantity": discrepancies_row[5] if discrepancies_row and discrepancies_row[5] is not None else 0,
+                    "discrepancy_dollars": discrepancies_row[6] if discrepancies_row and discrepancies_row[6] is not None else 0,
                 })
 
             emp_data.append({

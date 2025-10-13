@@ -31,7 +31,6 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
     try:
         templates_path = resource_path("templates")
         env = Environment(loader=FileSystemLoader(templates_path))
-
         for template in ["emp_report.html", "team_report.html", "disc_report.html"]:
             if not Path(resource_path(f"templates/{template}")).exists():
                 QtWidgets.QMessageBox.critical(None, "Template Error", f"{template} template not found")
@@ -40,10 +39,8 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         emp_template = env.get_template("emp_report.html")
         team_template = env.get_template("team_report.html")
         disc_template = env.get_template("disc_report.html")
-
         sorted_emp_data = sorted(emp_data, key=lambda x: (-x["uph"], -x["total_quantity"]))
         sorted_team_data = sorted(team_data, key=lambda x: x["department_number"])
-
         html_emp = emp_template.render(page_headers=store_data, emp_data=sorted_emp_data)
         html_team = team_template.render(page_headers=store_data, team_data=sorted_team_data)
         html_disc = disc_template.render(page_headers=store_data, emp_data=sorted_emp_data)
@@ -58,9 +55,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         if result.err:
             QtWidgets.QMessageBox.critical(None, "PDF Error", "An error occurred while generating the PDF")
             return
-
-        # delete=False keeps the PDF on disk after viewing
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file: # delete=False keeps the PDF on disk after viewing
             tmp_file.write(pdf_buffer.getvalue())
             tmp_file.flush()
             pdf_path = Path(tmp_file.name).resolve()
@@ -68,6 +63,5 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
                 QtWidgets.QMessageBox.critical(None, "File Error", "Failed to create temporary PDF file")
                 return
             webbrowser.open(f"file://{pdf_path}")
-
     except Exception as e:
         QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"Failed to generate report:\n{e}")
