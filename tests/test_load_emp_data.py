@@ -38,20 +38,20 @@ class TestLoadEmpData:
     def test_successful_data_loading(self, mock_critical):
         mock_emp_row = ("E001", "Alice Johnson")
         
-        # Tags query returns (emp_no, tag) pairs to build emp_tags_map
-        tag_rows = [("E001", f"TAG{i:03d}") for i in range(1, 26)]
+        # emp_tags_query returns (emp_no, tag) pairs to build emp_tags_map
+        emp_tags_rows = [("E001", f"{i:03d}") for i in range(1, 26)]
         
         mock_cursor = MagicMock()
-        # First fetchall is tags query, second is emp query
+        # First fetchall is emp_tags_query, second is emp_query, third is discrepancies_query
         mock_cursor.fetchall.side_effect = [
-            tag_rows,
+            emp_tags_rows,
             [mock_emp_row],
             []
         ]
+        # emp_totals_query, emp_discrepancy_query
         mock_cursor.fetchone.side_effect = [
             (2500, 12500.0),
-            (0,),
-            (0,)
+            (0, 0)
         ]
         
         mock_conn = MagicMock()
@@ -77,20 +77,19 @@ class TestLoadEmpData:
         mock_row2 = ("E002", "Bob Smith")
         
         mock_cursor = MagicMock()
-        # First fetchall is tags query, second is emp query
+        # First fetchall is emp_tags_query, second is emp_query, third/fourth are discrepancies_query
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001"), ("E002", "TAG002")],
+            [("E001", "001"), ("E002", "002")],
             [mock_row1, mock_row2],
             [],
             []
         ]
+        # emp_totals_query and emp_discrepancy_query for each employee
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),
-            (0,),
-            (0,),
+            (0, 0),
             (100, 500.0),
-            (0,),
-            (0,)
+            (0, 0)
         ]
         
         mock_conn = MagicMock()
@@ -118,10 +117,10 @@ class TestLoadEmpData:
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [("E001", "Test Employee")]
         ]
-        mock_cursor.fetchone.return_value = None
+        mock_cursor.fetchone.return_value = (0, 0)
         
         load_emp_data(mock_conn)
         
@@ -132,14 +131,13 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [mock_emp_row],
             []
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),
-            (0,),
-            (0,)
+            (0, 0)
         ]
         
         mock_conn = MagicMock()
@@ -159,15 +157,14 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [mock_emp_row],
-            [(1, "TAG001", "111111111", 10.0, 5, 15, 100.0),
-             (2, "TAG001", "222222222", 18.75, 3, 11, 150.0)]
+            [(1, "001", "111111111", 10.0, 5, 15, 100.0),
+             (2, "001", "222222222", 18.75, 3, 11, 150.0)]
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),
-            (250.0,),
-            (2,)
+            (250.0, 2)
         ]
         
         mock_conn = MagicMock()
@@ -183,7 +180,7 @@ class TestLoadEmpData:
         
         assert len(emp_data["discrepancies"]) == 2
         assert emp_data["discrepancies"][0]["zone_id"] == 1
-        assert emp_data["discrepancies"][0]["tag"] == "TAG001"
+        assert emp_data["discrepancies"][0]["tag"] == "001"
         assert emp_data["discrepancies"][0]["upc"] == "111111111"
         assert emp_data["discrepancies"][0]["price"] == 10.0
         assert emp_data["discrepancies"][0]["counted_qty"] == 5
@@ -197,15 +194,14 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [mock_emp_row],
-            [(1, "TAG001", "123456789", 10.0, 5, 10, 50.0),
-             (2, "TAG001", "987654321", 8.33, 3, 6, 25.0)]
+            [(1, "001", "123456789", 10.0, 5, 10, 50.0),
+             (2, "001", "987654321", 8.33, 3, 6, 25.0)]
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 500.0),
-            (75.0,),
-            (2,)
+            (75.0, 2)
         ]
         
         mock_conn = MagicMock()
@@ -221,7 +217,7 @@ class TestLoadEmpData:
         
         assert len(emp_data["discrepancies"]) == 2
         assert emp_data["discrepancies"][0]["zone_id"] == 1
-        assert emp_data["discrepancies"][0]["tag"] == "TAG001"
+        assert emp_data["discrepancies"][0]["tag"] == "001"
         assert emp_data["discrepancies"][0]["upc"] == "123456789"
         assert emp_data["discrepancies"][0]["price"] == 10.0
         assert emp_data["discrepancies"][0]["counted_qty"] == 5
@@ -234,14 +230,13 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [mock_emp_row],
             [(50.0, 5, 3, 16.67, "E001", "333333333", 1)]
         ]
         mock_cursor.fetchone.side_effect = [
             (100, 0.0),
-            (50.0,),
-            (1,)
+            (50.0, 1)
         ]
         
         mock_conn = MagicMock()
@@ -260,14 +255,13 @@ class TestLoadEmpData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [("E001", "TAG001")],
+            [("E001", "001")],
             [mock_emp_row],
             []
         ]
         mock_cursor.fetchone.side_effect = [
             (None, None),
-            (None,),
-            (None,)
+            (None, None)
         ]
         
         mock_conn = MagicMock()

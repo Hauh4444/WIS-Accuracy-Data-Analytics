@@ -53,7 +53,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             total_quantity = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
             total_price = zone_totals_row[2] if zone_totals_row and zone_totals_row[2] is not None else 0
 
-            zone_discrepancy_query = f"""
+            zone_discrepancy_totals_query = f"""
                 SELECT 
                     Sum(Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty}))),
                     (
@@ -73,10 +73,10 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                     AND {queue.table}.{queue.zone_id} = ?
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.counted_qty})) > 50
             """
-            cursor.execute(zone_discrepancy_query, (zone_id,))
-            zone_discrepancy_row = cursor.fetchone()
-            discrepancy_dollars = zone_discrepancy_row[0] if zone_discrepancy_row and zone_discrepancy_row[0] is not None else 0
-            discrepancy_tags = zone_discrepancy_row[1] if zone_discrepancy_row and zone_discrepancy_row[1] is not None else 0
+            cursor.execute(zone_discrepancy_totals_query, (zone_id,))
+            zone_discrepancy_totals_row = cursor.fetchone()
+            discrepancy_dollars = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
+            discrepancy_tags = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
             
             team_data.append({

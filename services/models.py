@@ -43,7 +43,7 @@ class ZoneTable:
 
 @dataclass(frozen=True)
 class ZoneChangeQueueTable:
-    """Discrepancy queue. Reason='SERVICE_MISCOUNTED' indicates counting errors >$50."""
+    """Discrepancy queue. Reason='SERVICE_MISCOUNTED' indicates counting errors attributed to WIS counters."""
     table: str = "tblZoneChangeQueue"
     zone_queue_id: int = "ZoneQueueID"
     zone_id: int = "ZoneID"

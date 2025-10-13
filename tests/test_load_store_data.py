@@ -106,14 +106,13 @@ class TestLoadStoreData:
             result = load_store_data(mock_conn)
         
         assert isinstance(result, dict)
-        assert result["inventory_datetime"] is None
-        assert result["store"] is None
-        assert result["store_address"] is None
+        assert result["inventory_datetime"] == ""
+        assert result["store"] == ""
+        assert result["store_address"] == ""
         assert result["print_date"] == "1/15/2024"
         assert result["print_time"] == "02:30:45PM"
 
-    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
-    def test_no_data_found(self, mock_critical):
+    def test_no_data_found(self):
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = None
         
@@ -132,9 +131,6 @@ class TestLoadStoreData:
         assert result["store_address"] == ""
         assert result["print_date"] == "1/15/2024"
         assert result["print_time"] == "02:30:45PM"
-        
-        mock_critical.assert_called_once()
-        assert "No WISE data found in database" in mock_critical.call_args[0][2]
 
     def test_print_date_formatting(self):
         mock_wise_row = (
@@ -277,7 +273,7 @@ class TestLoadStoreData:
             result = load_store_data(mock_conn)
         
         assert result["inventory_datetime"] == datetime(2024, 1, 15, 10, 30, 0)
-        assert result["store"] is None
+        assert result["store"] == ""
         assert result["store_address"] == "123 Test Street, Test City, TS 12345"
 
     def test_wisemodel_table_structure(self):

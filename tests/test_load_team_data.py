@@ -38,12 +38,11 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row],
-            [("TAG001",), ("TAG002",)]
+            [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (75.0,),
+            (75.0, 2),
         ]
         
         mock_conn = MagicMock()
@@ -68,15 +67,13 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2],
-            [("TAG001",)],
-            [("TAG002",)]
+            [mock_zone_row1, mock_zone_row2]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (25.0,),
+            (25.0, 1),
             (30, 75, 300.0),
-            (15.0,),
+            (15.0, 1),
         ]
         
         mock_conn = MagicMock()
@@ -117,12 +114,11 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row],
-            []
+            [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (0,),
+            (0, 0),
         ]
         
         mock_conn = MagicMock()
@@ -138,16 +134,14 @@ class TestLoadTeamData:
 
     def test_high_discrepancy_calculation(self):
         mock_zone_row = (101, "Finance Department")
-        discrepancy_tags = [(f"TAG{i:03d}",) for i in range(1, 9)]
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row],
-            discrepancy_tags
+            [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (300.0,),
+            (300.0, 8),
         ]
         
         mock_conn = MagicMock()
@@ -167,15 +161,13 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2],
-            [("TAG001",)],
-            [("TAG002",)]
+            [mock_zone_row1, mock_zone_row2]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (25.0,),
+            (25.0, 1),
             (30, 75, 300.0),
-            (15.0,),
+            (15.0, 1),
         ]
         
         mock_conn = MagicMock()
@@ -195,12 +187,11 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row],
-            [("TAG001",)]
+            [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 0.0),
-            (25.0,),
+            (25.0, 1),
         ]
         
         mock_conn = MagicMock()
@@ -219,12 +210,11 @@ class TestLoadTeamData:
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row],
-            []
+            [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
             (None, None, None),
-            (None,),
+            (None, None),
         ]
         
         mock_conn = MagicMock()
