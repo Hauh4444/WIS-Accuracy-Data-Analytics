@@ -17,11 +17,11 @@ class TestLoadTeamData:
         mock_conn = MagicMock()
         mock_conn.cursor.side_effect = Exception("Database connection failed")
         
-        result = load_team_data(mock_conn)
+        with pytest.raises(Exception, match="Database connection failed"):
+            load_team_data(mock_conn)
         
-        assert result == []
         mock_critical.assert_called_once()
-        assert "Database connection failed" in mock_critical.call_args[0][2]
+        assert "An unexpected error occurred" in mock_critical.call_args[0][2]
 
     def test_no_team_records(self):
         mock_cursor = MagicMock()
@@ -103,7 +103,10 @@ class TestLoadTeamData:
         mock_conn = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [(201, "Test Department")]
-        mock_cursor.fetchone.return_value = None
+        mock_cursor.fetchone.side_effect = [
+            (50, 100, 500.0),  # zone_totals_query
+            (0, 0)            # zone_discrepancy_totals_query
+        ]
         
         load_team_data(mock_conn)
         

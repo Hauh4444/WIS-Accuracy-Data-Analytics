@@ -18,17 +18,11 @@ class TestLoadStoreData:
         mock_conn = MagicMock()
         mock_conn.cursor.side_effect = Exception("Database connection failed")
         
-        result = load_store_data(mock_conn)
-        
-        assert isinstance(result, dict)
-        assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
-        assert result["store_address"] == ""
-        assert "print_date" in result
-        assert "print_time" in result
+        with pytest.raises(Exception, match="Database connection failed"):
+            load_store_data(mock_conn)
         
         mock_critical.assert_called_once()
-        assert "Database connection failed" in mock_critical.call_args[0][2]
+        assert "An unexpected error occurred" in mock_critical.call_args[0][2]
 
     @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
     def test_cursor_execute_exception(self, mock_critical):
@@ -37,12 +31,8 @@ class TestLoadStoreData:
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.execute.side_effect = Exception("SQL execution failed")
         
-        result = load_store_data(mock_conn)
-        
-        assert isinstance(result, dict)
-        assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
-        assert result["store_address"] == ""
+        with pytest.raises(Exception, match="SQL execution failed"):
+            load_store_data(mock_conn)
         
         mock_critical.assert_called_once()
         assert "SQL execution failed" in mock_critical.call_args[0][2]
@@ -54,17 +44,14 @@ class TestLoadStoreData:
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.side_effect = Exception("Fetch failed")
         
-        result = load_store_data(mock_conn)
-        
-        assert isinstance(result, dict)
-        assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
-        assert result["store_address"] == ""
+        with pytest.raises(Exception, match="Fetch failed"):
+            load_store_data(mock_conn)
         
         mock_critical.assert_called_once()
         assert "Fetch failed" in mock_critical.call_args[0][2]
 
-    def test_successful_data_loading(self):
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    def test_successful_data_loading(self, mock_critical):
         mock_wise_row = (
             datetime(2024, 1, 15, 10, 30, 0),
             "Test Store #123",
@@ -91,7 +78,7 @@ class TestLoadStoreData:
         assert result["print_time"] == "02:30:45PM"
 
     def test_successful_data_loading_with_none_values(self):
-        mock_wise_row = (None, None, None)
+        mock_wise_row = (None, "Test Store", None)
         
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = mock_wise_row
@@ -107,12 +94,13 @@ class TestLoadStoreData:
         
         assert isinstance(result, dict)
         assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
+        assert result["store"] == "Test Store"
         assert result["store_address"] == ""
         assert result["print_date"] == "1/15/2024"
         assert result["print_time"] == "02:30:45PM"
 
-    def test_no_data_found(self):
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    def test_no_data_found(self, mock_critical):
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = None
         
@@ -123,14 +111,8 @@ class TestLoadStoreData:
             mock_now = datetime(2024, 1, 15, 14, 30, 45)
             mock_datetime.now.return_value = mock_now
             
-            result = load_store_data(mock_conn)
-        
-        assert isinstance(result, dict)
-        assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
-        assert result["store_address"] == ""
-        assert result["print_date"] == "1/15/2024"
-        assert result["print_time"] == "02:30:45PM"
+            with pytest.raises(RuntimeError, match="Unexpected WISE data structure"):
+                load_store_data(mock_conn)
 
     def test_print_date_formatting(self):
         mock_wise_row = (
@@ -245,18 +227,16 @@ class TestLoadStoreData:
             mock_now = datetime(2024, 1, 15, 14, 30, 45)
             mock_datetime.now.return_value = mock_now
             
-            result = load_store_data(mock_conn)
+            with pytest.raises(Exception, match="Test error"):
+                load_store_data(mock_conn)
         
-        assert result["inventory_datetime"] == ""
-        assert result["store"] == ""
-        assert result["store_address"] == ""
-        assert result["print_date"] == "1/15/2024"
-        assert result["print_time"] == "02:30:45PM"
+        mock_critical.assert_called_once()
+        assert "An unexpected error occurred" in mock_critical.call_args[0][2]
 
     def test_partial_data_handling(self):
         mock_wise_row = (
             datetime(2024, 1, 15, 10, 30, 0),
-            None,
+            "Test Store",
             "123 Test Street, Test City, TS 12345"
         )
         
@@ -273,7 +253,7 @@ class TestLoadStoreData:
             result = load_store_data(mock_conn)
         
         assert result["inventory_datetime"] == datetime(2024, 1, 15, 10, 30, 0)
-        assert result["store"] == ""
+        assert result["store"] == "Test Store"
         assert result["store_address"] == "123 Test Street, Test City, TS 12345"
 
     def test_wisemodel_table_structure(self):

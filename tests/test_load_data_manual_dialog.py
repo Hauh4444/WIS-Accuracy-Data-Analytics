@@ -68,14 +68,19 @@ class TestLoadDataManualDialog:
         
         assert dialog.txtDatabasePath.text() == "original_path.accdb"
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    def test_load_database_success(self, mock_team, mock_emp, mock_conn, app):
+    @patch("views.load_data_manual_dialog.load_store_data")
+    def test_load_database_success(self, mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
 
         mock_conn.return_value = MagicMock()
+        mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
         mock_emp.return_value = [{"id": 1, "name": "Alice"}]
         mock_team.return_value = [{"id": 1, "team": "Engineering"}]
 
@@ -83,14 +88,17 @@ class TestLoadDataManualDialog:
             dialog.load_database()
 
             mock_conn.assert_called_once_with(db_path="/fake/path/database.accdb")
+            mock_store.assert_called_once()
             mock_emp.assert_called_once()
             mock_team.assert_called_once()
             mock_accept.assert_called_once()
+            assert hasattr(dialog, 'store_data')
             assert hasattr(dialog, 'emp_data')
             assert hasattr(dialog, 'team_data')
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
-    def test_load_database_no_connection(self, mock_conn, app):
+    def test_load_database_no_connection(self, mock_conn, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
         mock_conn.return_value = None
@@ -101,43 +109,55 @@ class TestLoadDataManualDialog:
         assert not hasattr(dialog, 'emp_data')
         assert not hasattr(dialog, 'team_data')
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    @patch("views.load_data_manual_dialog.QtWidgets.QMessageBox.critical")
-    def test_load_database_emp_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
+    @patch("views.load_data_manual_dialog.load_store_data")
+    def test_load_database_emp_data_error(self, mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
 
         mock_conn.return_value = MagicMock()
+        mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
         mock_emp.side_effect = Exception("Employee data error")
 
         dialog.load_database()
         
-        mock_critical.assert_called_once()
-        assert "Employee data error" in mock_critical.call_args[0][2]
+        # Verify dialog doesn't set data attributes when load_emp_data fails
+        assert not hasattr(dialog, 'emp_data')
+        assert not hasattr(dialog, 'team_data')
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    @patch("views.load_data_manual_dialog.QtWidgets.QMessageBox.critical")
-    def test_load_database_team_data_error(self, mock_critical, mock_team, mock_emp, mock_conn, app):
+    @patch("views.load_data_manual_dialog.load_store_data")
+    def test_load_database_team_data_error(self, mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
 
         mock_conn.return_value = MagicMock()
+        mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
         mock_emp.return_value = [{"id": 1, "name": "Alice"}]
         mock_team.side_effect = Exception("Team data error")
 
         dialog.load_database()
         
-        mock_critical.assert_called_once()
-        assert "Team data error" in mock_critical.call_args[0][2]
+        # Verify dialog doesn't set data attributes when load_team_data fails
+        assert not hasattr(dialog, 'team_data')
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
     @patch("views.load_data_manual_dialog.load_team_data")
-    def test_load_database_closes_connection(self, mock_team, mock_emp, mock_conn, app):
+    def test_load_database_closes_connection(self, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
 
@@ -150,9 +170,11 @@ class TestLoadDataManualDialog:
 
         mock_connection.close.assert_called_once()
 
+    @patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+    @patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
     @patch("views.load_data_manual_dialog.get_db_connection")
     @patch("views.load_data_manual_dialog.load_emp_data")
-    def test_load_database_closes_connection_on_error(self, mock_emp, mock_conn, app):
+    def test_load_database_closes_connection_on_error(self, mock_emp, mock_conn, mock_emp_critical, mock_store_critical, app):
         dialog = LoadDataManualDialog()
         dialog.txtDatabasePath.setText("/fake/path/database.accdb")
 

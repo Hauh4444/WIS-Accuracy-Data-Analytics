@@ -17,30 +17,34 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         store_data: Dictionary containing store data
         emp_data: List of employee data dictionaries
         team_data: List of team data dictionaries
+        
+    Raises:
+        ValueError: If input parameters are invalid or required data is missing
+        RuntimeError: If template files are missing or PDF generation fails
     """
-    if not isinstance(store_data, dict):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "store_data must be a dict")
-        return
-    if not isinstance(emp_data, list):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "emp_data must be a list of dictionaries")
-        return
-    if not isinstance(team_data, list):
-        QtWidgets.QMessageBox.critical(None, "Input Error", "team_data must be a list of dictionaries")
-        return
-
     try:
+        if not store_data:
+            raise ValueError("store_data cannot be empty or None")
+        if not isinstance(emp_data, list) or not isinstance(team_data, list):
+            raise ValueError("emp_data and team_data must be lists")
+
         templates_path = resource_path("templates")
+        if not templates_path or not Path(templates_path).exists():
+            raise RuntimeError("Templates directory not found or invalid")
+            
         env = Environment(loader=FileSystemLoader(templates_path))
         for template in ["emp_report.html", "team_report.html", "disc_report.html"]:
-            if not Path(resource_path(f"templates/{template}")).exists():
-                QtWidgets.QMessageBox.critical(None, "Template Error", f"{template} template not found")
-                return
+            template_path = Path(resource_path(f"templates/{template}"))
+            if not template_path.exists():
+                raise RuntimeError(f"Required template file not found: {template}")
 
         emp_template = env.get_template("emp_report.html")
         team_template = env.get_template("team_report.html")
         disc_template = env.get_template("disc_report.html")
+        
         sorted_emp_data = sorted(emp_data, key=lambda x: (-x["uph"], -x["total_quantity"]))
         sorted_team_data = sorted(team_data, key=lambda x: x["department_number"])
+        
         html_emp = emp_template.render(page_headers=store_data, emp_data=sorted_emp_data)
         html_team = team_template.render(page_headers=store_data, team_data=sorted_team_data)
         html_disc = disc_template.render(page_headers=store_data, emp_data=sorted_emp_data)
@@ -53,15 +57,21 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         pdf_buffer = BytesIO()
         result = pisa.CreatePDF(full_html, pdf_buffer)
         if result.err:
-            QtWidgets.QMessageBox.critical(None, "PDF Error", "An error occurred while generating the PDF")
-            return
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file: # delete=False keeps the PDF on disk after viewing
+            raise RuntimeError("PDF generation failed - xhtml2pdf encountered an error")
+            
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             tmp_file.write(pdf_buffer.getvalue())
             tmp_file.flush()
             pdf_path = Path(tmp_file.name).resolve()
             if not pdf_path.exists():
-                QtWidgets.QMessageBox.critical(None, "File Error", "Failed to create temporary PDF file")
-                return
+                raise RuntimeError("Failed to create temporary PDF file")
             webbrowser.open(f"file://{pdf_path}")
+    except ValueError as e:
+        QtWidgets.QMessageBox.critical(None, "Data Validation Error", f"Data validation failed: {str(e)}")
+        raise
+    except RuntimeError as e:
+        QtWidgets.QMessageBox.critical(None, "Report Generation Error", f"Failed to generate report: {str(e)}")
+        raise
     except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"Failed to generate report:\n{e}")
+        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"An unexpected error occurred during report generation: {str(e)}")
+        raise

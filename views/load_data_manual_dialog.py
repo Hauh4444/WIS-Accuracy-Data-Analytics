@@ -1,4 +1,5 @@
 """Manual database loading dialog with file browser."""
+import traceback
 from PyQt6 import QtWidgets, uic
 
 from services.database import get_db_connection
@@ -59,9 +60,7 @@ class LoadDataManualDialog(QtWidgets.QDialog):
             self.emp_data = load_emp_data(conn=conn)
             self.team_data = load_team_data(conn=conn)
             self.accept()
-        except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Load Error", f"An error occurred while loading data:\n{e}")
-            import traceback
+        except Exception:
             traceback.print_exc()        
         finally:
             if conn:

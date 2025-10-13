@@ -33,11 +33,14 @@ def test_center_on_screen_no_screen(app):
         dialog.center_on_screen()
 
 
+@patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_team_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
 @patch("views.load_data_dynamic_dialog.load_store_data")
-def test_load_database_success(mock_store, mock_team, mock_emp, mock_conn, app):
+def test_load_database_success(mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
@@ -88,44 +91,51 @@ def test_load_database_no_connection_rejects_dialog(mock_conn, app):
         mock_reject.assert_called_once()
 
 
+@patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
-def test_load_database_emp_data_error_handling(mock_emp, mock_conn, app):
+@patch("views.load_data_dynamic_dialog.load_store_data")
+def test_load_database_emp_data_error_handling(mock_store, mock_emp, mock_conn, mock_emp_critical, mock_store_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
-
+    
     mock_conn.return_value = MagicMock()
+    mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
     mock_emp.side_effect = Exception("Database error")
-
-    with patch.object(QtWidgets.QMessageBox, 'critical') as mock_critical:
-        with patch.object(dialog, 'reject') as mock_reject:
-            dialog.load_database()
-            mock_critical.assert_called_once()
-            mock_reject.assert_called_once()
+    
+    with patch.object(dialog, 'reject') as mock_reject:
+        dialog.load_database()
+        mock_reject.assert_called_once()
 
 
+@patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_team_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
-def test_load_database_team_data_error_handling(mock_team, mock_emp, mock_conn, app):
+@patch("views.load_data_dynamic_dialog.load_store_data")
+def test_load_database_team_data_error_handling(mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
+    mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]
     mock_team.side_effect = Exception("Team data error")
 
-    with patch.object(QtWidgets.QMessageBox, 'critical') as mock_critical:
-        with patch.object(dialog, 'reject') as mock_reject:
-            dialog.load_database()
-            mock_critical.assert_called_once()
-            mock_reject.assert_called_once()
+    with patch.object(dialog, 'reject') as mock_reject:
+        dialog.load_database()
+        mock_reject.assert_called_once()
 
 
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_team_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
-def test_load_database_closes_connection(mock_team, mock_emp, mock_conn, app):
+def test_load_database_closes_connection(mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
@@ -139,9 +149,10 @@ def test_load_database_closes_connection(mock_team, mock_emp, mock_conn, app):
     mock_connection.close.assert_called_once()
 
 
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
-def test_load_database_closes_connection_on_error(mock_emp, mock_conn, app):
+def test_load_database_closes_connection_on_error(mock_emp, mock_conn, mock_emp_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
@@ -156,22 +167,29 @@ def test_load_database_closes_connection_on_error(mock_emp, mock_conn, app):
     mock_connection.close.assert_called_once()
 
 
+@patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_team_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
-def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app):
+@patch("views.load_data_dynamic_dialog.load_store_data")
+def test_load_database_sets_data_attributes(mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
+    store_data = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
     emp_data = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
     team_data = [{"id": 1, "team": "Engineering"}, {"id": 2, "team": "Sales"}]
 
     mock_conn.return_value = MagicMock()
+    mock_store.return_value = store_data
     mock_emp.return_value = emp_data
     mock_team.return_value = team_data
 
     dialog.load_database()
 
+    assert dialog.store_data == store_data
     assert dialog.emp_data == emp_data
     assert dialog.team_data == team_data
 
@@ -191,14 +209,19 @@ def test_load_database_sets_data_attributes(mock_team, mock_emp, mock_conn, app)
                 assert hasattr(dialog, 'txtJobNumber')
 
 
+@patch("services.load_store_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_emp_data.QtWidgets.QMessageBox.critical")
+@patch("services.load_team_data.QtWidgets.QMessageBox.critical")
 @patch("views.load_data_dynamic_dialog.get_db_connection")
 @patch("views.load_data_dynamic_dialog.load_emp_data")
 @patch("views.load_data_dynamic_dialog.load_team_data")
-def test_load_database_accepts_dialog_on_success(mock_team, mock_emp, mock_conn, app):
+@patch("views.load_data_dynamic_dialog.load_store_data")
+def test_load_database_accepts_dialog_on_success(mock_store, mock_team, mock_emp, mock_conn, mock_team_critical, mock_emp_critical, mock_store_critical, app):
     dialog = LoadDataDynamicDialog()
     dialog.txtJobNumber.setText("TEST123")
 
     mock_conn.return_value = MagicMock()
+    mock_store.return_value = {"store": "Test Store", "inventory_datetime": "", "store_address": "", "print_date": "", "print_time": ""}
     mock_emp.return_value = [{"id": 1, "name": "Alice"}]
     mock_team.return_value = [{"id": 1, "team": "Engineering"}]
 

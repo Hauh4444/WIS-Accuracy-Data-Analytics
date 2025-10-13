@@ -13,7 +13,7 @@ A professional **Windows-only** Python application for generating WIS Internatio
 - **Team/Zone Analytics**: Comprehensive team and zone-based discrepancy analysis
 - **Professional Reports**: Three integrated reports (Employee, Team, Discrepancy) rendered as PDF with store headers and opened in browser for printing
 - **Qt6 GUI**: Clean, professional interface for data input and report generation
-- **Comprehensive Testing**: 98+ test cases covering all functionality with mock database connections
+- **Comprehensive Testing**: 104+ test cases covering all functionality with mock database connections
 - **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
 ## Installation
@@ -81,7 +81,7 @@ pyinstaller --onefile --noconsole \
 
 ## Testing
 
-Run the comprehensive test suite (98+ test cases):
+Run the comprehensive test suite (104+ test cases):
 
 ```bash
 # Run all tests
@@ -132,7 +132,7 @@ WIS-Accuracy-Data-Analytics/
 │   ├── disc_report.html           # Discrepancy report template
 │   ├── emp_report.html            # Employee report template
 │   └── team_report.html           # Team report template
-├── tests/                        # Comprehensive test suite (98+ tests)
+├── tests/                        # Comprehensive test suite (104+ tests)
 │   ├── test_database.py
 │   ├── test_emp_hours_input_window.py
 │   ├── test_load_data_dynamic_dialog.py
@@ -188,7 +188,7 @@ WIS-Accuracy-Data-Analytics/
 - Remove unused imports and dead code
 
 ### Testing
-- **98+ comprehensive test cases** covering all major components
+- **104+ comprehensive test cases** covering all major components
 - Mock external dependencies (database connections, file I/O, Qt widgets)
 - Test both success and failure scenarios
 - **Store data loading tests** with proper error handling

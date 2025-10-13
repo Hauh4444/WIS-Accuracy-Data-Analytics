@@ -64,30 +64,34 @@ class TestReportGenerator:
     @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
     def test_emp_data_type_validation(self, invalid_input, sample_team_data, sample_store_data):
         with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            generate_accuracy_report(sample_store_data, invalid_input, sample_team_data)
+            with pytest.raises(ValueError):
+                generate_accuracy_report(sample_store_data, invalid_input, sample_team_data)
             mock_critical.assert_called_once()
-            assert "emp_data must be a list of dictionaries" in mock_critical.call_args[0][2]
+            assert "Data validation failed" in mock_critical.call_args[0][2]
 
     @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
     def test_team_data_type_validation(self, invalid_input, sample_emp_data, sample_store_data):
         with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            generate_accuracy_report(sample_store_data, sample_emp_data, invalid_input)
+            with pytest.raises(ValueError):
+                generate_accuracy_report(sample_store_data, sample_emp_data, invalid_input)
             mock_critical.assert_called_once()
-            assert "team_data must be a list of dictionaries" in mock_critical.call_args[0][2]
+            assert "Data validation failed" in mock_critical.call_args[0][2]
 
     def test_employee_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
         with patch("pathlib.Path.exists", side_effect=[False, True]), \
              patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
+            with pytest.raises(RuntimeError):
+                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
             mock_critical.assert_called_once()
-            assert "emp_report.html template not found" in mock_critical.call_args[0][2]
+            assert "Failed to generate report" in mock_critical.call_args[0][2]
 
     def test_team_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
         with patch("pathlib.Path.exists", side_effect=[True, False]), \
              patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
+            with pytest.raises(RuntimeError):
+                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
             mock_critical.assert_called_once()
-            assert "team_report.html template not found" in mock_critical.call_args[0][2]
+            assert "Failed to generate report" in mock_critical.call_args[0][2]
 
     def test_pdf_generation_error(self, sample_emp_data, sample_team_data, sample_store_data):
         with patch("services.report_generator.Path.exists", return_value=True), \
@@ -98,10 +102,10 @@ class TestReportGenerator:
             mock_get_template.return_value.render.return_value = "<html></html>"
             mock_create_pdf.return_value.err = 1
             
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            
+            with pytest.raises(RuntimeError):
+                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
             mock_critical.assert_called_once()
-            assert "An error occurred while generating the PDF" in mock_critical.call_args[0][2]
+            assert "Failed to generate report" in mock_critical.call_args[0][2]
 
     def test_successful_pdf_generation(self, sample_emp_data, sample_team_data, sample_store_data):
         with patch("services.report_generator.Path.exists", return_value=True), \
@@ -137,10 +141,10 @@ class TestReportGenerator:
             fake_file.name = "/tmp/test_report.pdf"
             mock_tempfile.return_value.__enter__.return_value = fake_file
             
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            
+            with pytest.raises(RuntimeError):
+                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
             mock_critical.assert_called_once()
-            assert "Failed to create temporary PDF file" in mock_critical.call_args[0][2]
+            assert "Failed to generate report" in mock_critical.call_args[0][2]
 
     def test_template_rendering_with_data(self, sample_emp_data, sample_team_data, sample_store_data):
         with patch("services.report_generator.Path.exists", return_value=True), \

@@ -86,13 +86,13 @@
         {% for disc in emp.discrepancies %}
         <tr>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(emp.employee_id) }}
+                {{ "%s"|format(emp.employee_number) }}
             </td>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(disc.zone_id) }}
             </td>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(disc.tag) }}
+                {{ "%s"|format(disc.tag_number) }}
             </td>
             <td style="width: 20%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(disc.upc) }}
@@ -101,7 +101,7 @@
                 ${{ "%.2f"|format(disc.price) }}
             </td>
             <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(disc.counted_qty) }}
+                {{ "%i"|format(disc.counted_quantity) }}
             </td>
             <td style="width: 10%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(disc.new_quantity) }}

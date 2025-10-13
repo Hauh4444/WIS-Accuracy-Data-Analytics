@@ -13,19 +13,41 @@ def get_db_connection(db_path: str) -> pyodbc.Connection | None:
 
     Returns:
         Active database connection or None if connection fails.
+        
+    Raises:
+        ValueError: If db_path is invalid or platform is not Windows
+        RuntimeError: If database connection fails
     """
-    if not Path(db_path).exists():
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database file not found:\n{db_path}")
-        return None
-    
-    if platform.system() != "Windows":
-        QtWidgets.QMessageBox.critical(None, "Platform Error", "Windows platform required for Microsoft Access database connectivity.")
-        return None
-
     try:
+        if db_path is None:
+            raise ValueError("Database path cannot be None")
+        if not isinstance(db_path, str):
+            raise ValueError("Database path must be a string")
+        if not db_path.strip():
+            raise ValueError("Database path cannot be empty")
+
+        db_path_obj = Path(db_path)
+        if not db_path_obj.exists():
+            raise ValueError(f"Database file not found: {db_path}")
+        if not db_path_obj.is_file():
+            raise ValueError(f"Database path is not a file: {db_path}")
+        if not db_path.lower().endswith(('.mdb', '.accdb')):
+            raise ValueError(f"Invalid database file extension. Expected .mdb or .accdb: {db_path}")
+        if platform.system() != "Windows":
+            raise ValueError("Windows platform required for Microsoft Access database connectivity")
+
         conn_str = f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={db_path};"
         conn = pyodbc.connect(conn_str, autocommit=False)
         return conn
+    except pyodbc.Error as e:
+        QtWidgets.QMessageBox.critical(None, "Database Connection Error", f"Failed to connect to database:\n{str(e)}")
+        raise
+    except ValueError as e:
+        QtWidgets.QMessageBox.critical(None, "Configuration Error", f"Database configuration error: {str(e)}")
+        raise
+    except RuntimeError as e:
+        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database operation failed: {str(e)}")
+        raise
     except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Connection Error", f"Database connection failed:\n{e}")
-        return None
+        QtWidgets.QMessageBox.critical(None, "Connection Error", f"Unexpected error during database connection:\n{str(e)}")
+        raise

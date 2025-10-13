@@ -17,63 +17,65 @@ class WISEInfoTable:
 @dataclass(frozen=True)
 class TerminalControlTable:
     table: str = "tblTerminalControl"
-    emp_no: str = "TerminalUser"
+    emp_number: str = "TerminalUser"
 
 
 @dataclass(frozen=True)
 class EmpNamesTable:
     table: str = "tblEmpNames"
-    emp_no: str = "EmpNo"
+    emp_number: str = "EmpNo"
     emp_name: str = "Name"
 
 
 @dataclass(frozen=True)
 class DetailsTable:
+    """Stores every single line counted, required to query since it's the only table that maps employee numbers to tags"""
     table: str = "tblDetails"
-    emp_no: str = "empno"
-    tag: str = "tag"
+    emp_number: str = "empno"
+    tag_number: str = "tag"
 
 
 @dataclass(frozen=True)
 class ZoneTable:
     table: str = "tblZone"
-    zone_id: int = "ZoneID"
-    zone_desc: str = "ZoneDesc"
+    zone_id: str = "ZoneID"
+    zone_description: str = "ZoneDesc"
 
 
 @dataclass(frozen=True)
 class ZoneChangeQueueTable:
-    """Discrepancy queue. Reason='SERVICE_MISCOUNTED' indicates counting errors attributed to WIS counters."""
+    """Discrepancy queue stores the original counted quantities before corrections. Reason='SERVICE_MISCOUNTED' indicates counting errors blamed on WIS counters."""
     table: str = "tblZoneChangeQueue"
-    zone_queue_id: int = "ZoneQueueID"
-    zone_id: int = "ZoneID"
-    tag: str = "Tag"
+    zone_queue_id: str = "ZoneQueueID"
+    zone_id: str = "ZoneID"
+    tag_number: str = "Tag"
     upc: str = "UPC"
-    price: float = "Price"
-    quantity: int = "Quantity"
+    price: str = "Price"
+    quantity: str = "Quantity"
     reason: str = "Reason"
 
 
 @dataclass(frozen=True)
 class ZoneChangeInfoTable:
+    """Stores the corrected quantities after corrections."""
     table: str = "tblZoneChangeInfo"
-    zone_queue_id: int = "ZoneQueueID"
-    counted_qty: int = "CountedQty"
+    zone_queue_id: str = "ZoneQueueID"
+    quantity: str = "CountedQty"
 
 
 @dataclass(frozen=True)
 class TagTable:
     table: str = "tblTag"
-    tag_no: int = "TagNo"
-    total_qty: int = "TotalQty"
-    total_ext: float = "TotalEXTPRICE"
+    tag_number: str = "TagNo"
+    total_qty: str = "TotalQty"
+    total_price: str = "TotalEXTPRICE"
 
 
 @dataclass(frozen=True)
 class TagRangeTable:
     table: str = "tblTagRange"
-    tag_val_from: int = "TagValFrom"
-    tag_val_to: int = "TagValTo"
-    total_qty: int = "TotalQty"
-    total_ext: float = "TotalEXTPRICE"
-    zone_id: int = "ZoneID"
+    tag_val_from: str = "TagValFrom"
+    tag_val_to: str = "TagValTo"
+    total_qty: str = "TotalQty"
+    total_price: str = "TotalEXTPRICE"
+    zone_id: str = "ZoneID"
