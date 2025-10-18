@@ -88,7 +88,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
                     AND {queue.table}.{queue.zone_id} = ?
                     AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.quantity})) > 50
             """
-            cursor.execute(zone_discrepancy_totals_query, (zone_id,))
+            cursor.execute(zone_discrepancy_totals_query, (zone_id, zone_id))
             zone_discrepancy_totals_row = cursor.fetchone()
             if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
                 raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else 0}")

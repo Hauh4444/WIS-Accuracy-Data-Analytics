@@ -33,6 +33,16 @@ class DetailsTable:
     table: str = "tblDetails"
     emp_number: str = "empno"
     tag_number: str = "tag"
+    upc: str = "sku"
+
+
+@dataclass(frozen=True)
+class DLoadErrorsTable:
+    """Stores download errors including merged (duplicate) tags"""
+    table: str = "tblDLoadErrors"
+    error_msg: str = "ErrorMsg"
+    emp_number: str = "empno"
+    tag_number: str = "tag"
 
 
 @dataclass(frozen=True)

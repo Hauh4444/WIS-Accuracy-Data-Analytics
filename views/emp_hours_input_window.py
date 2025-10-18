@@ -58,7 +58,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
 
-        label_id = QtWidgets.QLabel(emp.get("employee_id", ""))
+        label_id = QtWidgets.QLabel(emp.get("employee_number", ""))
         label_id.setFixedWidth(120)
         layout.addWidget(label_id)
 
