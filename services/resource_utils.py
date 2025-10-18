@@ -1,7 +1,6 @@
 """Resource path resolution for development and PyInstaller bundled environments."""
 import os
 import sys
-from pathlib import Path
 
 
 def resource_path(relative_path: str) -> str:
@@ -16,8 +15,9 @@ def resource_path(relative_path: str) -> str:
         Absolute path to the resource file
     """
     try:
+        # noinspection PyProtectedMember,PyUnresolvedReferences
         base_path = sys._MEIPASS
-    except Exception:
+    except AttributeError:
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     return os.path.join(base_path, relative_path)

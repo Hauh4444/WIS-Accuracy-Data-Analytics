@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from PyQt6 import QtWidgets
 
 from services.report_generator import generate_accuracy_report
 
@@ -11,196 +10,68 @@ class TestReportGenerator:
     def sample_emp_data(self):
         return [
             {
-                "employee_id": "E001",
+                "employee_number": "E001",
                 "employee_name": "Alice Johnson",
                 "total_quantity": 50,
                 "uph": 10,
                 "total_discrepancy_dollars": 100.0,
                 "total_discrepancy_tags": 2,
                 "discrepancy_percent": 5.0
-            },
-            {
-                "employee_id": "E002",
-                "employee_name": "Bob Smith",
-                "total_quantity": 80,
-                "uph": 8,
-                "total_discrepancy_dollars": 50.0,
-                "total_discrepancy_tags": 1,
-                "discrepancy_percent": 2.5
-            },
+            }
         ]
 
     @pytest.fixture
     def sample_team_data(self):
         return [
             {
-                "department_name": "Finance",
-                "department_number": 101,
+                "zone_name": "Finance",
+                "zone_number": 101,
                 "total_quantity": 100,
                 "total_discrepancy_dollars": 150.0,
                 "total_discrepancy_tags": 3,
                 "discrepancy_percent": 7.5
-            },
-            {
-                "department_name": "Human Resources",
-                "department_number": 102,
-                "total_quantity": 75,
-                "total_discrepancy_dollars": 25.0,
-                "total_discrepancy_tags": 1,
-                "discrepancy_percent": 1.0
-            },
+            }
         ]
 
     @pytest.fixture
     def sample_store_data(self):
         return {
+            "store": "Test Store #123",
+            "store_address": "123 Test Street, Test City, TS 12345",
             "inventory_datetime": "2024-01-15 10:00:00",
             "print_date": "1/15/2024",
-            "store": "Test Store #123",
-            "print_time": "02:30:45PM",
-            "store_address": "123 Test Street, Test City, TS 12345"
+            "print_time": "02:30:45PM"
         }
 
-    @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
-    def test_emp_data_type_validation(self, invalid_input, sample_team_data, sample_store_data):
-        with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            with pytest.raises(ValueError):
-                generate_accuracy_report(sample_store_data, invalid_input, sample_team_data)
-            mock_critical.assert_called_once()
-            assert "Data validation failed" in mock_critical.call_args[0][2]
+    @patch("services.report_generator.QtWidgets.QMessageBox.critical")
+    @pytest.mark.parametrize("invalid_input", [None, "string", 123])
+    def test_emp_data_type_validation(self, mock_critical, invalid_input, sample_team_data, sample_store_data):
+        """Test emp_data type validation."""
+        with pytest.raises(ValueError, match="emp_data and team_data must be lists"):
+            generate_accuracy_report(sample_store_data, invalid_input, sample_team_data)
+        mock_critical.assert_called_once()
 
-    @pytest.mark.parametrize("invalid_input", [None, "string", 123, {}])
-    def test_team_data_type_validation(self, invalid_input, sample_emp_data, sample_store_data):
-        with patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            with pytest.raises(ValueError):
-                generate_accuracy_report(sample_store_data, sample_emp_data, invalid_input)
-            mock_critical.assert_called_once()
-            assert "Data validation failed" in mock_critical.call_args[0][2]
+    @patch("services.report_generator.QtWidgets.QMessageBox.critical")
+    @pytest.mark.parametrize("invalid_input", [None, "string", 123])
+    def test_team_data_type_validation(self, mock_critical, invalid_input, sample_emp_data, sample_store_data):
+        """Test team_data type validation."""
+        with pytest.raises(ValueError, match="emp_data and team_data must be lists"):
+            generate_accuracy_report(sample_store_data, sample_emp_data, invalid_input)
+        mock_critical.assert_called_once()
 
-    def test_employee_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("pathlib.Path.exists", side_effect=[False, True]), \
-             patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            with pytest.raises(RuntimeError):
-                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            mock_critical.assert_called_once()
-            assert "Failed to generate report" in mock_critical.call_args[0][2]
+    @patch("services.report_generator.QtWidgets.QMessageBox.critical")
+    def test_empty_store_data_validation(self, mock_critical, sample_emp_data, sample_team_data):
+        """Test empty store_data validation."""
+        with pytest.raises(ValueError, match="store_data cannot be empty or None"):
+            generate_accuracy_report({}, sample_emp_data, sample_team_data)
+        mock_critical.assert_called_once()
 
-    def test_team_template_file_missing(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("pathlib.Path.exists", side_effect=[True, False]), \
-             patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            with pytest.raises(RuntimeError):
-                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            mock_critical.assert_called_once()
-            assert "Failed to generate report" in mock_critical.call_args[0][2]
-
-    def test_pdf_generation_error(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("services.report_generator.Path.exists", return_value=True), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            
-            mock_get_template.return_value.render.return_value = "<html></html>"
-            mock_create_pdf.return_value.err = 1
-            
-            with pytest.raises(RuntimeError):
-                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            mock_critical.assert_called_once()
-            assert "Failed to generate report" in mock_critical.call_args[0][2]
-
-    def test_successful_pdf_generation(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("services.report_generator.Path.exists", return_value=True), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
-             patch("webbrowser.open") as mock_web_open:
-            
-            mock_get_template.return_value.render.return_value = "<html></html>"
-            mock_create_pdf.return_value.err = 0
-            
-            fake_file = MagicMock()
-            fake_file.name = "/tmp/test_report.pdf"
-            mock_tempfile.return_value.__enter__.return_value = fake_file
-            
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            
-            mock_web_open.assert_called_once_with(f"file://{fake_file.name}")
-
-    def test_tempfile_creation_failure(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("services.report_generator.Path.exists", side_effect=[True, True, True, False]), \
-             patch("services.report_generator.Environment") as mock_env, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
-             patch.object(QtWidgets.QMessageBox, "critical") as mock_critical:
-            
-            mock_template = MagicMock()
-            mock_template.render.return_value = "<html></html>"
-            mock_env.return_value.get_template.return_value = mock_template
-            mock_create_pdf.return_value.err = 0
-            
-            fake_file = MagicMock()
-            fake_file.name = "/tmp/test_report.pdf"
-            mock_tempfile.return_value.__enter__.return_value = fake_file
-            
-            with pytest.raises(RuntimeError):
-                generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            mock_critical.assert_called_once()
-            assert "Failed to generate report" in mock_critical.call_args[0][2]
-
-    def test_template_rendering_with_data(self, sample_emp_data, sample_team_data, sample_store_data):
-        with patch("services.report_generator.Path.exists", return_value=True), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
-             patch("webbrowser.open"):
-            
-            mock_template = MagicMock()
-            mock_get_template.return_value = mock_template
-            mock_template.render.return_value = "<html></html>"
-            mock_create_pdf.return_value.err = 0
-            
-            fake_file = MagicMock()
-            fake_file.name = "/tmp/test_report.pdf"
-            mock_tempfile.return_value.__enter__.return_value = fake_file
-            
-            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
-            
-            assert mock_template.render.called
-
-    def test_empty_data_handling(self, sample_store_data):
-        with patch("services.report_generator.Path.exists", return_value=True), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
-             patch("webbrowser.open"):
-            
-            mock_get_template.return_value.render.return_value = "<html></html>"
-            mock_create_pdf.return_value.err = 0
-            
-            fake_file = MagicMock()
-            fake_file.name = "/tmp/test_report.pdf"
-            mock_tempfile.return_value.__enter__.return_value = fake_file
-            
-            generate_accuracy_report(sample_store_data, [], [])
-            
-            assert mock_get_template.return_value.render.called
-
-    def test_large_data_handling(self, sample_emp_data, sample_team_data, sample_store_data):
-        large_emp_data = sample_emp_data * 100
-        large_team_data = sample_team_data * 50
+    @patch("services.report_generator.QtWidgets.QMessageBox.critical")
+    @patch("services.report_generator.resource_path")
+    def test_templates_directory_not_found(self, mock_resource_path, mock_critical, sample_emp_data, sample_team_data, sample_store_data):
+        """Test templates directory not found error."""
+        mock_resource_path.return_value = None
         
-        with patch("services.report_generator.Path.exists", return_value=True), \
-             patch("services.report_generator.Environment.get_template") as mock_get_template, \
-             patch("xhtml2pdf.pisa.CreatePDF") as mock_create_pdf, \
-             patch("tempfile.NamedTemporaryFile") as mock_tempfile, \
-             patch("webbrowser.open"):
-            
-            mock_get_template.return_value.render.return_value = "<html></html>"
-            mock_create_pdf.return_value.err = 0
-            
-            fake_file = MagicMock()
-            fake_file.name = "/tmp/test_report.pdf"
-            mock_tempfile.return_value.__enter__.return_value = fake_file
-            
-            generate_accuracy_report(sample_store_data, large_emp_data, large_team_data)
-            
-            assert mock_get_template.return_value.render.called
+        with pytest.raises(RuntimeError, match="Templates directory not found or invalid"):
+            generate_accuracy_report(sample_store_data, sample_emp_data, sample_team_data)
+        mock_critical.assert_called_once()

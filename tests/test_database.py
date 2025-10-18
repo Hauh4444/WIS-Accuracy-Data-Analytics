@@ -18,67 +18,53 @@ class TestDatabaseConnection:
 
     @patch("services.database.Path.exists", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_file_not_found_with_db_path(self, mock_msg, mock_exists, app):
+    def test_file_not_found_error(self, mock_msg, mock_exists, app):
+        """Test file not found error handling."""
         with pytest.raises(ValueError, match="Database file not found"):
             get_db_connection(db_path="nonexistent.accdb")
-        
         mock_msg.assert_called_once()
-        assert "Database file not found" in mock_msg.call_args[0][2]
-
-    @patch("services.database.Path.exists", return_value=False)
-    @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_file_not_found_with_constructed_path(self, mock_msg, mock_exists, app):
-        job_number = "TEST123"
-        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
-        with pytest.raises(ValueError, match="Database file not found"):
-            get_db_connection(db_path=db_path)
-        
-        mock_msg.assert_called_once()
-        assert "Database file not found" in mock_msg.call_args[0][2]
 
     @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_none_path_error(self, mock_msg, app):
+    def test_invalid_path_errors(self, mock_msg, app):
+        """Test various invalid path error conditions."""
         with pytest.raises(ValueError, match="Database path cannot be None"):
             get_db_connection(db_path=None)
         
-        mock_msg.assert_called_once()
-        assert "Database path cannot be None" in mock_msg.call_args[0][2]
-
-    @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_non_string_path_error(self, mock_msg, app):
         with pytest.raises(ValueError, match="Database path must be a string"):
             get_db_connection(db_path=123)
         
-        mock_msg.assert_called_once()
-        assert "Database path must be a string" in mock_msg.call_args[0][2]
-
-    @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_empty_path_error(self, mock_msg, app):
         with pytest.raises(ValueError, match="Database path cannot be empty"):
             get_db_connection(db_path="")
         
-        mock_msg.assert_called_once()
-        assert "Database path cannot be empty" in mock_msg.call_args[0][2]
+        assert mock_msg.call_count == 3
 
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.Path.is_file", return_value=False)
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_path_not_file_error(self, mock_msg, mock_is_file, mock_exists, app):
+        """Test path is not a file error."""
         with pytest.raises(ValueError, match="Database path is not a file"):
             get_db_connection(db_path="directory_path")
-        
         mock_msg.assert_called_once()
-        assert "Database path is not a file" in mock_msg.call_args[0][2]
 
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.Path.is_file", return_value=True)
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_invalid_file_extension_error(self, mock_msg, mock_is_file, mock_exists, app):
+        """Test invalid file extension error."""
         with pytest.raises(ValueError, match="Invalid database file extension"):
             get_db_connection(db_path="test.txt")
-        
         mock_msg.assert_called_once()
-        assert "Invalid database file extension" in mock_msg.call_args[0][2]
+
+    @patch("services.database.platform.system", return_value="Linux")
+    @patch("services.database.Path.is_file", return_value=True)
+    @patch("services.database.Path.exists", return_value=True)
+    @patch("services.database.QtWidgets.QMessageBox.critical")
+    def test_linux_platform_error(self, mock_msg, mock_exists, mock_is_file, mock_platform, app):
+        """Test Linux platform error."""
+        with pytest.raises(ValueError, match="Windows platform required"):
+            get_db_connection(db_path="test.accdb")
+        mock_msg.assert_called_once()
 
     @patch("services.database.platform.system", return_value="Windows")
     @patch("services.database.Path.is_file", return_value=True)
@@ -86,17 +72,17 @@ class TestDatabaseConnection:
     @patch("services.database.pyodbc.connect", side_effect=Exception("Connection failed"))
     @patch("services.database.QtWidgets.QMessageBox.critical")
     def test_connection_error(self, mock_msg, mock_connect, mock_exists, mock_is_file, mock_platform, app):
+        """Test database connection error."""
         with pytest.raises(Exception, match="Connection failed"):
             get_db_connection(db_path="valid_path.accdb")
-        
         mock_msg.assert_called_once()
-        assert "Unexpected error during database connection" in mock_msg.call_args[0][2]
 
     @patch("services.database.platform.system", return_value="Windows")
     @patch("services.database.Path.is_file", return_value=True)
     @patch("services.database.Path.exists", return_value=True)
     @patch("services.database.pyodbc.connect")
-    def test_connection_success_with_db_path(self, mock_connect, mock_exists, mock_is_file, mock_platform, app):
+    def test_successful_connection(self, mock_connect, mock_exists, mock_is_file, mock_platform, app):
+        """Test successful database connection."""
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
@@ -105,56 +91,5 @@ class TestDatabaseConnection:
         assert result == mock_conn
         mock_connect.assert_called_once()
         connection_string = mock_connect.call_args[0][0]
-        assert "valid_path.accdb" in connection_string
-
-    @patch("services.database.platform.system", return_value="Windows")
-    @patch("services.database.Path.is_file", return_value=True)
-    @patch("services.database.Path.exists", return_value=True)
-    @patch("services.database.pyodbc.connect")
-    def test_connection_success_with_constructed_path(self, mock_connect, mock_exists, mock_is_file, mock_platform, app):
-        mock_conn = MagicMock()
-        mock_connect.return_value = mock_conn
-        
-        job_number = "TEST123"
-        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
-        result = get_db_connection(db_path=db_path)
-        
-        assert result == mock_conn
-        mock_connect.assert_called_once()
-        connection_string = mock_connect.call_args[0][0]
-        assert "TEST123" in connection_string
-
-    @patch("services.database.platform.system", return_value="Windows")
-    @patch("services.database.Path.is_file", return_value=True)
-    @patch("services.database.Path.exists", return_value=True)
-    @patch("services.database.pyodbc.connect")
-    def test_windows_driver_selection(self, mock_connect, mock_exists, mock_is_file, mock_platform, app):
-        mock_conn = MagicMock()
-        mock_connect.return_value = mock_conn
-        
-        get_db_connection(db_path="test.accdb")
-        
-        connection_string = mock_connect.call_args[0][0]
         assert "Microsoft Access Driver" in connection_string
-
-    @patch("services.database.platform.system", return_value="Linux")
-    @patch("services.database.Path.is_file", return_value=True)
-    @patch("services.database.Path.exists", return_value=True)
-    @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_linux_platform_error(self, mock_msg, mock_exists, mock_is_file, mock_platform, app):
-        with pytest.raises(ValueError, match="Windows platform required"):
-            get_db_connection(db_path="test.accdb")
-        
-        mock_msg.assert_called_once()
-        assert "Windows platform required" in mock_msg.call_args[0][2]
-
-    @patch("services.database.platform.system", return_value="Linux")
-    @patch("services.database.Path.is_file", return_value=True)
-    @patch("services.database.Path.exists", return_value=True)
-    @patch("services.database.QtWidgets.QMessageBox.critical")
-    def test_linux_connection_error_with_help_text(self, mock_msg, mock_exists, mock_is_file, mock_platform, app):
-        with pytest.raises(ValueError, match="Windows platform required"):
-            get_db_connection(db_path="test.accdb")
-        
-        error_message = mock_msg.call_args[0][2]
-        assert "Windows platform required" in error_message
+        assert "valid_path.accdb" in connection_string

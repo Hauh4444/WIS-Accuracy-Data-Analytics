@@ -95,11 +95,11 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
 
             emp_tags = emp_tags_map.get(emp_number, [])
             if not emp_tags: continue
-            tags_filter = ",".join(emp_tags)
+            tags_filter = ",".join(emp_tags) # Can't parameterize tags since Access will throw a 'System resources exceeded' error
 
             emp_totals_query = f"""
                 SELECT 
-                    Sum({tag.table}.{tag.total_qty}),
+                    Sum({tag.table}.{tag.total_quantity}),
                     Sum({tag.table}.{tag.total_price})
                 FROM {tag.table}
                 WHERE CInt({tag.table}.{tag.tag_number}) IN ({tags_filter})
@@ -148,7 +148,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 new_quantity = emp_discrepancies_row[5] if emp_discrepancies_row and emp_discrepancies_row[5] is not None else 0
                 discrepancy_change = emp_discrepancies_row[6] if emp_discrepancies_row and emp_discrepancies_row[6] is not None else 0
 
-                # Rarely will have duplicate tags and even more rarely duplicate tags with discrepancies so this is fairly inexpensive
+                # Rarely will have duplicate tags with discrepancies so this is fairly inexpensive
                 if tag_number in duplicate_tags_map.get(emp_number, []):
                     verify_line_query = f"""
                         SELECT {details.table}.{details.emp_number}

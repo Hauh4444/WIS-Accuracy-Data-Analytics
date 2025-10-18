@@ -19,7 +19,7 @@
                 Zone Accuracy Report
             </td>
             <td style="font-weight: bold; text-align: right;">
-                Page #: 2 of 4
+                Page #: 2 of 3
             </td>
         </tr>
         <tr>
@@ -85,10 +85,10 @@
         {% if zone.total_quantity > 0 %}
         <tr>
             <td style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.department_number) }}
+                {{ "%s"|format(zone.zone_number) }}
             </td>
             <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.department_name) }}
+                {{ "%s"|format(zone.zone_name) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
                 ${{ "%.2f"|format(zone.total_discrepancy_dollars) }}

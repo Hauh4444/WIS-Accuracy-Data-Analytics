@@ -77,7 +77,7 @@ class ZoneChangeInfoTable:
 class TagTable:
     table: str = "tblTag"
     tag_number: str = "TagNo"
-    total_qty: str = "TotalQty"
+    total_quantity: str = "TotalQty"
     total_price: str = "TotalEXTPRICE"
 
 
@@ -86,6 +86,6 @@ class TagRangeTable:
     table: str = "tblTagRange"
     tag_val_from: str = "TagValFrom"
     tag_val_to: str = "TagValTo"
-    total_qty: str = "TotalQty"
+    total_quantity: str = "TotalQty"
     total_price: str = "TotalEXTPRICE"
     zone_id: str = "ZoneID"

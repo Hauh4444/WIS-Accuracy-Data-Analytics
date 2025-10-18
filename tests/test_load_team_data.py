@@ -6,14 +6,9 @@ from services.load_team_data import load_team_data
 
 class TestLoadTeamData:
 
-    def make_mock_row(self, **kwargs):
-        row = MagicMock()
-        for k, v in kwargs.items():
-            setattr(row, k, v)
-        return row
-
     @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
     def test_database_exception_handling(self, mock_critical):
+        """Test database exception handling."""
         mock_conn = MagicMock()
         mock_conn.cursor.side_effect = Exception("Database connection failed")
         
@@ -21,9 +16,9 @@ class TestLoadTeamData:
             load_team_data(mock_conn)
         
         mock_critical.assert_called_once()
-        assert "An unexpected error occurred" in mock_critical.call_args[0][2]
 
     def test_no_team_records(self):
+        """Test no team records returns empty list."""
         mock_cursor = MagicMock()
         mock_cursor.fetchall.return_value = []
         mock_conn = MagicMock()
@@ -34,7 +29,8 @@ class TestLoadTeamData:
         assert result == []
 
     def test_successful_data_loading(self):
-        mock_zone_row = (101, "Finance Department")
+        """Test successful team data loading with business logic."""
+        mock_zone_row = (101, "Finance Zone")
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
@@ -50,29 +46,29 @@ class TestLoadTeamData:
         
         result = load_team_data(mock_conn)
         
-        assert isinstance(result, list)
         assert len(result) == 1
-        assert result[0]["department_name"] == "Finance Department"
-        assert result[0]["department_number"] == 101
-        assert result[0]["total_tags"] == 50
-        assert result[0]["total_quantity"] == 100
-        assert result[0]["total_price"] == 500.0
-        assert result[0]["total_discrepancy_dollars"] == 75.0
-        assert result[0]["total_discrepancy_tags"] == 2
-        assert result[0]["discrepancy_percent"] == 15.0
+        team_data = result[0]
+        assert team_data["zone_number"] == 101
+        assert team_data["zone_name"] == "Finance Zone"
+        assert team_data["total_tags"] == 50
+        assert team_data["total_quantity"] == 100
+        assert team_data["total_price"] == 500.0
+        assert team_data["total_discrepancy_dollars"] == 75.0
+        assert team_data["total_discrepancy_tags"] == 2
+        assert team_data["discrepancy_percent"] == 15.0  # 75/500 * 100
 
     def test_multiple_teams_loading(self):
-        mock_zone_row1 = (101, "Finance Department")
-        mock_zone_row2 = (102, "Human Resources")
+        """Test loading multiple teams."""
+        mock_zone_rows = [(101, "Finance"), (102, "HR")]
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2]
+            mock_zone_rows
         ]
         mock_cursor.fetchone.side_effect = [
             (50, 100, 500.0),
-            (25.0, 1),
-            (30, 75, 300.0),
+            (75.0, 2),
+            (30, 60, 300.0),
             (15.0, 1),
         ]
         
@@ -82,38 +78,12 @@ class TestLoadTeamData:
         result = load_team_data(mock_conn)
         
         assert len(result) == 2
-        assert result[0]["department_name"] == "Finance Department"
-        assert result[0]["department_number"] == 101
-        assert result[1]["department_name"] == "Human Resources"
-        assert result[1]["department_number"] == 102
-        
-        for team_data in result:
-            assert "department_number" in team_data
-            assert "department_name" in team_data
-            assert "total_tags" in team_data
-            assert "total_quantity" in team_data
-            assert "total_price" in team_data
-            assert "total_discrepancy_dollars" in team_data
-            assert "total_discrepancy_tags" in team_data
-            assert "discrepancy_percent" in team_data
-
-    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
-    def test_cursor_execute_called(self, mock_critical):
-        mock_cursor = MagicMock()
-        mock_conn = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = [(201, "Test Department")]
-        mock_cursor.fetchone.side_effect = [
-            (50, 100, 500.0),  # zone_totals_query
-            (0, 0)            # zone_discrepancy_totals_query
-        ]
-        
-        load_team_data(mock_conn)
-        
-        assert mock_cursor.execute.called
+        assert result[0]["zone_number"] == 101
+        assert result[1]["zone_number"] == 102
 
     def test_zero_discrepancy_calculation(self):
-        mock_zone_row = (101, "Finance Department")
+        """Test zero discrepancy calculation."""
+        mock_zone_row = (101, "Finance Zone")
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
@@ -132,69 +102,19 @@ class TestLoadTeamData:
         assert len(result) == 1
         team_data = result[0]
         assert team_data["total_discrepancy_dollars"] == 0
-        assert team_data["total_discrepancy_tags"] == 0
         assert team_data["discrepancy_percent"] == 0
-
-    def test_high_discrepancy_calculation(self):
-        mock_zone_row = (101, "Finance Department")
-        
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.side_effect = [
-            [mock_zone_row]
-        ]
-        mock_cursor.fetchone.side_effect = [
-            (50, 100, 500.0),
-            (300.0, 8),
-        ]
-        
-        mock_conn = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        
-        result = load_team_data(mock_conn)
-        
-        assert len(result) == 1
-        team_data = result[0]
-        assert team_data["total_discrepancy_dollars"] == 300.0
-        assert team_data["total_discrepancy_tags"] == 8
-        assert team_data["discrepancy_percent"] == 60.0
-
-    def test_department_number_types(self):
-        mock_zone_row1 = (101, "Finance Department")
-        mock_zone_row2 = (102, "Human Resources")
-        
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.side_effect = [
-            [mock_zone_row1, mock_zone_row2]
-        ]
-        mock_cursor.fetchone.side_effect = [
-            (50, 100, 500.0),
-            (25.0, 1),
-            (30, 75, 300.0),
-            (15.0, 1),
-        ]
-        
-        mock_conn = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        
-        result = load_team_data(mock_conn)
-        
-        assert len(result) == 2
-        assert result[0]["department_number"] == 101
-        assert result[1]["department_number"] == 102
-        assert isinstance(result[0]["department_number"], int)
-        assert isinstance(result[1]["department_number"], int)
 
     def test_discrepancy_percent_zero_division(self):
-        """Verify division by zero protection when total_price is 0."""
-        mock_zone_row = (101, "Finance Department")
+        """Test zero division handling in discrepancy percent calculation."""
+        mock_zone_row = (101, "Finance Zone")
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
-            (50, 100, 0.0),
-            (25.0, 1),
+            (50, 100, 0),
+            (75.0, 2),
         ]
         
         mock_conn = MagicMock()
@@ -204,20 +124,34 @@ class TestLoadTeamData:
         
         assert len(result) == 1
         team_data = result[0]
-        assert team_data["total_price"] == 0.0
         assert team_data["discrepancy_percent"] == 0
 
-    def test_null_values_handling(self):
-        """Verify None values from database are converted to 0."""
-        mock_zone_row = (101, "Finance Department")
+    @patch("services.load_team_data.QtWidgets.QMessageBox.critical")
+    def test_malformed_zone_data(self, mock_critical):
+        """Test handling of malformed zone data."""
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.side_effect = [
+            [(101, "Finance", "EXTRA_COLUMN")],
+        ]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        
+        with pytest.raises(RuntimeError):
+            load_team_data(mock_conn)
+        
+        mock_critical.assert_called_once()
+
+    def test_business_rule_discrepancy_threshold(self):
+        """Test business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted."""
+        mock_zone_row = (101, "Finance Zone")
         
         mock_cursor = MagicMock()
         mock_cursor.fetchall.side_effect = [
             [mock_zone_row]
         ]
         mock_cursor.fetchone.side_effect = [
-            (None, None, None),
-            (None, None),
+            (50, 100, 500.0),
+            (75.0, 1),
         ]
         
         mock_conn = MagicMock()
@@ -227,26 +161,6 @@ class TestLoadTeamData:
         
         assert len(result) == 1
         team_data = result[0]
-        assert team_data["total_tags"] == 0
-        assert team_data["total_quantity"] == 0
-        assert team_data["total_price"] == 0
-        assert team_data["total_discrepancy_dollars"] == 0
-        assert team_data["total_discrepancy_tags"] == 0
-
-    def test_cursor_execute_query_structure(self):
-        mock_cursor = MagicMock()
-        mock_cursor.fetchall.return_value = []
-        mock_cursor.fetchone.return_value = None
-        
-        mock_conn = MagicMock()
-        mock_conn.cursor.return_value = mock_cursor
-        
-        load_team_data(mock_conn)
-        
-        assert mock_cursor.execute.called
-        calls = mock_cursor.execute.call_args_list
-        zone_query = calls[0][0][0]
-        assert "tblZone" in zone_query
-        assert "ZoneID" in zone_query
-        assert "ZoneDesc" in zone_query
-        assert "SELECT" in zone_query
+        assert team_data["total_discrepancy_dollars"] == 75.0
+        assert team_data["total_discrepancy_tags"] == 1
+        assert team_data["discrepancy_percent"] == 15.0

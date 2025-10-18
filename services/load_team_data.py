@@ -1,4 +1,4 @@
-"""Team/zone data loader with inventory accuracy metrics."""
+"""Team zone data loader with inventory accuracy metrics."""
 import pyodbc
 from PyQt6 import QtWidgets
 
@@ -6,7 +6,7 @@ from services.models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable
 
 
 def load_team_data(conn: pyodbc.Connection) -> list[dict]:
-    """Load team/zone data with discrepancy calculations.
+    """Load team zone data with discrepancy calculations.
     
     Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
     
@@ -54,7 +54,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             zone_totals_query = f"""
                 SELECT 
                     Sum({tag_range.table}.{tag_range.tag_val_to} - {tag_range.table}.{tag_range.tag_val_from} + 1),
-                    Sum({tag_range.table}.{tag_range.total_qty}),
+                    Sum({tag_range.table}.{tag_range.total_quantity}),
                     Sum({tag_range.table}.{tag_range.total_price})
                 FROM {tag_range.table}
                 WHERE {tag_range.table}.{tag_range.zone_id} = ?
@@ -98,8 +98,8 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
             
             team_data.append({
-                'department_number': zone_id,
-                'department_name': zone_description,
+                'zone_number': zone_id,
+                'zone_name': zone_description,
                 'total_tags': total_tags,
                 'total_quantity': total_quantity,
                 'total_price': total_price,

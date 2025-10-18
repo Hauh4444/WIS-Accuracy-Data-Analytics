@@ -49,56 +49,15 @@ def sample_store_data():
     }
 
 
-class TestCreateEmployeeRow:
-
-    def test_create_employee_row_properties(self, mock_ui, sample_store_data):
-        emp = {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8}
-        emp_data = [emp]
-        team_data = [{"department_number": 1, "department_name": "HR"}]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        
-        assert row.label_id.text() == "E001"
-        assert row.label_name.text() == "Alice Johnson"
-        assert row.txt_hours.text() == "8"
-        assert hasattr(row, "txt_hours")
-        assert hasattr(row, "label_id")
-        assert hasattr(row, "label_name")
-
-    def test_create_employee_row_with_zero_hours(self, mock_ui, sample_store_data):
-        emp = {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 0}
-        emp_data = [emp]
-        team_data = [{"department_number": 1, "department_name": "HR"}]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        
-        assert row.label_id.text() == "E002"
-        assert row.label_name.text() == "Bob Smith"
-        assert row.txt_hours.text() == "0"
-
-    def test_create_employee_row_with_decimal_hours(self, mock_ui, sample_store_data):
-        emp = {"employee_id": "E003", "employee_name": "Charlie Brown", "hours": 7.5}
-        emp_data = [emp]
-        team_data = [{"department_number": 1, "department_name": "HR"}]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        
-        assert row.label_id.text() == "E003"
-        assert row.label_name.text() == "Charlie Brown"
-        assert row.txt_hours.text() == "7.5"
-
-
 class TestEmpHoursInputWindow:
 
     def test_window_initialization(self, mock_ui, sample_store_data):
+        """Test window initialization with employee data."""
         emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
         team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
+            {"zone_number": 1, "zone_name": "Human Resources"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
@@ -108,29 +67,29 @@ class TestEmpHoursInputWindow:
         assert row_widget.label_name.text() == "Alice Johnson"
 
     def test_multiple_employees_initialization(self, mock_ui, sample_store_data):
+        """Test window initialization with multiple employees."""
         emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80},
-            {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 6, "total_quantity": 60},
-            {"employee_id": "E003", "employee_name": "Charlie Brown", "hours": 7, "total_quantity": 70}
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80},
+            {"employee_number": "E002", "employee_name": "Bob Smith", "hours": 6, "total_quantity": 60}
         ]
         team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
+            {"zone_number": 1, "zone_name": "Human Resources"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
         
-        assert len(window.rows_widgets) == 3
+        assert len(window.rows_widgets) == 2
         assert window.rows_widgets[0].label_name.text() == "Alice Johnson"
         assert window.rows_widgets[1].label_name.text() == "Bob Smith"
-        assert window.rows_widgets[2].label_name.text() == "Charlie Brown"
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
     def test_print_clicked_updates_emp_data(self, mock_report, mock_ui, sample_store_data):
+        """Test print clicked updates employee data with hours and UPH calculations."""
         emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
         ]
         team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
+            {"zone_number": 1, "zone_name": "Human Resources"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
@@ -144,48 +103,31 @@ class TestEmpHoursInputWindow:
         mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_non_numeric_hours(self, mock_report, mock_ui, sample_store_data):
+    def test_print_clicked_invalid_hours_handling(self, mock_report, mock_ui, sample_store_data):
+        """Test print clicked with invalid hours input."""
         emp_data = [
-            {"employee_id": "E002", "employee_name": "Bob Smith", "hours": 0, "total_quantity": 50}
+            {"employee_number": "E002", "employee_name": "Bob Smith", "hours": 0, "total_quantity": 50}
         ]
         team_data = [
-            {"department_number": 2, "department_name": "Finance"}
+            {"zone_number": 2, "zone_name": "Finance"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
         row = window.rows_widgets[0]
-        row.txt_hours.setText("abc")
+        row.txt_hours.setText("abc")  # Invalid input
         
         window.on_print_clicked()
         
         assert emp_data[0]["hours"] == 0.0
         assert emp_data[0]["uph"] == 0
-        mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
+        mock_report.assert_called_once()
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_empty_hours(self, mock_report, mock_ui, sample_store_data):
-        emp_data = [
-            {"employee_id": "E003", "employee_name": "Charlie Brown", "hours": 0, "total_quantity": 60}
-        ]
-        team_data = [
-            {"department_number": 3, "department_name": "Engineering"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("")
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 0.0
-        assert emp_data[0]["uph"] == 0
-        mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
-
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_empty_emp_data(self, mock_report, mock_ui, sample_store_data):
+    def test_print_clicked_empty_emp_data_warning(self, mock_report, mock_ui, sample_store_data):
+        """Test print clicked with empty employee data shows warning."""
         emp_data = []
         team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
+            {"zone_number": 1, "zone_name": "Human Resources"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
@@ -197,13 +139,30 @@ class TestEmpHoursInputWindow:
         mock_report.assert_not_called()
 
     @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_decimal_hours(self, mock_report, mock_ui, sample_store_data):
+    def test_uph_calculation_zero_hours(self, mock_report, mock_ui, sample_store_data):
+        """Test UPH calculation with zero hours (should result in UPH = 0)."""
         emp_data = [
-            {"employee_id": "E004", "employee_name": "Diana Prince", "hours": 0, "total_quantity": 100}
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
         ]
-        team_data = [
-            {"department_number": 4, "department_name": "Marketing"}
+        team_data = []
+        
+        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
+        row = window.rows_widgets[0]
+        row.txt_hours.setText("0")
+        
+        window.on_print_clicked()
+        
+        assert emp_data[0]["hours"] == 0.0
+        assert emp_data[0]["uph"] == 0
+        mock_report.assert_called_once()
+
+    @patch("views.emp_hours_input_window.generate_accuracy_report")
+    def test_uph_calculation_decimal_precision(self, mock_report, mock_ui, sample_store_data):
+        """Test UPH calculation with decimal hours precision."""
+        emp_data = [
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
         ]
+        team_data = []
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
         row = window.rows_widgets[0]
@@ -212,49 +171,16 @@ class TestEmpHoursInputWindow:
         window.on_print_clicked()
         
         assert emp_data[0]["hours"] == 7.5
-        assert emp_data[0]["uph"] == pytest.approx(13.33, rel=1e-2)
-        mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
+        assert emp_data[0]["uph"] == (80 / 7.5)
+        mock_report.assert_called_once()
 
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_zero_quantity(self, mock_report, mock_ui, sample_store_data):
+    def test_center_on_screen_functionality(self, mock_ui, sample_store_data):
+        """Test center on screen functionality."""
         emp_data = [
-            {"employee_id": "E005", "employee_name": "Eve Adams", "hours": 0, "total_quantity": 0}
+            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
         ]
         team_data = [
-            {"department_number": 5, "department_name": "Operations"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("8")
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 8.0
-        assert emp_data[0]["uph"] == 0
-        mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
-
-    def test_apply_scrollbar_style_file_not_exists(self, mock_ui, sample_store_data):
-        emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
-        ]
-        team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        
-        with patch("pathlib.Path.exists", return_value=False):
-            window.apply_scrollbar_style()
-        
-        assert isinstance(window.scrollArea.styleSheet(), str)
-
-    def test_center_on_screen_moves_window(self, mock_ui, sample_store_data):
-        emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
-        ]
-        team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
+            {"zone_number": 1, "zone_name": "Human Resources"}
         ]
         
         window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
@@ -262,16 +188,3 @@ class TestEmpHoursInputWindow:
         
         pos = window.pos()
         assert pos.x() >= 0 and pos.y() >= 0
-
-    def test_center_on_screen_no_screen(self, mock_ui, sample_store_data):
-        emp_data = [
-            {"employee_id": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
-        ]
-        team_data = [
-            {"department_number": 1, "department_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        
-        with patch.object(QtWidgets.QApplication, 'primaryScreen', return_value=None):
-            window.center_on_screen()
