@@ -17,7 +17,7 @@ def resource_path(relative_path: str) -> str:
     try:
         # noinspection PyProtectedMember,PyUnresolvedReferences
         base_path = sys._MEIPASS
-    except AttributeError:
+    except (AttributeError, Exception):
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     return os.path.join(base_path, relative_path)
