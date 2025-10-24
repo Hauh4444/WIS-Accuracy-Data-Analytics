@@ -2,7 +2,7 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.models import TerminalControlTable, EmpNamesTable, DetailsTable, DLoadErrorsTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagTable
+from repositories.emp_repository import fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data, fetch_emp_totals_data, fetch_emp_discrepancies_data, fetch_line_data
 
 
 def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
@@ -28,26 +28,8 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        cursor = conn.cursor()
-        term = TerminalControlTable()
-        emp = EmpNamesTable()
-        details = DetailsTable()
-        dload = DLoadErrorsTable()
-        queue = ZoneChangeQueueTable()
-        info = ZoneChangeInfoTable()
-        tag = TagTable()
-
-        emp_tags_query = f"""
-            SELECT DISTINCT 
-                {details.table}.{details.emp_number},
-                {details.table}.{details.tag_number}
-            FROM {details.table}
-        """
-        cursor.execute(emp_tags_query)
-        emp_tags_rows = cursor.fetchall()
-
         emp_tags_map = {}
-
+        emp_tags_rows = fetch_emp_tags_data(conn=conn)
         for emp_tags_row in emp_tags_rows:
             if emp_tags_row is None or len(emp_tags_row) != 2:
                 raise RuntimeError(f"Invalid emp_tags query result structure - expected 2 columns, got {len(emp_tags_row) if emp_tags_row else 0}")
@@ -56,18 +38,8 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             emp_tag = emp_tags_row[1] if emp_tags_row and emp_tags_row[1] is not None else ""
             emp_tags_map.setdefault(emp_number, []).append(emp_tag)
 
-        duplicate_tags_query = f"""
-            SELECT DISTINCT
-                {dload.table}.{dload.emp_number},
-                {dload.table}.{dload.tag_number}
-            FROM {dload.table}
-            WHERE {dload.table}.{dload.error_msg} = 'Duplicate Tag'
-        """
-        cursor.execute(duplicate_tags_query)
-        duplicate_tags_rows = cursor.fetchall()
-        
         duplicate_tags_map = {}
-        
+        duplicate_tags_rows = fetch_duplicate_tags_data(conn=conn)
         for duplicate_tags_row in duplicate_tags_rows:
             if duplicate_tags_row is None or len(duplicate_tags_row) != 2:
                 raise RuntimeError(f"Invalid duplicate_tags query result structure - expected 2 columns, got {len(duplicate_tags_row) if duplicate_tags_row else 0}")
@@ -76,120 +48,62 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             emp_tag = duplicate_tags_row[1] if duplicate_tags_row and duplicate_tags_row[1] is not None else ""
             duplicate_tags_map.setdefault(emp_number, []).append(emp_tag)
 
-        emp_query = f"""
-            SELECT DISTINCT
-                {emp.table}.{emp.emp_number},
-                {emp.table}.{emp.emp_name}
-            FROM {emp.table}
-            INNER JOIN {term.table} ON {term.table}.{term.emp_number} = {emp.table}.{emp.emp_number}
-        """
-        cursor.execute(emp_query)
-        emp_rows = cursor.fetchall()
-
+        emp_rows = fetch_emp_data(conn=conn)
         for emp_row in emp_rows:
             if emp_row is None or len(emp_row) != 2:
                 raise RuntimeError(f"Invalid emp query result structure - expected 2 columns, got {len(emp_row) if emp_row else 0}")
 
-            emp_number = emp_row[0] if emp_row and emp_row[0] else ""
-            emp_name = emp_row[1] if emp_row and emp_row[1] else ""
+            emp_data_row = {
+                "emp_number": emp_row[0] if emp_row and emp_row[0] else "",
+                "emp_name": emp_row[1] if emp_row and emp_row[1] else ""
+            }
 
-            emp_tags = emp_tags_map.get(emp_number, [])
+            emp_tags = emp_tags_map.get(emp_data_row["emp_number"], [])
             if not emp_tags: continue
             tags_filter = ",".join(emp_tags) # Can't parameterize tags since Access will throw a 'System resources exceeded' error
 
-            emp_totals_query = f"""
-                SELECT 
-                    Sum({tag.table}.{tag.total_quantity}),
-                    Sum({tag.table}.{tag.total_price})
-                FROM {tag.table}
-                WHERE CInt({tag.table}.{tag.tag_number}) IN ({tags_filter})
-            """
-            cursor.execute(emp_totals_query)
-            emp_totals_row = cursor.fetchone()
+            emp_totals_row = fetch_emp_totals_data(conn=conn, tags_filter=tags_filter)
             if emp_totals_row is None or len(emp_totals_row) != 2:
                 raise RuntimeError(f"Invalid emp_totals query result - expected 2 columns, got {len(emp_totals_row) if emp_totals_row else 0}")
 
-            total_quantity = emp_totals_row[0] if emp_totals_row[0] is not None else 0
-            total_price = emp_totals_row[1] if emp_totals_row[1] is not None else 0
-            tag_count = len(emp_tags)
+            emp_data_row["total_quantity"] = emp_totals_row[0] if emp_totals_row[0] is not None else 0
+            emp_data_row["total_price"] = emp_totals_row[1] if emp_totals_row[1] is not None else 0
 
-            emp_discrepancies_query = f"""
-                SELECT
-                    {queue.table}.{queue.zone_id},
-                    {queue.table}.{queue.tag_number},
-                    {queue.table}.{queue.upc},
-                    {queue.table}.{queue.price},
-                    {info.table}.{info.quantity},
-                    {queue.table}.{queue.quantity},
-                    Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.quantity}))
-                FROM {queue.table}
-                INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}
-                WHERE {queue.table}.{queue.reason} = 'SERVICE_MISCOUNTED'
-                    AND CInt({queue.table}.{queue.tag_number}) IN ({tags_filter})
-                    AND Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.quantity})) > 50
-                ORDER BY {queue.table}.{queue.tag_number}
-            """
-            cursor.execute(emp_discrepancies_query)
-            emp_discrepancies_rows = cursor.fetchall()
-
-            discrepancies = []
-            discrepancy_dollars = 0
+            emp_data_row["total_tags"] = len(emp_tags)
+            emp_data_row["discrepancies"] = []
+            emp_data_row["discrepancy_dollars"] = 0
             discrepancy_tags_set = set()
 
+            emp_discrepancies_rows = fetch_emp_discrepancies_data(conn=conn, tags_filter=tags_filter)
             for emp_discrepancies_row in emp_discrepancies_rows:
                 if len(emp_discrepancies_row) != 7:
                     raise RuntimeError(f"Invalid emp_discrepancies query result structure - expected 7 columns, got {len(emp_discrepancies_row) if emp_discrepancies_row else 0}")
 
-                zone_id = emp_discrepancies_row[0] if emp_discrepancies_row and emp_discrepancies_row[0] is not None else 0
-                tag_number = emp_discrepancies_row[1] if emp_discrepancies_row and emp_discrepancies_row[1] is not None else 0
-                upc = emp_discrepancies_row[2] if emp_discrepancies_row and emp_discrepancies_row[2] is not None else 0
-                price = emp_discrepancies_row[3] if emp_discrepancies_row and emp_discrepancies_row[3] is not None else 0
-                counted_quantity = emp_discrepancies_row[4] if emp_discrepancies_row and emp_discrepancies_row[4] is not None else 0
-                new_quantity = emp_discrepancies_row[5] if emp_discrepancies_row and emp_discrepancies_row[5] is not None else 0
-                discrepancy_change = emp_discrepancies_row[6] if emp_discrepancies_row and emp_discrepancies_row[6] is not None else 0
+                discrepancy_row = {
+                    "zone_id": emp_discrepancies_row[0] if emp_discrepancies_row and emp_discrepancies_row[0] is not None else 0,
+                    "tag_number": emp_discrepancies_row[1] if emp_discrepancies_row and emp_discrepancies_row[1] is not None else 0,
+                    "upc": emp_discrepancies_row[2] if emp_discrepancies_row and emp_discrepancies_row[2] is not None else 0,
+                    "price": emp_discrepancies_row[3] if emp_discrepancies_row and emp_discrepancies_row[3] is not None else 0,
+                    "counted_quantity": emp_discrepancies_row[4] if emp_discrepancies_row and emp_discrepancies_row[4] is not None else 0,
+                    "new_quantity": emp_discrepancies_row[5] if emp_discrepancies_row and emp_discrepancies_row[5] is not None else 0,
+                    "price_change": emp_discrepancies_row[6] if emp_discrepancies_row and emp_discrepancies_row[6] is not None else 0
+                }
 
                 # Rarely will have duplicate tags with discrepancies so this is fairly inexpensive
-                if tag_number in duplicate_tags_map.get(emp_number, []):
-                    verify_line_query = f"""
-                        SELECT {details.table}.{details.emp_number}
-                        FROM {details.table}
-                        WHERE {details.table}.{details.tag_number} = ?
-                            AND {details.table}.{details.upc} = ?
-                    """
-                    cursor.execute(verify_line_query, (tag_number, upc))
-                    verify_line_row = cursor.fetchone()
-
+                if discrepancy_row["tag_number"] in duplicate_tags_map.get(emp_data_row["emp_number"], []):
+                    verify_line_row = fetch_line_data(conn=conn, tag_number=discrepancy_row["tag_number"], upc=discrepancy_row["upc"])
                     line_emp_number = verify_line_row[0] if verify_line_row and verify_line_row[0] is not None else ""
-
-                    if emp_number != line_emp_number:
+                    if emp_data_row["emp_number"] != line_emp_number:
                         continue
 
-                discrepancy_dollars += discrepancy_change
-                discrepancy_tags_set.add(tag_number)
-                discrepancies.append({
-                    "zone_id": zone_id,
-                    "tag_number": tag_number,
-                    "upc": upc,
-                    "price": price,
-                    "counted_quantity": counted_quantity,
-                    "new_quantity": new_quantity,
-                    "discrepancy_dollars": discrepancy_change,
-                })
+                emp_data_row["discrepancy_dollars"] += discrepancy_row["price_change"]
+                emp_data_row["discrepancies"].append(discrepancy_row)
+                discrepancy_tags_set.add(discrepancy_row["tag_number"])
 
-            discrepancy_tags = len(discrepancy_tags_set)
-            discrepancy_percent = (discrepancy_dollars / total_price * 100) if total_price > 0 else 0
+            emp_data_row["discrepancy_tags"] = len(discrepancy_tags_set)
+            emp_data_row["discrepancy_percent"] = (emp_data_row["discrepancy_dollars"] / emp_data_row["total_price"] * 100) if emp_data_row["total_price"] > 0 else 0
 
-            emp_data.append({
-                'employee_number': emp_number,
-                'employee_name': emp_name,
-                'total_tags': tag_count,
-                'total_quantity': total_quantity,
-                'total_price': total_price,
-                'total_discrepancy_dollars': discrepancy_dollars,
-                'total_discrepancy_tags': discrepancy_tags,
-                'discrepancy_percent': discrepancy_percent,
-                'discrepancies': discrepancies
-            })
+            emp_data.append(emp_data_row)
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
         raise

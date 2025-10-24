@@ -7,7 +7,7 @@ from PyQt6 import QtWidgets
 from xhtml2pdf import pisa
 from jinja2 import Environment, FileSystemLoader
 
-from services.resource_utils import resource_path
+from utils.paths import resource_path
 
 
 def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: list[dict]) -> None:
@@ -43,7 +43,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
         disc_template = env.get_template("disc_report.html")
         
         sorted_emp_data = sorted(emp_data, key=lambda x: (-x["uph"], -x["total_quantity"]))
-        sorted_team_data = sorted(team_data, key=lambda x: x["department_number"])
+        sorted_team_data = sorted(team_data, key=lambda x: x["zone_id"])
         
         html_emp = emp_template.render(page_headers=store_data, emp_data=sorted_emp_data)
         html_team = team_template.render(page_headers=store_data, team_data=sorted_team_data)

@@ -28,6 +28,9 @@ PyQt6==6.9.1
 PyQt6-Qt6==6.9.2
 PyQt6_sip==13.10.2
 pytest==8.4.2
+
+pytest-cov==6.0.0
+pytest-mock==3.14.0
 python-bidi==0.6.6
 PyYAML==6.0.2
 reportlab==4.4.4

@@ -85,16 +85,16 @@
         {% if zone.total_quantity > 0 %}
         <tr>
             <td style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.zone_number) }}
+                {{ "%s"|format(zone.zone_id) }}
             </td>
             <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.zone_name) }}
+                {{ "%s"|format(zone.zone_description) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(zone.total_discrepancy_dollars) }}
+                ${{ "%.2f"|format(zone.discrepancy_dollars) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.total_discrepancy_tags) }}
+                {{ "%i"|format(zone.discrepancy_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%.2f"|format(zone.discrepancy_percent) }}%

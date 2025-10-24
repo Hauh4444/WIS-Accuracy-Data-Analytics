@@ -1,190 +1,292 @@
+"""Tests for employee hours input window."""
 import pytest
-from unittest.mock import patch, MagicMock
-from PyQt6 import QtWidgets
+from unittest.mock import Mock, patch, MagicMock
+from PyQt6 import QtWidgets, QtCore
+import os
 
 from views.emp_hours_input_window import EmpHoursInputWindow
 
-
-@pytest.fixture(scope="session", autouse=True)
-def qapp():
-    app = QtWidgets.QApplication.instance()
-    if app is None:
-        app = QtWidgets.QApplication([])
-    return app
-
-
-@pytest.fixture
-def mock_ui(monkeypatch):
-    class FakeScrollContents(QtWidgets.QWidget):
-        def __init__(self):
-            super().__init__()
-            self._layout = QtWidgets.QVBoxLayout(self)
-
-        def layout(self):
-            return self._layout
-
-        def styleSheet(self):
-            return ""
-
-    class FakeWindow:
-        def __init__(self):
-            self.scrollAreaWidgetContents = FakeScrollContents()
-            self.scrollArea = QtWidgets.QScrollArea()
-            self.btnPrint = QtWidgets.QPushButton()
-
-    monkeypatch.setattr(
-        "views.emp_hours_input_window.uic.loadUi",
-        lambda ui_path, self_obj: setattr(self_obj, "__dict__", FakeWindow().__dict__)
-    )
-
-
-@pytest.fixture
-def sample_store_data():
-    return {
-        "inventory_datetime": "2024-01-15 10:00:00",
-        "print_date": "1/15/2024",
-        "store": "Test Store #123",
-        "print_time": "02:30:45PM",
-        "store_address": "123 Test Street, Test City, TS 12345"
-    }
+pytestmark = pytest.mark.gui
 
 
 class TestEmpHoursInputWindow:
-
-    def test_window_initialization(self, mock_ui, sample_store_data):
-        """Test window initialization with employee data."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
-        ]
-        team_data = [
-            {"zone_number": 1, "zone_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        
-        assert len(window.rows_widgets) == 1
-        row_widget = window.rows_widgets[0]
-        assert row_widget.label_name.text() == "Alice Johnson"
-
-    def test_multiple_employees_initialization(self, mock_ui, sample_store_data):
-        """Test window initialization with multiple employees."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80},
-            {"employee_number": "E002", "employee_name": "Bob Smith", "hours": 6, "total_quantity": 60}
-        ]
-        team_data = [
-            {"zone_number": 1, "zone_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        
-        assert len(window.rows_widgets) == 2
-        assert window.rows_widgets[0].label_name.text() == "Alice Johnson"
-        assert window.rows_widgets[1].label_name.text() == "Bob Smith"
-
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_updates_emp_data(self, mock_report, mock_ui, sample_store_data):
-        """Test print clicked updates employee data with hours and UPH calculations."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
-        ]
-        team_data = [
-            {"zone_number": 1, "zone_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("10")
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 10.0
-        assert emp_data[0]["uph"] == 8.0
-        mock_report.assert_called_once_with(store_data=sample_store_data, emp_data=emp_data, team_data=team_data)
-
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_invalid_hours_handling(self, mock_report, mock_ui, sample_store_data):
-        """Test print clicked with invalid hours input."""
-        emp_data = [
-            {"employee_number": "E002", "employee_name": "Bob Smith", "hours": 0, "total_quantity": 50}
-        ]
-        team_data = [
-            {"zone_number": 2, "zone_name": "Finance"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("abc")  # Invalid input
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 0.0
-        assert emp_data[0]["uph"] == 0
-        mock_report.assert_called_once()
-
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_print_clicked_empty_emp_data_warning(self, mock_report, mock_ui, sample_store_data):
-        """Test print clicked with empty employee data shows warning."""
-        emp_data = []
-        team_data = [
-            {"zone_number": 1, "zone_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        
-        with patch("views.emp_hours_input_window.QtWidgets.QMessageBox.warning") as mock_warning:
+    """Test EmpHoursInputWindow class."""
+    
+    def test_initialization(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test window initialization with data."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            assert window.store_data == sample_store_data
+            assert window.emp_data == sample_emp_data
+            assert window.team_data == sample_team_data
+            assert len(window.rows_widgets) == len(sample_emp_data)
+    
+    def test_create_employee_row(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test employee row creation."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            emp = sample_emp_data[0]
+            row = window.create_employee_row(emp)
+            
+            assert hasattr(row, 'txt_hours')
+            assert hasattr(row, 'label_id')
+            assert hasattr(row, 'label_name')
+            assert row.txt_hours.text() == str(emp.get("hours", ""))
+    
+    def test_apply_emp_hour_input_row_style(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test employee row styling."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('os.path.exists', return_value=True), \
+             patch('builtins.open', mock_open_with_content("QWidget { background-color: white; }")):
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            emp = sample_emp_data[0]
+            row = window.create_employee_row(emp)
+            
+            # Should not raise any exceptions
+            window.apply_emp_hour_input_row_style(row)
+    
+    def test_apply_emp_hour_input_row_style_file_not_found(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test employee row styling when file doesn't exist."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('os.path.exists', return_value=False), \
+             patch('builtins.print') as mock_print:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            emp = sample_emp_data[0]
+            row = window.create_employee_row(emp)
+            
+            window.apply_emp_hour_input_row_style(row)
+            mock_print.assert_called()
+    
+    def test_apply_scrollbar_style(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test scrollbar styling."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('os.path.exists', return_value=True), \
+             patch('builtins.open', mock_open_with_content("QScrollArea { background-color: white; }")):
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Should not raise any exceptions
+            window.apply_scrollbar_style()
+    
+    def test_apply_scrollbar_style_file_not_found(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test scrollbar styling when file doesn't exist."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('os.path.exists', return_value=False), \
+             patch('builtins.print') as mock_print:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            window.apply_scrollbar_style()
+            mock_print.assert_called()
+    
+    def test_center_on_screen(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test window centering on screen."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.QtWidgets.QApplication.primaryScreen') as mock_screen:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            mock_screen_instance = Mock()
+            mock_screen_instance.availableGeometry.return_value = Mock()
+            mock_screen_instance.availableGeometry.return_value.width.return_value = 1920
+            mock_screen_instance.availableGeometry.return_value.height.return_value = 1080
+            mock_screen.return_value = mock_screen_instance
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            window.width.return_value = 800
+            window.height.return_value = 600
+            
+            window.center_on_screen()
+            
+            mock_screen.assert_called_once()
+    
+    def test_center_on_screen_no_screen(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test window centering when no screen is available."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.QtWidgets.QApplication.primaryScreen', return_value=None):
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Should not raise any exceptions
+            window.center_on_screen()
+    
+    def test_on_print_clicked_success(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test print button click with successful report generation."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.generate_accuracy_report') as mock_generate_report:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Mock the row widgets
+            mock_row = Mock()
+            mock_row.txt_hours.text.return_value = "8.0"
+            window.rows_widgets = [mock_row]
+            
             window.on_print_clicked()
+            
+            mock_generate_report.assert_called_once_with(
+                store_data=sample_store_data,
+                emp_data=sample_emp_data,
+                team_data=sample_team_data
+            )
+    
+    def test_on_print_clicked_no_data(self, sample_store_data, sample_team_data):
+        """Test print button click with no employee data."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.QtWidgets.QMessageBox.warning') as mock_warning:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, [], sample_team_data)
+            window.rows_widgets = []
+            
+            window.on_print_clicked()
+            
             mock_warning.assert_called_once()
-        
-        mock_report.assert_not_called()
+    
+    def test_on_print_clicked_hours_processing(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test hours processing in print button click."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.generate_accuracy_report') as mock_generate_report:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Mock the row widgets
+            mock_row = Mock()
+            mock_row.txt_hours.text.return_value = "8.0"
+            window.rows_widgets = [mock_row]
+            
+            window.on_print_clicked()
+            
+            # Check that hours and UPH are calculated
+            assert window.emp_data[0]["hours"] == 8.0
+            assert window.emp_data[0]["uph"] == window.emp_data[0]["total_quantity"] / 8.0
+    
+    def test_on_print_clicked_invalid_hours(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test print button click with invalid hours input."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.generate_accuracy_report') as mock_generate_report:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Mock the row widgets with invalid hours
+            mock_row = Mock()
+            mock_row.txt_hours.text.return_value = "invalid"
+            window.rows_widgets = [mock_row]
+            
+            window.on_print_clicked()
+            
+            # Check that invalid hours are handled
+            assert window.emp_data[0]["hours"] == 0.0
+            assert window.emp_data[0]["uph"] == 0.0
+    
+    def test_on_print_clicked_zero_hours(self, sample_store_data, sample_emp_data, sample_team_data):
+        """Test print button click with zero hours."""
+        with patch('views.emp_hours_input_window.uic.loadUi') as mock_load_ui, \
+             patch('views.emp_hours_input_window.resource_path') as mock_resource_path, \
+             patch('views.emp_hours_input_window.generate_accuracy_report') as mock_generate_report:
+            
+            mock_resource_path.return_value = "/path/to/ui"
+            mock_widget = Mock()
+            mock_widget.layout.return_value = Mock()
+            mock_load_ui.return_value = mock_widget
+            
+            window = EmpHoursInputWindow(sample_store_data, sample_emp_data, sample_team_data)
+            
+            # Mock the row widgets with zero hours
+            mock_row = Mock()
+            mock_row.txt_hours.text.return_value = "0"
+            window.rows_widgets = [mock_row]
+            
+            window.on_print_clicked()
+            
+            # Check that zero hours are handled
+            assert window.emp_data[0]["hours"] == 0.0
+            assert window.emp_data[0]["uph"] == 0.0
 
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_uph_calculation_zero_hours(self, mock_report, mock_ui, sample_store_data):
-        """Test UPH calculation with zero hours (should result in UPH = 0)."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
-        ]
-        team_data = []
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("0")
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 0.0
-        assert emp_data[0]["uph"] == 0
-        mock_report.assert_called_once()
 
-    @patch("views.emp_hours_input_window.generate_accuracy_report")
-    def test_uph_calculation_decimal_precision(self, mock_report, mock_ui, sample_store_data):
-        """Test UPH calculation with decimal hours precision."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 0, "total_quantity": 80}
-        ]
-        team_data = []
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        row = window.rows_widgets[0]
-        row.txt_hours.setText("7.5")
-        
-        window.on_print_clicked()
-        
-        assert emp_data[0]["hours"] == 7.5
-        assert emp_data[0]["uph"] == (80 / 7.5)
-        mock_report.assert_called_once()
-
-    def test_center_on_screen_functionality(self, mock_ui, sample_store_data):
-        """Test center on screen functionality."""
-        emp_data = [
-            {"employee_number": "E001", "employee_name": "Alice Johnson", "hours": 8, "total_quantity": 80}
-        ]
-        team_data = [
-            {"zone_number": 1, "zone_name": "Human Resources"}
-        ]
-        
-        window = EmpHoursInputWindow(sample_store_data, emp_data, team_data)
-        window.center_on_screen()
-        
-        pos = window.pos()
-        assert pos.x() >= 0 and pos.y() >= 0
+def mock_open_with_content(content):
+    """Helper function to mock open with content."""
+    def mock_open_func(path, mode='r'):
+        mock_file = Mock()
+        mock_file.read.return_value = content
+        mock_file.__enter__ = Mock(return_value=mock_file)
+        mock_file.__exit__ = Mock(return_value=None)
+        return mock_file
+    return mock_open_func

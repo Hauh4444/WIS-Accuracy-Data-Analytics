@@ -3,11 +3,11 @@ import pyodbc
 from PyQt6 import QtWidgets
 from datetime import datetime
 
-from services.models import WISEInfoTable
+from repositories.store_repository import fetch_wise_data
 
 
 def load_store_data(conn: pyodbc.Connection) -> dict:
-    """Load store data from the database.
+    """Load store data for use in report headers.
 
     Args:
         conn: Database connection object
@@ -34,20 +34,10 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        cursor = conn.cursor()
-        wise = WISEInfoTable()
-
-        store_query = f"""
-            SELECT
-                {wise.table}.{wise.job_datetime},
-                {wise.table}.{wise.name},
-                {wise.table}.{wise.address}
-            FROM {wise.table}
-        """
-        cursor.execute(store_query)
-        wise_row = cursor.fetchone()
+        wise_row = fetch_wise_data(conn=conn)
         if wise_row is None or len(wise_row) != 3:
-            raise RuntimeError(f"Unexpected WISE data structure - expected 3 columns, got {len(wise_row) if wise_row else 0}")
+            raise RuntimeError(
+                f"Unexpected WISE data structure - expected 3 columns, got {len(wise_row) if wise_row else 0}")
 
         inventory_datetime, store_name, store_address = wise_row
         if not store_name or not str(store_name).strip():
@@ -55,7 +45,7 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
         if inventory_datetime and hasattr(inventory_datetime, 'year'):
             if inventory_datetime.year > now.year + 1:
                 raise RuntimeError(f"Invalid inventory datetime: {inventory_datetime} appears to be in the future")
-                
+
         store_data["inventory_datetime"] = inventory_datetime if inventory_datetime is not None else ""
         store_data["store"] = str(store_name).strip() if store_name is not None else ""
         store_data["store_address"] = str(store_address).strip() if store_address is not None else ""

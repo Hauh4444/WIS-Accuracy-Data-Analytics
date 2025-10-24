@@ -93,16 +93,16 @@
         <tr>
         {% endif %}
             <td style="width: 7%; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(emp.employee_number) }}
+                {{ "%s"|format(emp.emp_number) }}
             </td>
             <td style="width: 28%; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(emp.employee_name) }}
+                {{ "%s"|format(emp.emp_name) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(emp.total_discrepancy_dollars) }}
+                ${{ "%.2f"|format(emp.discrepancy_dollars) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(emp.total_discrepancy_tags) }}
+                {{ "%i"|format(emp.discrepancy_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%.2f"|format(emp.discrepancy_percent) }}%

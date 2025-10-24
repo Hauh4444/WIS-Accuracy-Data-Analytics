@@ -2,8 +2,8 @@
 import traceback
 from PyQt6 import QtWidgets, uic
 
-from services.database import get_db_connection
-from services.resource_utils import resource_path
+from database.database import get_db_connection
+from utils.paths import resource_path
 from services.load_store_data import load_store_data
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data

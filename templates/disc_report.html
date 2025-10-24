@@ -86,7 +86,7 @@
         {% for disc in emp.discrepancies %}
         <tr>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(emp.employee_number) }}
+                {{ "%s"|format(emp.emp_number) }}
             </td>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(disc.zone_id) }}
@@ -107,7 +107,7 @@
                 {{ "%i"|format(disc.new_quantity) }}
             </td>
             <td style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(disc.discrepancy_dollars) }}
+                ${{ "%.2f"|format(disc.price_change) }}
             </td>
         </tr>
         {% endfor %}

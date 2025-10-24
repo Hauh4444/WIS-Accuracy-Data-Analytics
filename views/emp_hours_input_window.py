@@ -3,8 +3,8 @@ import os
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
-from services.report_generator import generate_accuracy_report
-from services.resource_utils import resource_path
+from utils.report_generator import generate_accuracy_report
+from utils.paths import resource_path
 
 
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
@@ -48,6 +48,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         """Create a widget row for employee data input.
         
         Args:
+        Args:
             emp: Employee data dictionary
             
         Returns:
@@ -58,11 +59,11 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
 
-        label_id = QtWidgets.QLabel(emp.get("employee_number", ""))
+        label_id = QtWidgets.QLabel(emp.get("emp_number", ""))
         label_id.setFixedWidth(120)
         layout.addWidget(label_id)
 
-        label_name = QtWidgets.QLabel(emp.get("employee_name", ""))
+        label_name = QtWidgets.QLabel(emp.get("emp_name", ""))
         label_name.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         layout.addWidget(label_name)
 
