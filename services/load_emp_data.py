@@ -55,7 +55,14 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
 
             emp_data_row = {
                 "emp_number": emp_row[0] if emp_row and emp_row[0] else "",
-                "emp_name": emp_row[1] if emp_row and emp_row[1] else ""
+                "emp_name": emp_row[1] if emp_row and emp_row[1] else "",
+                "total_tags": 0,
+                "total_quantity": 0,
+                "total_price": 0.0,
+                "discrepancies": [],
+                "discrepancy_dollars": 0.0,
+                "discrepancy_tags": 0,
+                "discrepancy_percent": 0.0
             }
 
             emp_tags = emp_tags_map.get(emp_data_row["emp_number"], [])
@@ -66,12 +73,9 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             if emp_totals_row is None or len(emp_totals_row) != 2:
                 raise RuntimeError(f"Invalid emp_totals query result - expected 2 columns, got {len(emp_totals_row) if emp_totals_row else 0}")
 
+            emp_data_row["total_tags"] = len(emp_tags)
             emp_data_row["total_quantity"] = emp_totals_row[0] if emp_totals_row[0] is not None else 0
             emp_data_row["total_price"] = emp_totals_row[1] if emp_totals_row[1] is not None else 0
-
-            emp_data_row["total_tags"] = len(emp_tags)
-            emp_data_row["discrepancies"] = []
-            emp_data_row["discrepancy_dollars"] = 0
             discrepancy_tags_set = set()
 
             emp_discrepancies_rows = fetch_emp_discrepancies_data(conn=conn, tags_filter=tags_filter)
@@ -93,7 +97,8 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 if discrepancy_row["tag_number"] in duplicate_tags_map.get(emp_data_row["emp_number"], []):
                     verify_line_row = fetch_line_data(conn=conn, tag_number=discrepancy_row["tag_number"], upc=discrepancy_row["upc"])
                     line_emp_number = verify_line_row[0] if verify_line_row and verify_line_row[0] is not None else ""
-                    if emp_data_row["emp_number"] != line_emp_number:
+                    # If emp_number is 'ZZ9999', that means it is an added item (0 orig qty) so we attribute it to both counters because both counters missed the item
+                    if emp_data_row["emp_number"] != line_emp_number and line_emp_number != "ZZ9999":
                         continue
 
                 emp_data_row["discrepancy_dollars"] += discrepancy_row["price_change"]

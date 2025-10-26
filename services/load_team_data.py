@@ -35,7 +35,13 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
 
             team_data_row = {
                 "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
-                "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else ""
+                "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else "",
+                "total_tags": 0,
+                "total_quantity": 0,
+                "total_price": 0.0,
+                "discrepancy_dollars": 0.0,
+                "discrepancy_tags": 0,
+                "discrepancy_percent": 0.0
             }
 
             zone_totals_row = fetch_zone_totals_data(conn=conn, zone_id=team_data_row["zone_id"])

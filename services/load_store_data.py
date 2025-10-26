@@ -39,16 +39,9 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
             raise RuntimeError(
                 f"Unexpected WISE data structure - expected 3 columns, got {len(wise_row) if wise_row else 0}")
 
-        inventory_datetime, store_name, store_address = wise_row
-        if not store_name or not str(store_name).strip():
-            raise RuntimeError("Store name is missing or empty - required for report headers")
-        if inventory_datetime and hasattr(inventory_datetime, 'year'):
-            if inventory_datetime.year > now.year + 1:
-                raise RuntimeError(f"Invalid inventory datetime: {inventory_datetime} appears to be in the future")
-
-        store_data["inventory_datetime"] = inventory_datetime if inventory_datetime is not None else ""
-        store_data["store"] = str(store_name).strip() if store_name is not None else ""
-        store_data["store_address"] = str(store_address).strip() if store_address is not None else ""
+        store_data["inventory_datetime"] = wise_row[0] if wise_row[0] is not None else ""
+        store_data["store_name"] = wise_row[1] if wise_row[1] is not None else ""
+        store_data["store_address"] = wise_row[2] if wise_row[2] is not None else ""
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
         raise 
