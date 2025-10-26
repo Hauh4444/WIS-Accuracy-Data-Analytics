@@ -38,15 +38,14 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             emp_tag = emp_tags_row[1] if emp_tags_row and emp_tags_row[1] is not None else ""
             emp_tags_map.setdefault(emp_number, []).append(emp_tag)
 
-        duplicate_tags_map = {}
+        duplicate_tags_set = set()
         duplicate_tags_rows = fetch_duplicate_tags_data(conn=conn)
         for duplicate_tags_row in duplicate_tags_rows:
             if duplicate_tags_row is None or len(duplicate_tags_row) != 2:
                 raise RuntimeError(f"Invalid duplicate_tags query result structure - expected 2 columns, got {len(duplicate_tags_row) if duplicate_tags_row else 0}")
             
-            emp_number = duplicate_tags_row[0] if duplicate_tags_row and duplicate_tags_row[0] is not None else ""
-            emp_tag = duplicate_tags_row[1] if duplicate_tags_row and duplicate_tags_row[1] is not None else ""
-            duplicate_tags_map.setdefault(emp_number, []).append(emp_tag)
+            emp_tag = duplicate_tags_row[0] if duplicate_tags_row and duplicate_tags_row[0] is not None else ""
+            duplicate_tags_set.add(emp_tag)
 
         emp_rows = fetch_emp_data(conn=conn)
         for emp_row in emp_rows:
@@ -59,16 +58,17 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 "total_tags": 0,
                 "total_quantity": 0,
                 "total_price": 0.0,
-                "discrepancies": [],
                 "discrepancy_dollars": 0.0,
                 "discrepancy_tags": 0,
-                "discrepancy_percent": 0.0
+                "discrepancy_percent": 0.0,
+                "discrepancies": []
             }
 
             emp_tags = emp_tags_map.get(emp_data_row["emp_number"], [])
             if not emp_tags: continue
             tags_filter = ",".join(emp_tags) # Can't parameterize tags since Access will throw a 'System resources exceeded' error
 
+            # TODO Need to find an efficient method to handle tag totals for duplicate tags
             emp_totals_row = fetch_emp_totals_data(conn=conn, tags_filter=tags_filter)
             if emp_totals_row is None or len(emp_totals_row) != 2:
                 raise RuntimeError(f"Invalid emp_totals query result - expected 2 columns, got {len(emp_totals_row) if emp_totals_row else 0}")
@@ -94,10 +94,10 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 }
 
                 # Rarely will have duplicate tags with discrepancies so this is fairly inexpensive
-                if discrepancy_row["tag_number"] in duplicate_tags_map.get(emp_data_row["emp_number"], []):
+                if discrepancy_row["tag_number"] in duplicate_tags_set:
                     verify_line_row = fetch_line_data(conn=conn, tag_number=discrepancy_row["tag_number"], upc=discrepancy_row["upc"])
                     line_emp_number = verify_line_row[0] if verify_line_row and verify_line_row[0] is not None else ""
-                    # If emp_number is 'ZZ9999', that means it is an added item (0 orig qty) so we attribute it to both counters because both counters missed the item
+                    # An employee number of 'ZZ9999', means added item (0 orig qty) so we attribute the discrepancy to both counters since both counters missed the item
                     if emp_data_row["emp_number"] != line_emp_number and line_emp_number != "ZZ9999":
                         continue
 

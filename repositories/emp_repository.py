@@ -43,7 +43,6 @@ def fetch_duplicate_tags_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | Non
 
     duplicate_tags_query = f"""
         SELECT DISTINCT
-            {dload.table}.{dload.emp_number},
             {dload.table}.{dload.tag_number}
         FROM {dload.table}
         WHERE {dload.table}.{dload.error_msg} = 'Duplicate Tag'
