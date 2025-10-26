@@ -1,153 +1,153 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>482</width>
-    <height>84</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Dialog</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">QDialog {
-    background-color: #c0c0c5;
-    color: #000000; 
-    font-family: &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
-    font-size: 11pt;
-}
+    <class>Dialog</class>
+    <widget class="QDialog" name="Dialog">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>482</width>
+                <height>84</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Dialog</string>
+        </property>
+        <property name="styleSheet">
+            <string notr="true">QDialog {
+                background-color: #c0c0c5;
+                color: #000000;
+                font-family: &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
+                font-size: 11pt;
+                }
 
-QLabel {
-    color: #000000; 
-    font-weight: 500;
-}
+                QLabel {
+                color: #000000;
+                font-weight: 500;
+                }
 
-QLineEdit {
-    background-color: #e0e0e0; 
-    border: 1px solid #bbbbbb; 
-    border-radius: 6px;
-    padding: 5px 8px;
-    color: #000000; 
-    selection-background-color: #a0aaff; 
-    selection-color: #ffffff;
-}
+                QLineEdit {
+                background-color: #e0e0e0;
+                border: 1px solid #bbbbbb;
+                border-radius: 6px;
+                padding: 5px 8px;
+                color: #000000;
+                selection-background-color: #a0aaff;
+                selection-color: #ffffff;
+                }
 
-QLineEdit:focus {
-    border: 1px solid #4a90e2; 
-}
+                QLineEdit:focus {
+                border: 1px solid #4a90e2;
+                }
 
-QPushButton {
-    background-color: #e0e0e0;  
-    color: #000000; 
-    border: 1px solid #a0a0a0;  
-    border-radius: 4px;
-    padding: 5px 10px;
-    font-weight: 500;
-}
+                QPushButton {
+                background-color: #e0e0e0;
+                color: #000000;
+                border: 1px solid #a0a0a0;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-weight: 500;
+                }
 
-QPushButton:hover {
-    background-color: #d6d6d6;  
-}
+                QPushButton:hover {
+                background-color: #d6d6d6;
+                }
 
-QPushButton:pressed {
-    background-color: #c0c0c0;  
-}
-</string>
-  </property>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>481</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
-    <property name="spacing">
-     <number>10</number>
-    </property>
-    <property name="leftMargin">
-     <number>30</number>
-    </property>
-    <property name="topMargin">
-     <number>15</number>
-    </property>
-    <property name="rightMargin">
-     <number>30</number>
-    </property>
-    <property name="bottomMargin">
-     <number>15</number>
-    </property>
-    <item>
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Job Number: </string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <spacer name="spacer_2">
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Policy::Maximum</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="txtJobNumber">
-      <property name="minimumSize">
-       <size>
-        <width>100</width>
-        <height>40</height>
-       </size>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <spacer name="spacer">
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Policy::Maximum</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <widget class="QPushButton" name="btnLoad">
-      <property name="minimumSize">
-       <size>
-        <width>80</width>
-        <height>40</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Load</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
- </widget>
- <resources/>
- <connections/>
+                QPushButton:pressed {
+                background-color: #c0c0c0;
+                }
+            </string>
+        </property>
+        <widget class="QWidget" name="layoutWidget">
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>481</width>
+                    <height>81</height>
+                </rect>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <property name="spacing">
+                    <number>10</number>
+                </property>
+                <property name="leftMargin">
+                    <number>30</number>
+                </property>
+                <property name="topMargin">
+                    <number>15</number>
+                </property>
+                <property name="rightMargin">
+                    <number>30</number>
+                </property>
+                <property name="bottomMargin">
+                    <number>15</number>
+                </property>
+                <item>
+                    <widget class="QLabel" name="label">
+                        <property name="text">
+                            <string>Job Number: </string>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <spacer name="spacer_2">
+                        <property name="orientation">
+                            <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>QSizePolicy::Policy::Maximum</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                            <size>
+                                <width>40</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </item>
+                <item>
+                    <widget class="QLineEdit" name="txtJobNumber">
+                        <property name="minimumSize">
+                            <size>
+                                <width>100</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                    </widget>
+                </item>
+                <item>
+                    <spacer name="spacer">
+                        <property name="orientation">
+                            <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>QSizePolicy::Policy::Maximum</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                            <size>
+                                <width>40</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </item>
+                <item>
+                    <widget class="QPushButton" name="btnLoad">
+                        <property name="minimumSize">
+                            <size>
+                                <width>80</width>
+                                <height>40</height>
+                            </size>
+                        </property>
+                        <property name="text">
+                            <string>Load</string>
+                        </property>
+                    </widget>
+                </item>
+            </layout>
+        </widget>
+    </widget>
+    <resources/>
+    <connections/>
 </ui>

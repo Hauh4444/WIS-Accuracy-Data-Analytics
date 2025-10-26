@@ -94,6 +94,7 @@ def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.R
     cursor = conn.cursor()
     tag = TagTable()
 
+    # Can't parameterize tags since Access will throw a 'System resources exceeded' error
     emp_totals_query = f"""
         SELECT 
             Sum({tag.table}.{tag.total_quantity}),
@@ -102,6 +103,36 @@ def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.R
         WHERE CInt({tag.table}.{tag.tag_number}) IN ({tags_filter})
     """
     cursor.execute(emp_totals_query)
+    emp_totals_row = cursor.fetchone()
+
+    cursor.close()
+    return emp_totals_row
+
+
+def fetch_emp_line_totals_data(conn: pyodbc.Connection, tags_filter: str, emp_number: str) -> pyodbc.Row | None:
+    """Fetch employee totals data by line from the database.
+
+    Args:
+        conn: Database connection object
+        tags_filter: Comma-separated string of tag numbers to include in the aggregation query.
+        emp_number: The employee number to match
+
+    Returns:
+        Pyodbc row containing employee totals data
+    """
+    cursor = conn.cursor()
+    details = DetailsTable()
+
+    # Can't parameterize tags since Access will throw a 'System resources exceeded' error
+    emp_totals_query = f"""
+        SELECT 
+            Sum({details.table}.{details.quantity}),
+            Sum({details.table}.{details.price})
+        FROM {details.table}
+        WHERE CInt({details.table}.{details.tag_number}) IN ({tags_filter})
+            AND {details.table}.{details.emp_number} = ?
+    """
+    cursor.execute(emp_totals_query, (emp_number,))
     emp_totals_row = cursor.fetchone()
 
     cursor.close()
@@ -122,14 +153,15 @@ def fetch_emp_discrepancies_data(conn: pyodbc.Connection, tags_filter: str) -> l
     queue = ZoneChangeQueueTable()
     info = ZoneChangeInfoTable()
 
+    # Can't parameterize tags since Access will throw a 'System resources exceeded' error
     emp_discrepancies_query = f"""
         SELECT
             {queue.table}.{queue.zone_id},
             {queue.table}.{queue.tag_number},
             {queue.table}.{queue.upc},
-            {queue.table}.{queue.price},
             {info.table}.{info.quantity},
             {queue.table}.{queue.quantity},
+            {queue.table}.{queue.price},
             Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.quantity}))
         FROM {queue.table}
         INNER JOIN {info.table} ON {queue.table}.{queue.zone_queue_id} = {info.table}.{info.zone_queue_id}

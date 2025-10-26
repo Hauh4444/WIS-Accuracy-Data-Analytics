@@ -8,7 +8,7 @@ from repositories.team_repository import fetch_zone_data, fetch_zone_totals_data
 def load_team_data(conn: pyodbc.Connection) -> list[dict]:
     """Load team zone data with discrepancy calculations.
     
-    Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
+    - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
     
     Args:
         conn: Database connection object
@@ -20,7 +20,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
         ValueError: If connection is invalid or database schema is malformed
         RuntimeError: If critical team data is missing or corrupted
     """
-    team_data = []
+    team_data = [] # type: list[dict]
     
     try:
         if conn is None:
@@ -31,7 +31,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
         zone_rows = fetch_zone_data(conn=conn)
         for zone_row in zone_rows:
             if len(zone_row) != 2:
-                raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else 0}")
+                raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else None}")
 
             team_data_row = {
                 "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
@@ -46,7 +46,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
 
             zone_totals_row = fetch_zone_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
             if zone_totals_row is None or len(zone_totals_row) != 3:
-                raise RuntimeError(f"Invalid zone_totals query result - expected 3 columns, got {len(zone_totals_row) if zone_totals_row else 0}")
+                raise RuntimeError(f"Invalid zone_totals query result - expected 3 columns, got {len(zone_totals_row) if zone_totals_row else None}")
 
             team_data_row["total_tags"] = zone_totals_row[0] if zone_totals_row and zone_totals_row[0] is not None else 0
             team_data_row["total_quantity"] = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
@@ -54,7 +54,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
 
             zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
             if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
-                raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else 0}")
+                raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}")
 
             team_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
             team_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
