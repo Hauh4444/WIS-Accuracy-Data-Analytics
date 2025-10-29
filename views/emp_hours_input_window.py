@@ -1,5 +1,7 @@
 """Main employee hours input window for calculating UPH and generating reports."""
 import os
+from typing import cast
+
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
@@ -9,7 +11,11 @@ from utils.paths import resource_path
 
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
     """Main window for employee hours input and report generation."""
-    
+    scrollArea: QtWidgets.QScrollArea
+    scrollAreaWidgetContents: QtWidgets.QWidget
+    empRowsLayout: QtWidgets.QVBoxLayout
+    btnPrint: QtWidgets.QPushButton
+
     def __init__(self, store_data: dict, emp_data: list[dict], team_data: list[dict]):
         """Initialize the window with employee and team data.
         
@@ -30,10 +36,10 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.team_data = team_data
 
         self.rows_widgets: list[QtWidgets.QWidget] = []
-        self.empRowsLayout = self.scrollAreaWidgetContents.layout()
+        self.empRowsLayout = cast(QtWidgets.QVBoxLayout, self.scrollAreaWidgetContents.layout())
 
         for emp in emp_data:
-            row = self.create_employee_row(emp=emp)
+            row = self.create_emp_hour_input_row(emp=emp)
             self.empRowsLayout.addWidget(row)
             self.rows_widgets.append(row)
 
@@ -41,10 +47,10 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.apply_scrollbar_style()
         self.resize(600, 600)
         self.center_on_screen()
-        self.btnPrint.clicked.connect(self.on_print_clicked)
+        self.btnPrint.clicked.connect(self.print_report)
 
 
-    def create_employee_row(self, emp: dict) -> QtWidgets.QWidget:
+    def create_emp_hour_input_row(self, emp: dict) -> QtWidgets.QWidget:
         """Create a widget row for employee data input.
         
         Args:
@@ -111,10 +117,11 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.move(x, y)
 
 
-    def on_print_clicked(self) -> None:
+    def print_report(self) -> None:
         """Process hours input and generate accuracy report."""
         for i, row_widget in enumerate(self.rows_widgets):
-            hours_text = row_widget.txt_hours.text().strip()
+            txt_hours = cast(QtWidgets.QLineEdit, getattr(row_widget, "txt_hours"))
+            hours_text = txt_hours.text().strip()
             emp_hours = float(hours_text) if hours_text.replace(".", "", 1).isdigit() else 0.0
             self.emp_data[i]["hours"] = emp_hours
             if emp_hours > 0:

@@ -143,6 +143,9 @@
                         <property name="text">
                             <string>Load</string>
                         </property>
+                        <property name="toolTip">
+                            <string>Load Database</string>
+                        </property>
                     </widget>
                 </item>
             </layout>

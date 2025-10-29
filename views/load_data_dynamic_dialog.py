@@ -11,6 +11,12 @@ from services.load_team_data import load_team_data
 
 class LoadDataDynamicDialog(QtWidgets.QDialog):
     """Dialog for loading database using job number input."""
+    txtJobNumber: QtWidgets.QLineEdit
+    btnLoad: QtWidgets.QPushButton
+
+    store_data: dict
+    emp_data: list[dict]
+    team_data: list[dict]
     
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""

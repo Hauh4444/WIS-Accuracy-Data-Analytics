@@ -156,6 +156,9 @@
                                         <property name="text">
                                             <string>Print</string>
                                         </property>
+                                        <property name="toolTip">
+                                            <string>Generate Accuracy Reports</string>
+                                        </property>
                                     </widget>
                                 </item>
                             </layout>

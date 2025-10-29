@@ -11,7 +11,14 @@ from services.load_team_data import load_team_data
 
 class LoadDataManualDialog(QtWidgets.QDialog):
     """Dialog for loading database using file browser."""
-    
+    txtDatabasePath: QtWidgets.QLineEdit
+    btnBrowse: QtWidgets.QPushButton
+    btnLoad: QtWidgets.QPushButton
+
+    store_data: dict
+    emp_data: list[dict]
+    team_data: list[dict]
+
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""
         super().__init__()

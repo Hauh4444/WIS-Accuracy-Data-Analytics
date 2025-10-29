@@ -16,6 +16,24 @@ A professional **Windows-only** Python application for generating WIS Internatio
 - **Professional Test Suite**: 194+ comprehensive test cases with senior engineer quality standards
 - **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
+## TODO
+- Add Linux support 
+  - Implement alternative database connectivity for Linux systems (mdbtools, pyodbc with unixODBC, or SQLite conversion workflow)
+  - Detect OS at runtime and gracefully disable or adapt Microsoft Access–specific functionality when on non-Windows environments 
+  - Create compatibility layer or conversion utility to read .mdb/.accdb files without native Access drivers 
+  - Ensure consistent data handling and report generation across platforms once database access is resolved
+- Implement logging that works when packaged with PyInstaller
+  - Ensure logs can be written to a consistent location regardless of frozen (`sys._MEIPASS`) or development mode
+  - Consider rotating log files and storing in `%APPDATA%/WIS-Accuracy-Data-Analytics/logs` on Windows
+- Add fallback in dynamic database loading
+  - When initial database load fails, automatically attempt to locate and load the last good save database files
+- Review and improve test suite
+  - Ensure all core modules, services, and UI components are fully covered
+  - Add missing edge case tests for database loading, employee hours, and report generation
+  - Ensure tests run consistently in both development and PyInstaller environments
+  - Update mocks and fixtures for new features
+  - Verify 90%+ coverage target is maintained
+
 ## Installation
 
 **Windows Only**: This application requires Windows with Microsoft Access database drivers.
@@ -148,49 +166,49 @@ See `tests/README.md` for detailed test documentation including:
 
 ```
 WIS-Accuracy-Data-Analytics/
-├── main.py                          # Application entry point
-├── README.md                        # This file
-├── requirements.txt                 # Python dependencies
-├── hooks/                          # PyInstaller hooks
+├── main.py                                 # Application entry point
+├── README.md                               # This file
+├── requirements.txt                        # Python dependencies
+├── hooks/                                  # PyInstaller hooks
 │   └── hook-xhtml2pdf.py
-├── services/                       # Core business logic
+├── services/                               # Core business logic
 │   ├── __init__.py
-│   ├── database.py                 # Database connection management
-│   ├── load_emp_data.py           # Employee data loading with UPH calculations
-│   ├── load_team_data.py          # Team zone data loading with discrepancy analysis
-│   ├── load_store_data.py         # Store data loading from WISE database
-│   ├── models.py                  # Database table models (WISE Info, UPH, Details, Zone, Tag, etc.)
-│   ├── report_generator.py        # PDF report generation with store headers
-│   └── resource_utils.py          # Resource path utilities
-├── styles/                        # Qt stylesheets
+│   ├── database.py                         # Database connection management
+│   ├── load_emp_data.py                    # Employee data loading with UPH calculations
+│   ├── load_team_data.py                   # Team zone data loading with discrepancy analysis
+│   ├── load_store_data.py                  # Store data loading from WISE database
+│   ├── models.py                           # Database table models (WISE Info, UPH, Details, Zone, Tag, etc.)
+│   ├── report_generator.py                 # PDF report generation with store headers
+│   └── resource_utils.py                   # Resource path utilities
+├── styles/                                 # Qt stylesheets
 │   ├── emp_hour_input_row.qss
 │   └── scrollbar.qss
-├── templates/                     # HTML report templates
-│   ├── disc_report.html           # Discrepancy report template
-│   ├── emp_report.html            # Employee report template
-│   └── team_report.html           # Team report template
-├── tests/                        # Professional test suite (194+ tests)
-│   ├── conftest.py              # Test fixtures and configuration
-│   ├── README.md                # Comprehensive test documentation
-│   ├── test_models.py           # Model tests (30 tests)
-│   ├── test_paths.py            # Path utility tests (7 tests)
-│   ├── test_database.py         # Database connection tests (15+ tests)
-│   ├── test_store_repository.py # Store repository tests (5 tests)
-│   ├── test_emp_repository.py   # Employee repository tests (14 tests)
-│   ├── test_team_repository.py  # Team repository tests (12 tests)
-│   ├── test_load_store_data.py  # Store data loading tests (20+ tests)
-│   ├── test_load_emp_data.py    # Employee data loading tests (25+ tests)
-│   ├── test_load_team_data.py   # Team data loading tests (20+ tests)
-│   ├── test_emp_hours_input_window.py # Main window tests (15+ tests)
-│   ├── test_load_data_manual_dialog.py # Manual dialog tests (10+ tests)
-│   ├── test_load_data_dynamic_dialog.py # Dynamic dialog tests (10+ tests)
-│   ├── test_report_generator.py # Report generation tests (15+ tests)
-│   └── test_main.py             # Application entry point tests (10+ tests)
-├── ui/                          # Qt Designer UI files
+├── templates/                              # HTML report templates
+│   ├── disc_report.html                    # Discrepancy report template
+│   ├── emp_report.html                     # Employee report template
+│   └── team_report.html                    # Team report template
+├── tests/                                  # Professional test suite (194+ tests)
+│   ├── conftest.py                         # Test fixtures and configuration
+│   ├── README.md                           # Comprehensive test documentation
+│   ├── test_models.py                      # Model tests (30 tests)
+│   ├── test_paths.py                       # Path utility tests (7 tests)
+│   ├── test_database.py                    # Database connection tests (15+ tests)
+│   ├── test_store_repository.py            # Store repository tests (5 tests)
+│   ├── test_emp_repository.py              # Employee repository tests (14 tests)
+│   ├── test_team_repository.py             # Team repository tests (12 tests)
+│   ├── test_load_store_data.py             # Store data loading tests (20+ tests)
+│   ├── test_load_emp_data.py               # Employee data loading tests (25+ tests)
+│   ├── test_load_team_data.py              # Team data loading tests (20+ tests)
+│   ├── test_emp_hours_input_window.py      # Main window tests (15+ tests)
+│   ├── test_load_data_manual_dialog.py     # Manual dialog tests (10+ tests)
+│   ├── test_load_data_dynamic_dialog.py    # Dynamic dialog tests (10+ tests)
+│   ├── test_report_generator.py            # Report generation tests (15+ tests)
+│   └── test_main.py                        # Application entry point tests (10+ tests)
+├── ui/                                     # Qt Designer UI files
 │   ├── emp_hours_window.ui
 │   ├── load_data_dynamic_dialog.ui
 │   └── load_data_manual_dialog.ui
-└── views/                       # UI view classes
+└── views/                                  # UI view classes
     ├── __init__.py
     ├── emp_hours_input_window.py
     ├── load_data_dynamic_dialog.py
@@ -243,7 +261,3 @@ WIS-Accuracy-Data-Analytics/
 - **Professional Standards**: Senior engineer quality with comprehensive error handling
 - **Test Categories**: Unit, Integration, Error Handling, Data Validation, UI Testing
 - **Documentation**: Comprehensive test documentation in `tests/README.md`
-
-## License
-
-This project is proprietary software for WIS International accuracy reporting.
