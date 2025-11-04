@@ -27,12 +27,6 @@ A professional **Windows-only** Python application for generating WIS Internatio
   - Consider rotating log files and storing in `%APPDATA%/WIS-Accuracy-Data-Analytics/logs` on Windows
 - Add fallback in dynamic database loading
   - When initial database load fails, automatically attempt to locate and load the last good save database files
-- Review and improve test suite
-  - Ensure all core modules, services, and UI components are fully covered
-  - Add missing edge case tests for database loading, employee hours, and report generation
-  - Ensure tests run consistently in both development and PyInstaller environments
-  - Update mocks and fixtures for new features
-  - Verify 90%+ coverage target is maintained
 
 ## Installation
 
@@ -167,52 +161,62 @@ See `tests/README.md` for detailed test documentation including:
 ```
 WIS-Accuracy-Data-Analytics/
 ├── main.py                                 # Application entry point
-├── README.md                               # This file
+├── models.py                               # Database ORM models (WISE Info, UPH, Details, Zone, Tag, etc.)
+├── pytest.ini                              # Pytest configuration file
+├── README.md                               # Project overview and setup guide
 ├── requirements.txt                        # Python dependencies
-├── hooks/                                  # PyInstaller hooks
-│   └── hook-xhtml2pdf.py
-├── services/                               # Core business logic
+├── run_safe_tests.py                       # Safe test runner for core tests (37 tests)
+├── database/                               # Database configuration and connections
+│   └── connection.py                       # Database connection management
+├── hooks/                                  # Custom PyInstaller hooks for packaging
+│   └── hook-xhtml2pdf.py                   # Hook for including xhtml2pdf assets in builds
+├── repositories/                           # Data access and repository layer
+│   ├── emp_repository.py                   # Fetches employee data
+│   ├── store_repository.py                 # Fetches store data
+│   └── team_repository.py                  # Fetches team data
+├── services/                               # Business logic and service layer
 │   ├── __init__.py
-│   ├── database.py                         # Database connection management
-│   ├── load_emp_data.py                    # Employee data loading with UPH calculations
+│   ├── load_emp_data.py                    # Employee data loading with UPH calculation logic
 │   ├── load_team_data.py                   # Team zone data loading with discrepancy analysis
-│   ├── load_store_data.py                  # Store data loading from WISE database
-│   ├── models.py                           # Database table models (WISE Info, UPH, Details, Zone, Tag, etc.)
-│   ├── report_generator.py                 # PDF report generation with store headers
-│   └── resource_utils.py                   # Resource path utilities
-├── styles/                                 # Qt stylesheets
-│   ├── emp_hour_input_row.qss
-│   └── scrollbar.qss
-├── templates/                              # HTML report templates
+│   └── load_store_data.py                  # Store data loading from WISE table
+├── styles/                                 # Application stylesheets for PyQt UI
+│   ├── emp_hour_input_row.qss              # Styles for employee input row widgets
+│   └── scrollbar.qss                       # Custom scrollbar theme
+├── templates/                              # HTML templates for PDF and report generation
 │   ├── disc_report.html                    # Discrepancy report template
-│   ├── emp_report.html                     # Employee report template
-│   └── team_report.html                    # Team report template
+│   ├── emp_report.html                     # UPH report template
+│   └── team_report.html                    # Team/zone report template
 ├── tests/                                  # Professional test suite (194+ tests)
+│   ├── __init__.py
 │   ├── conftest.py                         # Test fixtures and configuration
 │   ├── README.md                           # Comprehensive test documentation
+│   ├── test_database.py                    # Database connection tests (15+ tests)
+│   ├── test_emp_hours_input_window.py      # Main window tests (15+ tests)
+│   ├── test_emp_repository.py              # Employee repository tests (12 tests)
+│   ├── test_load_data_dynamic_dialog.py    # Dynamic dialog tests (10+ tests)
+│   ├── test_load_data_manual_dialog.py     # Manual dialog tests (10+ tests)
+│   ├── test_load_emp_data.py               # Employee data loading tests (25+ tests)
+│   ├── test_load_store_data.py             # Store data loading tests (20+ tests)
+│   ├── test_load_team_data.py              # Team data loading tests (20+ tests)
+│   ├── test_main.py                        # Application entry point tests (10+ tests)
 │   ├── test_models.py                      # Model tests (30 tests)
 │   ├── test_paths.py                       # Path utility tests (7 tests)
-│   ├── test_database.py                    # Database connection tests (15+ tests)
-│   ├── test_store_repository.py            # Store repository tests (5 tests)
-│   ├── test_emp_repository.py              # Employee repository tests (14 tests)
-│   ├── test_team_repository.py             # Team repository tests (12 tests)
-│   ├── test_load_store_data.py             # Store data loading tests (20+ tests)
-│   ├── test_load_emp_data.py               # Employee data loading tests (25+ tests)
-│   ├── test_load_team_data.py              # Team data loading tests (20+ tests)
-│   ├── test_emp_hours_input_window.py      # Main window tests (15+ tests)
-│   ├── test_load_data_manual_dialog.py     # Manual dialog tests (10+ tests)
-│   ├── test_load_data_dynamic_dialog.py    # Dynamic dialog tests (10+ tests)
 │   ├── test_report_generator.py            # Report generation tests (15+ tests)
-│   └── test_main.py                        # Application entry point tests (10+ tests)
-├── ui/                                     # Qt Designer UI files
-│   ├── emp_hours_window.ui
-│   ├── load_data_dynamic_dialog.ui
-│   └── load_data_manual_dialog.ui
-└── views/                                  # UI view classes
+│   ├── test_store_repository.py            # Store repository tests (5 tests)
+│   └── test_team_repository.py             # Team repository tests (12 tests)
+├── ui/                                     # Qt Designer UI layout files
+│   ├── emp_hours_window.ui                 # Employee hours input window design
+│   ├── load_data_dynamic_dialog.ui         # Dynamic data load dialog layout
+│   └── load_data_manual_dialog.ui          # Manual data load dialog layout
+├── utils/                                  # Shared utility functions and helpers    
+│   ├── paths.py                            # Resource and filesystem path utilities
+│   ├── report_generator.py                 # PDF/HTML report formatting and rendering tools
+│   └── ui_utils.py                         # Common PyQt widget and dialog utilities
+└── views/                                  # View classes implementing the application’s UI logic
     ├── __init__.py
-    ├── emp_hours_input_window.py
-    ├── load_data_dynamic_dialog.py
-    └── load_data_manual_dialog.py
+    ├── emp_hours_input_window.py           # Main window view for employee hour input
+    ├── load_data_dynamic_dialog.py         # Logic for dynamic data loading dialog
+    └── load_data_manual_dialog.py          # Logic for manual data loading dialog
 ```
 
 ## Dependencies

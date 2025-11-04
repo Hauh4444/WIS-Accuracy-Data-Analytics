@@ -1,6 +1,6 @@
 """Tests for main application entry point."""
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from PyQt6 import QtWidgets
 
 from main import load_data_with_fallback

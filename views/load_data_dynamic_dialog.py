@@ -2,8 +2,9 @@
 import traceback
 from PyQt6 import QtWidgets, uic
 
-from database.database import get_db_connection
+from database.connection import get_db_connection
 from utils.paths import resource_path
+from utils.ui_utils import center_on_screen
 from services.load_store_data import load_store_data
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data
@@ -23,21 +24,11 @@ class LoadDataDynamicDialog(QtWidgets.QDialog):
         super().__init__()
         ui_path = resource_path("ui/load_data_dynamic_dialog.ui")
         uic.loadUi(ui_path, self)
+
         self.btnLoad.clicked.connect(self.load_database)
-        self.center_on_screen()
 
+        center_on_screen(widget=self)
 
-    def center_on_screen(self) -> None:
-        """Center the dialog on the primary screen."""
-        screen = QtWidgets.QApplication.primaryScreen()
-        if not screen:
-            return
-        screen_geometry = screen.availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)
-
-        
     def load_database(self) -> None:
         """Load database using WISDOM path convention: C:\\WISDOM\\JOBS\\{job_number}\\11355\\{job_number}.MDB"""
         job_number = self.txtJobNumber.text().strip()

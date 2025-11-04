@@ -1,12 +1,11 @@
 """Main employee hours input window for calculating UPH and generating reports."""
-import os
 from typing import cast
-
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
-from utils.report_generator import generate_accuracy_report
 from utils.paths import resource_path
+from utils.report_generator import generate_accuracy_report
+from utils.ui_utils import center_on_screen, apply_style
 
 
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
@@ -16,7 +15,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
     empRowsLayout: QtWidgets.QVBoxLayout
     btnPrint: QtWidgets.QPushButton
 
-    def __init__(self, store_data: dict, emp_data: list[dict], team_data: list[dict]):
+    def __init__(self, store_data: dict, emp_data: list[dict], team_data: list[dict]) -> None:
         """Initialize the window with employee and team data.
         
         Args:
@@ -27,9 +26,6 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         super().__init__()
         ui_path = resource_path("ui/emp_hours_window.ui")
         uic.loadUi(ui_path, self)
-
-        self.emp_row_qss_path = resource_path("styles/emp_hour_input_row.qss")
-        self.scrollbar_qss_path = resource_path("styles/scrollbar.qss")
 
         self.store_data = store_data
         self.emp_data = emp_data
@@ -44,21 +40,22 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             self.rows_widgets.append(row)
 
         self.empRowsLayout.addStretch()
-        self.apply_scrollbar_style()
-        self.resize(600, 600)
-        self.center_on_screen()
+
         self.btnPrint.clicked.connect(self.print_report)
 
+        self.resize(600, 600)
+        apply_style(widget=self.scrollArea, style_path=resource_path("styles/scrollbar.qss"))
+        center_on_screen(widget=self)
 
-    def create_emp_hour_input_row(self, emp: dict) -> QtWidgets.QWidget:
+    @staticmethod
+    def create_emp_hour_input_row(emp: dict) -> QtWidgets.QWidget:
         """Create a widget row for employee data input.
-        
-        Args:
+
         Args:
             emp: Employee data dictionary
             
         Returns:
-            Widget containing employee ID, name, and hours input field
+            Row widget containing employee ID, name, and hours input field
         """
         row_widget = QtWidgets.QWidget()
         layout = QtWidgets.QHBoxLayout(row_widget)
@@ -84,41 +81,11 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         row_widget.label_id = label_id
         row_widget.label_name = label_name
 
-        self.apply_emp_hour_input_row_style(row=row_widget)
+        apply_style(widget=row_widget, style_path=resource_path("styles/emp_hour_input_row.qss"))
         return row_widget
 
-
-    def apply_emp_hour_input_row_style(self, row: QtWidgets.QWidget) -> None:
-        """Apply stylesheet to employee row widget."""
-        if os.path.exists(self.emp_row_qss_path):
-            with open(self.emp_row_qss_path, "r") as f:
-                row.setStyleSheet(f.read())
-        else:
-            print(f"Warning: Employee hour input row style file not found at {self.emp_row_qss_path}")
-
-
-    def apply_scrollbar_style(self) -> None:
-        """Apply stylesheet to the scroll area."""
-        if os.path.exists(self.scrollbar_qss_path):
-            with open(self.scrollbar_qss_path, "r") as f:
-                self.scrollArea.setStyleSheet(f.read())
-        else:
-            print(f"Warning: Scrollbar style file not found at {self.scrollbar_qss_path}")
-
-
-    def center_on_screen(self) -> None:
-        """Center the window on the primary screen."""
-        screen = QtWidgets.QApplication.primaryScreen()
-        if not screen:
-            return
-        screen_geometry = screen.availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)
-
-
     def print_report(self) -> None:
-        """Process hours input and generate accuracy report."""
+        """Process hours inputs and generate accuracy report."""
         for i, row_widget in enumerate(self.rows_widgets):
             txt_hours = cast(QtWidgets.QLineEdit, getattr(row_widget, "txt_hours"))
             hours_text = txt_hours.text().strip()

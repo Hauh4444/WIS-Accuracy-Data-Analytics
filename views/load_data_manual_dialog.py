@@ -2,8 +2,9 @@
 import traceback
 from PyQt6 import QtWidgets, uic
 
-from database.database import get_db_connection
+from database.connection import get_db_connection
 from utils.paths import resource_path
+from utils.ui_utils import center_on_screen
 from services.load_store_data import load_store_data
 from services.load_emp_data import load_emp_data
 from services.load_team_data import load_team_data
@@ -24,33 +25,22 @@ class LoadDataManualDialog(QtWidgets.QDialog):
         super().__init__()
         ui_path = resource_path("ui/load_data_manual_dialog.ui")
         uic.loadUi(ui_path, self)
+
         self.btnBrowse.clicked.connect(self.browse_database)
         self.btnLoad.clicked.connect(self.load_database)
-        self.center_on_screen()
 
-
-    def center_on_screen(self) -> None:
-        """Center the dialog on the primary screen."""
-        screen = QtWidgets.QApplication.primaryScreen()
-        if not screen:
-            return
-        screen_geometry = screen.availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)
-
+        center_on_screen(widget=self)
 
     def browse_database(self) -> None:
         """Open file dialog to select database file."""
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, 
-            "Select Database File", 
-            "", 
-            "Access Databases (*.mdb *.accdb);;All Files (*)"
+            parent=self,
+            caption="Select Database File",
+            directory=r"C:\WISDOM\JOBS",
+            filter="Access Databases (*.mdb *.accdb);;All Files (*)"
         )
         if file_path:
             self.txtDatabasePath.setText(file_path)
-
 
     def load_database(self) -> None:
         """Load employee and team data from selected database file."""
@@ -58,6 +48,7 @@ class LoadDataManualDialog(QtWidgets.QDialog):
         if not db_path:
             QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Database Path.")
             return
+
         conn = get_db_connection(db_path=db_path)
         if not conn:
             return

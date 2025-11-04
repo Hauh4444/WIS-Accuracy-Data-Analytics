@@ -5,10 +5,6 @@ import pyodbc
 from PyQt6 import QtWidgets
 
 from services.load_emp_data import load_emp_data
-from repositories.emp_repository import (
-    fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data,
-    fetch_emp_totals_data, fetch_emp_discrepancies_data, fetch_line_data
-)
 
 
 class TestLoadEmpData:

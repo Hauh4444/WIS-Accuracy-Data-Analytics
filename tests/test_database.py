@@ -1,12 +1,10 @@
 """Tests for database connection functionality."""
 import pytest
-import platform
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import Mock, patch
 import pyodbc
 from PyQt6 import QtWidgets
 
-from database.database import get_db_connection
+from database.connection import get_db_connection
 
 pytestmark = pytest.mark.database
 
@@ -16,8 +14,8 @@ class TestGetDbConnection:
     
     def test_successful_connection(self, mock_database_connection, temp_database_file):
         """Test successful database connection."""
-        with patch('database.database.pyodbc.connect', return_value=mock_database_connection) as mock_connect, \
-             patch('database.database.platform.system', return_value="Windows"):
+        with patch('database.connection.pyodbc.connect', return_value=mock_database_connection) as mock_connect, \
+             patch('database.connection.platform.system', return_value="Windows"):
             result = get_db_connection(temp_database_file)
             assert result == mock_database_connection
             mock_connect.assert_called_once()
@@ -63,45 +61,45 @@ class TestGetDbConnection:
     
     def test_non_windows_platform(self, temp_database_file):
         """Test ValueError on non-Windows platform."""
-        with patch('database.database.platform.system', return_value="Linux"):
+        with patch('database.connection.platform.system', return_value="Linux"):
             with pytest.raises(ValueError, match="Windows platform required"):
                 get_db_connection(temp_database_file)
     
     def test_pyodbc_error(self, temp_database_file):
         """Test handling of pyodbc.Error."""
-        with patch('database.database.pyodbc.connect', side_effect=pyodbc.Error("Connection failed")):
-            with patch('database.database.QtWidgets.QMessageBox.critical') as mock_msgbox:
+        with patch('database.connection.pyodbc.connect', side_effect=pyodbc.Error("Connection failed")):
+            with patch('database.connection.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(pyodbc.Error):
                     get_db_connection(temp_database_file)
                 mock_msgbox.assert_called_once()
     
     def test_value_error_handling(self, temp_database_file):
         """Test handling of ValueError."""
-        with patch('database.database.pyodbc.connect', side_effect=ValueError("Invalid path")):
-            with patch('database.database.QtWidgets.QMessageBox.critical') as mock_msgbox:
+        with patch('database.connection.pyodbc.connect', side_effect=ValueError("Invalid path")):
+            with patch('database.connection.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(ValueError):
                     get_db_connection(temp_database_file)
                 mock_msgbox.assert_called_once()
     
     def test_runtime_error_handling(self, temp_database_file):
         """Test handling of RuntimeError."""
-        with patch('database.database.pyodbc.connect', side_effect=RuntimeError("Runtime error")):
-            with patch('database.database.QtWidgets.QMessageBox.critical') as mock_msgbox:
+        with patch('database.connection.pyodbc.connect', side_effect=RuntimeError("Runtime error")):
+            with patch('database.connection.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(RuntimeError):
                     get_db_connection(temp_database_file)
                 mock_msgbox.assert_called_once()
     
     def test_generic_exception_handling(self, temp_database_file):
         """Test handling of generic Exception."""
-        with patch('database.database.pyodbc.connect', side_effect=Exception("Unexpected error")):
-            with patch('database.database.QtWidgets.QMessageBox.critical') as mock_msgbox:
+        with patch('database.connection.pyodbc.connect', side_effect=Exception("Unexpected error")):
+            with patch('database.connection.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(Exception):
                     get_db_connection(temp_database_file)
                 mock_msgbox.assert_called_once()
     
     def test_connection_string_format(self, temp_database_file):
         """Test that connection string is formatted correctly."""
-        with patch('database.database.pyodbc.connect') as mock_connect:
+        with patch('database.connection.pyodbc.connect') as mock_connect:
             mock_connect.return_value = Mock()
             get_db_connection(temp_database_file)
             expected_conn_str = f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={temp_database_file};"
@@ -109,7 +107,7 @@ class TestGetDbConnection:
     
     def test_autocommit_false(self, temp_database_file):
         """Test that autocommit is set to False."""
-        with patch('database.database.pyodbc.connect') as mock_connect:
+        with patch('database.connection.pyodbc.connect') as mock_connect:
             mock_connect.return_value = Mock()
             get_db_connection(temp_database_file)
             mock_connect.assert_called_once_with(

@@ -1,7 +1,7 @@
 """Tests for employee hours input window."""
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from PyQt6 import QtWidgets, QtCore
+from unittest.mock import Mock, patch
+from PyQt6 import QtWidgets
 import os
 
 from views.emp_hours_input_window import EmpHoursInputWindow

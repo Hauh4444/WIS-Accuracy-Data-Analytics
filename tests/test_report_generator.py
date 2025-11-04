@@ -1,9 +1,8 @@
 """Tests for report generator utility."""
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from pathlib import Path
 from PyQt6 import QtWidgets
-from io import BytesIO
 
 from utils.report_generator import generate_accuracy_report
 
