@@ -4,6 +4,31 @@ import platform
 from PyQt6 import QtWidgets
 from pathlib import Path
 
+from utils.paths import get_appdata_db_path
+
+
+def get_storage_db_connection() -> pyodbc.Connection | None:
+    """
+    Connect to the per-user Access database for storing historical accuracy stats.
+    Returns a pyodbc.Connection or None if it fails.
+    """
+    try:
+        db_path = get_appdata_db_path()
+        if not db_path.exists() or not db_path.is_file():
+            raise FileNotFoundError(f"Storage database not found: {db_path}")
+
+        conn_str = f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={db_path};"
+        conn = pyodbc.connect(conn_str, autocommit=False)
+        return conn
+
+    except pyodbc.Error as e:
+        QtWidgets.QMessageBox.critical(None, "Database Connection Error", f"Failed to connect to storage database:\n{str(e)}")
+        return None
+    except Exception as e:
+        QtWidgets.QMessageBox.critical(None, "Connection Error", f"Unexpected error connecting to storage database:\n{str(e)}")
+        return None
+
+
 
 def get_db_connection(db_path: str) -> pyodbc.Connection | None:
     """Establishes a connection to the Microsoft Access database.

@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock
 import pyodbc
 
-from repositories.store_repository import fetch_wise_data
+from repositories.source_store_repository import fetch_wise_data
 
 
 class TestFetchWiseData:

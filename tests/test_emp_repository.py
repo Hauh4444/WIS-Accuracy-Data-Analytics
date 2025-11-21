@@ -1,9 +1,9 @@
 """Tests for employee repository functions."""
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 import pyodbc
 
-from repositories.emp_repository import (
+from repositories.source_emp_repository import (
     fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data,
     fetch_emp_totals_data, fetch_emp_discrepancies_data, fetch_line_data
 )

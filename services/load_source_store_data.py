@@ -3,10 +3,10 @@ import pyodbc
 from PyQt6 import QtWidgets
 from datetime import datetime
 
-from repositories.store_repository import fetch_wise_data
+from repositories.source_store_repository import fetch_wise_data
 
 
-def load_store_data(conn: pyodbc.Connection) -> dict:
+def load_source_store_data(conn: pyodbc.Connection) -> dict:
     """Load store data for use in report headers.
 
     Args:
@@ -40,8 +40,9 @@ def load_store_data(conn: pyodbc.Connection) -> dict:
                 f"Unexpected WISE data structure - expected 3 columns, got {len(wise_row) if wise_row else None}")
 
         store_data["inventory_datetime"] = wise_row[0] if wise_row[0] is not None else ""
-        store_data["store_name"] = wise_row[1] if wise_row[1] is not None else ""
+        store_data["store"] = wise_row[1] if wise_row[1] is not None else ""
         store_data["store_address"] = wise_row[2] if wise_row[2] is not None else ""
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
         raise 

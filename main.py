@@ -35,6 +35,7 @@ if __name__ == "__main__":
             window.activateWindow()
         
         app.exec()
+
     except Exception as e:
         QtWidgets.QMessageBox.critical(
             None,

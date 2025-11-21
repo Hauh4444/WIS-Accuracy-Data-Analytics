@@ -5,7 +5,7 @@ from datetime import datetime
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.load_store_data import load_store_data
+from services.load_source_store_data import load_source_store_data
 
 
 class TestLoadStoreData:
@@ -20,7 +20,7 @@ class TestLoadStoreData:
                 "123 Test St, Test City, TC 12345"
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['inventory_datetime'] == datetime(2024, 1, 15, 10, 0, 0)
             assert result['store'] == "Test Store"
@@ -31,7 +31,7 @@ class TestLoadStoreData:
     def test_none_connection(self):
         """Test ValueError when connection is None."""
         with pytest.raises(ValueError, match="Database connection cannot be None"):
-            load_store_data(None)
+            load_source_store_data(None)
     
     def test_invalid_connection(self):
         """Test ValueError when connection lacks cursor method."""
@@ -39,7 +39,7 @@ class TestLoadStoreData:
         del invalid_conn.cursor
         
         with pytest.raises(ValueError, match="Invalid database connection object"):
-            load_store_data(invalid_conn)
+            load_source_store_data(invalid_conn)
     
     def test_wise_data_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when WISE data has invalid structure."""
@@ -47,7 +47,7 @@ class TestLoadStoreData:
             mock_fetch_wise.return_value = mock_pyodbc_row(("2024-01-15", "Test Store"))  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Unexpected WISE data structure"):
-                load_store_data(mock_database_connection)
+                load_source_store_data(mock_database_connection)
     
     def test_none_wise_data(self, mock_database_connection):
         """Test RuntimeError when WISE data is None."""
@@ -55,7 +55,7 @@ class TestLoadStoreData:
             mock_fetch_wise.return_value = None
             
             with pytest.raises(RuntimeError, match="Unexpected WISE data structure"):
-                load_store_data(mock_database_connection)
+                load_source_store_data(mock_database_connection)
     
     def test_empty_store_name(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when store name is empty."""
@@ -67,7 +67,7 @@ class TestLoadStoreData:
             ))
             
             with pytest.raises(RuntimeError, match="Store name is missing or empty"):
-                load_store_data(mock_database_connection)
+                load_source_store_data(mock_database_connection)
     
     def test_whitespace_store_name(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when store name is only whitespace."""
@@ -79,7 +79,7 @@ class TestLoadStoreData:
             ))
             
             with pytest.raises(RuntimeError, match="Store name is missing or empty"):
-                load_store_data(mock_database_connection)
+                load_source_store_data(mock_database_connection)
     
     def test_future_inventory_datetime(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when inventory datetime is in the future."""
@@ -92,7 +92,7 @@ class TestLoadStoreData:
             ))
             
             with pytest.raises(RuntimeError, match="Invalid inventory datetime"):
-                load_store_data(mock_database_connection)
+                load_source_store_data(mock_database_connection)
     
     def test_none_inventory_datetime(self, mock_database_connection, mock_pyodbc_row):
         """Test handling of None inventory datetime."""
@@ -103,7 +103,7 @@ class TestLoadStoreData:
                 "123 Test St"
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['inventory_datetime'] == ""
             assert result['store'] == "Test Store"
@@ -117,7 +117,7 @@ class TestLoadStoreData:
                 "123 Test St"
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['store'] == ""
             assert result['store_address'] == "123 Test St"
@@ -131,7 +131,7 @@ class TestLoadStoreData:
                 None
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['store'] == "Test Store"
             assert result['store_address'] == ""
@@ -145,7 +145,7 @@ class TestLoadStoreData:
                 "  123 Test St  "
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['store'] == "Test Store"
             assert result['store_address'] == "123 Test St"
@@ -155,7 +155,7 @@ class TestLoadStoreData:
         with patch('services.load_store_data.fetch_wise_data', side_effect=pyodbc.Error("Database error")):
             with patch('services.load_store_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(pyodbc.Error):
-                    load_store_data(mock_database_connection)
+                    load_source_store_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_value_error_handling(self, mock_database_connection):
@@ -163,7 +163,7 @@ class TestLoadStoreData:
         with patch('services.load_store_data.fetch_wise_data', side_effect=ValueError("Value error")):
             with patch('services.load_store_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(ValueError):
-                    load_store_data(mock_database_connection)
+                    load_source_store_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_runtime_error_handling(self, mock_database_connection):
@@ -171,7 +171,7 @@ class TestLoadStoreData:
         with patch('services.load_store_data.fetch_wise_data', side_effect=RuntimeError("Runtime error")):
             with patch('services.load_store_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(RuntimeError):
-                    load_store_data(mock_database_connection)
+                    load_source_store_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_generic_exception_handling(self, mock_database_connection):
@@ -179,7 +179,7 @@ class TestLoadStoreData:
         with patch('services.load_store_data.fetch_wise_data', side_effect=Exception("Generic error")):
             with patch('services.load_store_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(Exception):
-                    load_store_data(mock_database_connection)
+                    load_source_store_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_datetime_formatting(self, mock_database_connection, mock_pyodbc_row):
@@ -192,7 +192,7 @@ class TestLoadStoreData:
                 "123 Test St"
             ))
             
-            result = load_store_data(mock_database_connection)
+            result = load_source_store_data(mock_database_connection)
             
             assert result['inventory_datetime'] == test_datetime
             assert result['print_date'] == "1/15/2024"

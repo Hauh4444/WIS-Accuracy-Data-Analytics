@@ -1,6 +1,6 @@
 """Tests for models.py - Database table schema definitions."""
 import pytest
-from models import (
+from source_models import (
     WISEInfoTable, TerminalControlTable, EmpNamesTable, DetailsTable,
     DLoadErrorsTable, ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable,
     TagTable, TagRangeTable

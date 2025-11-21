@@ -62,6 +62,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], team_data: 
             if not pdf_path.exists():
                 raise RuntimeError("Failed to create temporary PDF file")
             webbrowser.open(f"file://{pdf_path}")
+
     except ValueError as e:
         QtWidgets.QMessageBox.critical(None, "Data Validation Error", f"Data validation failed: {str(e)}")
         raise

@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock
 import pyodbc
 
-from repositories.team_repository import (
+from repositories.source_team_repository import (
     fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
 )
 

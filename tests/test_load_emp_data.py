@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.load_emp_data import load_emp_data
+from services.load_source_emp_data import load_source_emp_data
 
 
 class TestLoadEmpData:
@@ -27,7 +27,7 @@ class TestLoadEmpData:
             mock_emp_totals.return_value = mock_pyodbc_row((100, 1000.0))
             mock_emp_discrepancies.return_value = []
             
-            result = load_emp_data(mock_database_connection)
+            result = load_source_emp_data(mock_database_connection)
             
             assert len(result) == 1
             assert result[0]['emp_number'] == '12345'
@@ -39,7 +39,7 @@ class TestLoadEmpData:
     def test_none_connection(self):
         """Test ValueError when connection is None."""
         with pytest.raises(ValueError, match="Database connection cannot be None"):
-            load_emp_data(None)
+            load_source_emp_data(None)
     
     def test_invalid_connection(self):
         """Test ValueError when connection lacks cursor method."""
@@ -47,7 +47,7 @@ class TestLoadEmpData:
         del invalid_conn.cursor
         
         with pytest.raises(ValueError, match="Invalid database connection object"):
-            load_emp_data(invalid_conn)
+            load_source_emp_data(invalid_conn)
     
     def test_emp_tags_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when emp_tags has invalid structure."""
@@ -55,7 +55,7 @@ class TestLoadEmpData:
             mock_emp_tags.return_value = [mock_pyodbc_row(("12345",))]  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Invalid emp_tags query result structure"):
-                load_emp_data(mock_database_connection)
+                load_source_emp_data(mock_database_connection)
     
     def test_duplicate_tags_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when duplicate_tags has invalid structure."""
@@ -66,7 +66,7 @@ class TestLoadEmpData:
             mock_duplicate_tags.return_value = [mock_pyodbc_row(("12345",))]  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Invalid duplicate_tags query result structure"):
-                load_emp_data(mock_database_connection)
+                load_source_emp_data(mock_database_connection)
     
     def test_emp_data_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when emp_data has invalid structure."""
@@ -79,7 +79,7 @@ class TestLoadEmpData:
             mock_emp_data.return_value = [mock_pyodbc_row(("12345",))]  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Invalid emp query result structure"):
-                load_emp_data(mock_database_connection)
+                load_source_emp_data(mock_database_connection)
     
     def test_emp_totals_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when emp_totals has invalid structure."""
@@ -94,7 +94,7 @@ class TestLoadEmpData:
             mock_emp_totals.return_value = mock_pyodbc_row((100,))  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Invalid emp_totals query result"):
-                load_emp_data(mock_database_connection)
+                load_source_emp_data(mock_database_connection)
     
     def test_emp_discrepancies_invalid_structure(self, mock_database_connection, mock_pyodbc_row):
         """Test RuntimeError when emp_discrepancies has invalid structure."""
@@ -111,7 +111,7 @@ class TestLoadEmpData:
             mock_emp_discrepancies.return_value = [mock_pyodbc_row((1, 2, 3, 4, 5, 6))]  # Wrong number of columns
             
             with pytest.raises(RuntimeError, match="Invalid emp_discrepancies query result structure"):
-                load_emp_data(mock_database_connection)
+                load_source_emp_data(mock_database_connection)
     
     def test_discrepancy_calculation(self, mock_database_connection, mock_pyodbc_row):
         """Test discrepancy calculation logic."""
@@ -129,7 +129,7 @@ class TestLoadEmpData:
                 mock_pyodbc_row((1, "T001", "123456789", 10.0, 5, 4, 10.0))
             ]
             
-            result = load_emp_data(mock_database_connection)
+            result = load_source_emp_data(mock_database_connection)
             
             assert result[0]['total_discrepancy_dollars'] == 10.0
             assert result[0]['total_discrepancy_tags'] == 1
@@ -154,7 +154,7 @@ class TestLoadEmpData:
             ]
             mock_line_data.return_value = mock_pyodbc_row(("67890",))  # Different employee
             
-            result = load_emp_data(mock_database_connection)
+            result = load_source_emp_data(mock_database_connection)
             
             # Discrepancy should be excluded because employee numbers don't match
             assert result[0]['total_discrepancy_dollars'] == 0.0
@@ -166,7 +166,7 @@ class TestLoadEmpData:
         with patch('services.load_emp_data.fetch_emp_tags_data', side_effect=pyodbc.Error("Database error")):
             with patch('services.load_emp_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(pyodbc.Error):
-                    load_emp_data(mock_database_connection)
+                    load_source_emp_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_value_error_handling(self, mock_database_connection):
@@ -174,7 +174,7 @@ class TestLoadEmpData:
         with patch('services.load_emp_data.fetch_emp_tags_data', side_effect=ValueError("Value error")):
             with patch('services.load_emp_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(ValueError):
-                    load_emp_data(mock_database_connection)
+                    load_source_emp_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_runtime_error_handling(self, mock_database_connection):
@@ -182,7 +182,7 @@ class TestLoadEmpData:
         with patch('services.load_emp_data.fetch_emp_tags_data', side_effect=RuntimeError("Runtime error")):
             with patch('services.load_emp_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(RuntimeError):
-                    load_emp_data(mock_database_connection)
+                    load_source_emp_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_generic_exception_handling(self, mock_database_connection):
@@ -190,7 +190,7 @@ class TestLoadEmpData:
         with patch('services.load_emp_data.fetch_emp_tags_data', side_effect=Exception("Generic error")):
             with patch('services.load_emp_data.QtWidgets.QMessageBox.critical') as mock_msgbox:
                 with pytest.raises(Exception):
-                    load_emp_data(mock_database_connection)
+                    load_source_emp_data(mock_database_connection)
                 mock_msgbox.assert_called_once()
     
     def test_empty_emp_tags_skips_employee(self, mock_database_connection, mock_pyodbc_row):
@@ -203,7 +203,7 @@ class TestLoadEmpData:
             mock_duplicate_tags.return_value = []
             mock_emp_data.return_value = [mock_pyodbc_row(("12345", "John Doe"))]
             
-            result = load_emp_data(mock_database_connection)
+            result = load_source_emp_data(mock_database_connection)
             
             assert result == []
     
@@ -223,6 +223,6 @@ class TestLoadEmpData:
                 mock_pyodbc_row((1, "T001", "123456789", 10.0, 5, 4, 10.0))
             ]
             
-            result = load_emp_data(mock_database_connection)
+            result = load_source_emp_data(mock_database_connection)
             
             assert result[0]['discrepancy_percent'] == 0.0

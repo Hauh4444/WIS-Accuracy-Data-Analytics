@@ -5,9 +5,10 @@ from PyQt6 import QtWidgets, uic
 from database.connection import get_db_connection
 from utils.paths import resource_path
 from utils.ui_utils import center_on_screen
-from services.load_store_data import load_store_data
-from services.load_emp_data import load_emp_data
-from services.load_team_data import load_team_data
+from services.load_source_store_data import load_source_store_data
+from services.load_source_emp_data import load_source_emp_data
+from services.load_source_team_data import load_source_team_data
+from services.save_local_data import save_local_data
 
 
 class LoadDataManualDialog(QtWidgets.QDialog):
@@ -54,12 +55,17 @@ class LoadDataManualDialog(QtWidgets.QDialog):
             return
 
         try:
-            self.store_data = load_store_data(conn=conn)
-            self.emp_data = load_emp_data(conn=conn)
-            self.team_data = load_team_data(conn=conn)
+            self.store_data = load_source_store_data(conn=conn)
+            self.emp_data = load_source_emp_data(conn=conn)
+            self.team_data = load_source_team_data(conn=conn)
+
+            save_local_data(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
+
             self.accept()
+
         except Exception:
-            traceback.print_exc()        
+            traceback.print_exc()
+
         finally:
             if conn:
                 conn.close()

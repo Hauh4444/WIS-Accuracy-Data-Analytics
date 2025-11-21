@@ -2,10 +2,10 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories.emp_repository import fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data, fetch_emp_totals_data, fetch_emp_line_totals_data, fetch_emp_discrepancies_data, fetch_line_data
+from repositories.source_emp_repository import fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data, fetch_emp_totals_data, fetch_emp_line_totals_data, fetch_emp_discrepancies_data, fetch_line_data
 
 
-def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
+def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
     """Load employee data with discrepancy calculations.
     
     - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
@@ -113,6 +113,7 @@ def load_emp_data(conn: pyodbc.Connection) -> list[dict]:
             emp_data_row["discrepancy_percent"] = (emp_data_row["discrepancy_dollars"] / emp_data_row["total_price"] * 100) if emp_data_row["total_price"] > 0 else 0
 
             emp_data.append(emp_data_row)
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
         raise

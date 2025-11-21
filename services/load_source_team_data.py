@@ -2,10 +2,10 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories.team_repository import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
+from repositories.source_team_repository import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
 
 
-def load_team_data(conn: pyodbc.Connection) -> list[dict]:
+def load_source_team_data(conn: pyodbc.Connection) -> list[dict]:
     """Load team zone data with discrepancy calculations.
     
     - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
@@ -61,6 +61,7 @@ def load_team_data(conn: pyodbc.Connection) -> list[dict]:
             team_data_row["discrepancy_percent"] = (team_data_row["discrepancy_dollars"] / team_data_row["total_price"] * 100) if team_data_row["total_price"] > 0 else 0
             
             team_data.append(team_data_row)
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
         raise

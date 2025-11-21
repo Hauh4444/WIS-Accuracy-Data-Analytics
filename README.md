@@ -16,18 +16,6 @@ A professional **Windows-only** Python application for generating WIS Internatio
 - **Professional Test Suite**: 194+ comprehensive test cases with senior engineer quality standards
 - **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
-## TODO
-- Add Linux support 
-  - Implement alternative database connectivity for Linux systems (mdbtools, pyodbc with unixODBC, or SQLite conversion workflow)
-  - Detect OS at runtime and gracefully disable or adapt Microsoft Access–specific functionality when on non-Windows environments 
-  - Create compatibility layer or conversion utility to read .mdb/.accdb files without native Access drivers 
-  - Ensure consistent data handling and report generation across platforms once database access is resolved
-- Implement logging that works when packaged with PyInstaller
-  - Ensure logs can be written to a consistent location regardless of frozen (`sys._MEIPASS`) or development mode
-  - Consider rotating log files and storing in `%APPDATA%/WIS-Accuracy-Data-Analytics/logs` on Windows
-- Add fallback in dynamic database loading
-  - When initial database load fails, automatically attempt to locate and load the last good save database files
-
 ## Installation
 
 **Windows Only**: This application requires Windows with Microsoft Access database drivers.
