@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 from PyQt6 import QtWidgets
 import os
 
-from views.emp_hours_input_window import EmpHoursInputWindow
+from views import EmpHoursInputWindow
 
 pytestmark = pytest.mark.gui
 

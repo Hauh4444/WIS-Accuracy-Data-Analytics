@@ -10,6 +10,7 @@ from dataclasses import dataclass
 class InventoryTable:
     table: str = "tblInventory"
     store_number: str = "StoreNo"
+    store_name: str = "StoreName"
     job_datetime: str = "JobDateTime"
     store_address: str = "Address"
 

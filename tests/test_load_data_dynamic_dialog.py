@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock, patch
 from PyQt6 import QtWidgets
 
-from views.load_data_dynamic_dialog import LoadDataDynamicDialog
+from views import LoadDataDynamicDialog
 
 pytestmark = pytest.mark.gui
 

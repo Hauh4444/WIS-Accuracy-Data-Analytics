@@ -3,6 +3,8 @@ from typing import cast
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
+from services import save_local_data
+from database.connection import get_storage_db_connection
 from utils.paths import resource_path
 from utils.report_generator import generate_accuracy_report
 from utils.ui_utils import center_on_screen, apply_style
@@ -99,6 +101,17 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         if not self.emp_data:
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
-        
+
+        conn = get_storage_db_connection()
+        if not conn:
+            self.close()
+            return
+
+        save_local_data(conn=conn, store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
+
+        if conn:
+            conn.close()
+
         generate_accuracy_report(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
+
         self.close()

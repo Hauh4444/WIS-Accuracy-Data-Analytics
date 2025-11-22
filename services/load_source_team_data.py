@@ -21,58 +21,44 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict]:
         RuntimeError: If critical team data is missing or corrupted
     """
     team_data = [] # type: list[dict]
-    
-    try:
-        if conn is None:
-            raise ValueError("Database connection cannot be None")
-        if not hasattr(conn, 'cursor'):
-            raise ValueError("Invalid database connection object - missing cursor method")
 
-        zone_rows = fetch_zone_data(conn=conn)
-        for zone_row in zone_rows:
-            if len(zone_row) != 2:
-                raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else None}")
+    if conn is None:
+        raise ValueError("Database connection cannot be None")
+    if not hasattr(conn, 'cursor'):
+        raise ValueError("Invalid database connection object - missing cursor method")
 
-            team_data_row = {
-                "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
-                "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else "",
-                "total_tags": 0,
-                "total_quantity": 0,
-                "total_price": 0.0,
-                "discrepancy_dollars": 0.0,
-                "discrepancy_tags": 0,
-                "discrepancy_percent": 0.0
-            }
+    zone_rows = fetch_zone_data(conn=conn)
+    for zone_row in zone_rows:
+        if len(zone_row) != 2:
+            raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else None}")
 
-            zone_totals_row = fetch_zone_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
-            if zone_totals_row is None or len(zone_totals_row) != 3:
-                raise RuntimeError(f"Invalid zone_totals query result - expected 3 columns, got {len(zone_totals_row) if zone_totals_row else None}")
+        team_data_row: dict = {
+            "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
+            "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else "",
+            "total_tags": 0,
+            "total_quantity": 0,
+            "total_price": 0.0,
+            "discrepancy_dollars": 0.0,
+            "discrepancy_tags": 0,
+            "discrepancy_percent": 0.0
+        }
 
-            team_data_row["total_tags"] = zone_totals_row[0] if zone_totals_row and zone_totals_row[0] is not None else 0
-            team_data_row["total_quantity"] = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
-            team_data_row["total_price"] = zone_totals_row[2] if zone_totals_row and zone_totals_row[2] is not None else 0
+        zone_totals_row = fetch_zone_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
+        if zone_totals_row is None or len(zone_totals_row) != 3:
+            raise RuntimeError(f"Invalid zone_totals query result - expected 3 columns, got {len(zone_totals_row) if zone_totals_row else None}")
 
-            zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
-            if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
-                raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}")
+        team_data_row["total_tags"] = zone_totals_row[0] if zone_totals_row and zone_totals_row[0] is not None else 0
+        team_data_row["total_quantity"] = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
+        team_data_row["total_price"] = zone_totals_row[2] if zone_totals_row and zone_totals_row[2] is not None else 0
 
-            team_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
-            team_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
-            team_data_row["discrepancy_percent"] = (team_data_row["discrepancy_dollars"] / team_data_row["total_price"] * 100) if team_data_row["total_price"] > 0 else 0
-            
-            team_data.append(team_data_row)
+        zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
+        if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
+            raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}")
 
-    except (pyodbc.Error, pyodbc.DatabaseError) as e:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
-        raise
-    except ValueError as e:
-        QtWidgets.QMessageBox.critical(None, "Configuration Error", f"Invalid configuration: {str(e)}")
-        raise
-    except RuntimeError as e:
-        QtWidgets.QMessageBox.critical(None, "Data Error", f"Data validation failed: {str(e)}")
-        raise
-    except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"An unexpected error occurred: {str(e)}")
-        raise
+        team_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
+        team_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
+        team_data_row["discrepancy_percent"] = (team_data_row["discrepancy_dollars"] / team_data_row["total_price"] * 100) if team_data_row["total_price"] > 0 else 0
+
+        team_data.append(team_data_row)
 
     return team_data

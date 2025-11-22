@@ -49,6 +49,7 @@ A professional **Windows-only** Python application for generating WIS Internatio
         --add-data "ui;ui" ^
         --add-data "styles;styles" ^
         --add-data "templates;templates" ^
+        --add-data "resources;resources" ^
         -n AccuracyReport ^
         main.py
     ```

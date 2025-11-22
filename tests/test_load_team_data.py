@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.load_source_team_data import load_source_team_data
+from services import load_source_team_data
 
 
 class TestLoadTeamData:
