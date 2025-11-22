@@ -2,10 +2,11 @@
 import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
+
 import pyodbc
 from PyQt6 import QtWidgets
 
-from services.load_source_store_data import load_source_store_data
+from services import load_source_store_data
 
 
 class TestLoadStoreData:

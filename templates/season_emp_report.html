@@ -1,0 +1,131 @@
+<table
+    cellspacing="0"
+    cellpadding="3"
+    style="
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Times New Roman;
+        font-size: 10px;
+        margin-bottom: 20px;
+        line-height: 1;
+    "
+>
+    <tbody>
+        <tr>
+            <td style="font-weight: bold; text-align: left;">
+                Season Range: {{ "%s"|format(page_headers.season_range) }}
+            </td>
+            <td style="font-weight: bold; text-align: center;">
+                UPH Report
+            </td>
+            <td style="font-weight: bold; text-align: right;">
+                Page #: 1 of 2
+            </td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold; text-align: left;">
+                Print Date: {{ "%s"|format(page_headers.print_date) }}
+            </td>
+            <td style="font-weight: bold; text-align: center;">
+                All Inventories
+            </td>
+            <td style="font-weight: bold; text-align: right;"></td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold; text-align: left;">
+                Print Time: {{ "%s"|format(page_headers.print_time) }}
+            </td>
+            <td style="font-weight: bold; text-align: center;">
+                All Locations
+            </td>
+            <td style="font-weight: bold; text-align: right;"></td>
+        </tr>
+    </tbody>
+</table>
+<table
+    cellspacing="0"
+    cellpadding="5"
+    style="
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Times New Roman;
+        font-size: 10px;
+        color: #000000;
+        line-height: 1;
+    "
+>
+    <tbody>
+        <tr style="border-bottom: 1px solid black">
+            <th style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
+                ID
+            </th>
+            <th style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
+                NAME
+            </th>
+            <th style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </th>
+            <th style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
+                TAGS
+            </th>
+            <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                &nbsp;&nbsp;%
+            </th>
+            <th style="width: 13%; text-align: right; display: table-cell; vertical-align: middle;">
+                $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </th>
+            <th style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                TAGS
+            </th>
+            <th style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                QTY
+            </th>
+            <th style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                UPH
+            </th>
+            <th style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                STORES
+            </th>
+        </tr>
+        {% for emp in emp_data %}
+        {% if emp.discrepancy_percent >= 1.5 %}
+        <tr style="background-color: #ffcccc;">
+        {% elif emp.discrepancy_percent >= 1.0 %}
+        <tr style="background-color: #ffffcc;">
+        {% else %}
+        <tr>
+        {% endif %}
+            <td style="width: 7%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(emp.emp_number) }}
+            </td>
+            <td style="width: 28%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(emp.emp_name) }}
+            </td>
+            <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(emp.discrepancy_dollars) }}
+            </td>
+            <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.discrepancy_tags) }}
+            </td>
+            <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
+                {{ "%.2f"|format(emp.discrepancy_percent) }}%
+            </td>
+            <td style="width: 13%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(emp.total_price) }}
+            </td>
+            <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.total_tags) }}
+            </td>
+            <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.total_quantity) }}
+            </td>
+            <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.uph) }}
+            </td>
+            <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.stores) }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

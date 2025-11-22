@@ -1,7 +1,7 @@
 """Database query functions for managing locally stored."""
 import pyodbc
 
-from local_models import InventoryTable, EmployeeTable, EmployeeTotalsTable, ZoneTable, ZoneTotalsTable
+from models.local_models import InventoryTable, EmployeeTable, EmployeeTotalsTable, ZoneTable, ZoneTotalsTable
 
 
 def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
@@ -22,7 +22,8 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
         inventory.table: f"""
             CREATE TABLE {inventory.table} (
                 {inventory.store_number} TEXT(50) PRIMARY KEY,
-                {inventory.job_datetime} DATETIME,
+                {inventory.store_name} TEXT(50),
+                {inventory.job_datetime} TEXT(50),
                 {inventory.store_address} TEXT(255)
             )
         """,
@@ -41,7 +42,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
         """,
         emp.table: f"""
             CREATE TABLE {emp.table} (
-                {emp.emp_number} TEXT(50),
+                {emp.emp_number} TEXT(50) PRIMARY KEY,
                 {emp.store_number} TEXT(50),
                 {emp.emp_name} TEXT(255),
                 {emp.total_tags} INTEGER,
@@ -49,9 +50,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
                 {emp.total_price} DOUBLE,
                 {emp.discrepancy_dollars} DOUBLE,
                 {emp.discrepancy_tags} INTEGER,
-                {emp.hours} DOUBLE,
-                FOREIGN KEY ({emp.store_number}) REFERENCES Inventory({inventory.store_number}),
-                FOREIGN KEY ({emp.emp_number}) REFERENCES EmployeeTotals({emp_totals.emp_number})
+                {emp.hours} DOUBLE
             )
         """,
         zone_totals.table: f"""
@@ -68,16 +67,14 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
         """,
         zone.table: f"""
             CREATE TABLE {zone.table} (
-                {zone.zone_id} TEXT(50),
+                {zone.zone_id} TEXT(50) PRIMARY KEY,
                 {zone.store_number} TEXT(50),
                 {zone.zone_description} TEXT(255),
                 {zone.total_tags} INTEGER,
                 {zone.total_quantity} INTEGER,
                 {zone.total_price} DOUBLE,
                 {zone.discrepancy_dollars} DOUBLE,
-                {zone.discrepancy_tags} INTEGER,
-                FOREIGN KEY ({zone.store_number}) REFERENCES Inventory({inventory.store_number}),
-                FOREIGN KEY ({zone.zone_id}) REFERENCES ZoneTotals({zone.zone_id})
+                {zone.discrepancy_tags} INTEGER
             )
         """
     }
@@ -101,7 +98,7 @@ def check_inventory_exists(conn: pyodbc.Connection, store_data: dict) -> bool:
     inventory = InventoryTable()
 
     inventory_exists_query = f"SELECT TOP 1 1 FROM {inventory.table} WHERE {inventory.store_number} = ?"
-    cursor.execute(inventory_exists_query, (store_data["store"],))
+    cursor.execute(inventory_exists_query, (store_data["store_number"],))
     exists = cursor.fetchone() is not None
 
     cursor.close()
@@ -156,11 +153,11 @@ def insert_inventory_data(conn: pyodbc.Connection, store_data: dict) -> None:
 
     inventory_query = f"""
         INSERT INTO {inventory.table} (
-            {inventory.store_number}, {inventory.job_datetime}, {inventory.store_address}
-        ) VALUES (?, ?, ?)
+            {inventory.store_number}, {inventory.store_name}, {inventory.job_datetime}, {inventory.store_address}
+        ) VALUES (?, ?, ?, ?)
     """
 
-    cursor.execute(inventory_query, (store_data["store"], store_data["inventory_datetime"], store_data["store_address"]))
+    cursor.execute(inventory_query, (store_data["store_number"], store_data["store"], store_data["inventory_datetime"], store_data["store_address"]))
     conn.commit()
 
     cursor.close()
@@ -186,7 +183,7 @@ def insert_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
 
     cursor.execute(
         emp_query, (
-            store_data["store"], emp_data["emp_number"], emp_data["emp_name"], emp_data["total_tags"], emp_data["total_quantity"], emp_data["total_price"],
+            store_data["store_number"], emp_data["emp_number"], emp_data["emp_name"], emp_data["total_tags"], emp_data["total_quantity"], emp_data["total_price"],
             emp_data["discrepancy_dollars"], emp_data["discrepancy_tags"], emp_data["hours"]
         )
    )
@@ -215,7 +212,7 @@ def insert_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
 
     cursor.execute(
         zone_query, (
-            store_data["store"], zone_data["zone_id"], zone_data["zone_description"], zone_data["total_tags"], zone_data["total_quantity"],
+            store_data["store_number"], zone_data["zone_id"], zone_data["zone_description"], zone_data["total_tags"], zone_data["total_quantity"],
             zone_data["total_price"], zone_data["discrepancy_dollars"], zone_data["discrepancy_tags"]
         )
     )
@@ -256,7 +253,7 @@ def insert_zone_totals_data(conn: pyodbc.Connection, zone_data: dict) -> None:
     """Inserts zone totals record.
 
     Args:
-        conn: pyodbc Connection object
+        conn: pyodbc Connection objectstore
         zone_data: Dictionary containing zone data
     """
     cursor = conn.cursor()
@@ -295,14 +292,15 @@ def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
     emp = EmployeeTable()
 
     emp_query = f"""SELECT * FROM {emp.table} WHERE {emp.store_number} = ? AND {emp.emp_number} = ?"""
-    cursor.execute(emp_query, (store_data["store"], emp_data["emp_number"]))
+    cursor.execute(emp_query, (store_data["store_number"], emp_data["emp_number"]))
     existing_row = cursor.fetchone()
 
-    if existing_row:
-        columns = [column[0] for column in cursor.description]
-        prev_emp_data = dict(zip(columns, existing_row))
-    else:
-        prev_emp_data = None
+    if not existing_row:
+        insert_employee_data(conn=conn, store_data=store_data, emp_data=emp_data)
+        return None
+
+    columns = [column[0] for column in cursor.description]
+    prev_emp_data = dict(zip(columns, existing_row))
 
     emp_query = f"""
         UPDATE {emp.table}
@@ -315,7 +313,7 @@ def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
     cursor.execute(
         emp_query, (
             emp_data["total_tags"], emp_data["total_quantity"], emp_data["total_price"], emp_data["discrepancy_dollars"],
-            emp_data["discrepancy_tags"], emp_data["hours"], store_data["store"], emp_data["emp_number"]
+            emp_data["discrepancy_tags"], emp_data["hours"], store_data["store_number"], emp_data["emp_number"]
         )
     )
     conn.commit()
@@ -339,14 +337,15 @@ def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
     zone = ZoneTable()
 
     zone_query = f"""SELECT * FROM {zone.table} WHERE {zone.store_number} = ? AND {zone.zone_id} = ?"""
-    cursor.execute(zone_query, (store_data["store"], zone_data["zone_id"]))
+    cursor.execute(zone_query, (store_data["store_number"], zone_data["zone_id"]))
     existing_row = cursor.fetchone()
 
-    if existing_row:
-        columns = [column[0] for column in cursor.description]
-        prev_zone_data = dict(zip(columns, existing_row))
-    else:
-        prev_zone_data = None
+    if not existing_row:
+        insert_zone_data(conn=conn, store_data=store_data, zone_data=zone_data)
+        return None
+
+    columns = [column[0] for column in cursor.description]
+    prev_zone_data = dict(zip(columns, existing_row))
 
     zone_query = f"""
         UPDATE {zone.table}
@@ -357,7 +356,7 @@ def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
     cursor.execute(
         zone_query, (
             zone_data["total_tags"], zone_data["total_quantity"], zone_data["total_price"], zone_data["discrepancy_dollars"],
-            zone_data["discrepancy_tags"], store_data["store"], zone_data["zone_id"]
+            zone_data["discrepancy_tags"], store_data["store_number"], zone_data["zone_id"]
         )
     )
     conn.commit()
@@ -375,14 +374,15 @@ def update_employee_totals_data(conn: pyodbc.Connection, prev_emp_data: dict | N
         emp_data: Dictionary containing emp data
     """
     cursor = conn.cursor()
+    emp = EmployeeTable()
     emp_totals = EmployeeTotalsTable()
 
-    total_tags = emp_data["total_tags"] - prev_emp_data.get(emp_totals.total_tags, 0) if prev_emp_data else emp_data["total_tags"]
-    total_qty = emp_data["total_quantity"] - prev_emp_data.get(emp_totals.total_quantity, 0) if prev_emp_data else emp_data["total_quantity"]
-    total_price = emp_data["total_price"] - prev_emp_data.get(emp_totals.total_price, 0) if prev_emp_data else emp_data["total_price"]
-    discrepancy_dollars = emp_data["discrepancy_dollars"] - prev_emp_data.get(emp_totals.discrepancy_dollars, 0) if prev_emp_data else emp_data["discrepancy_dollars"]
-    discrepancy_tags = emp_data["discrepancy_tags"] - prev_emp_data.get(emp_totals.discrepancy_tags, 0) if prev_emp_data else emp_data["discrepancy_tags"]
-    hours = emp_data["hours"] - prev_emp_data.get(emp_totals.hours, 0) if prev_emp_data else emp_data["hours"]
+    total_tags = emp_data["total_tags"] - prev_emp_data.get(emp.total_tags, 0) if prev_emp_data else emp_data["total_tags"]
+    total_qty = emp_data["total_quantity"] - prev_emp_data.get(emp.total_quantity, 0) if prev_emp_data else emp_data["total_quantity"]
+    total_price = emp_data["total_price"] - prev_emp_data.get(emp.total_price, 0) if prev_emp_data else emp_data["total_price"]
+    discrepancy_dollars = emp_data["discrepancy_dollars"] - prev_emp_data.get(emp.discrepancy_dollars, 0) if prev_emp_data else emp_data["discrepancy_dollars"]
+    discrepancy_tags = emp_data["discrepancy_tags"] - prev_emp_data.get(emp.discrepancy_tags, 0) if prev_emp_data else emp_data["discrepancy_tags"]
+    hours = emp_data["hours"] - prev_emp_data.get(emp.hours, 0) if prev_emp_data else emp_data["hours"]
     store_increment = 0 if prev_emp_data else 1
 
     emp_totals_query = f"""
@@ -412,13 +412,14 @@ def update_zone_totals_data(conn: pyodbc.Connection, prev_zone_data: dict | None
         zone_data: Dictionary containing zone data
     """
     cursor = conn.cursor()
+    zone = ZoneTable()
     zone_totals = ZoneTotalsTable()
 
-    total_tags = zone_data["total_tags"] - prev_zone_data.get(zone_totals.total_tags, 0) if prev_zone_data else zone_data["total_tags"]
-    total_qty = zone_data["total_quantity"] - prev_zone_data.get(zone_totals.total_quantity, 0) if prev_zone_data else zone_data["total_quantity"]
-    total_price = zone_data["total_price"] - prev_zone_data.get(zone_totals.total_price, 0) if prev_zone_data else zone_data["total_price"]
-    discrepancy_dollars = zone_data["discrepancy_dollars"] - prev_zone_data.get(zone_totals.discrepancy_dollars, 0) if prev_zone_data else zone_data["discrepancy_dollars"]
-    discrepancy_tags = zone_data["discrepancy_tags"] - prev_zone_data.get(zone_totals.discrepancy_tags,0) if prev_zone_data else zone_data["discrepancy_tags"]
+    total_tags = zone_data["total_tags"] - prev_zone_data.get(zone.total_tags, 0) if prev_zone_data else zone_data["total_tags"]
+    total_qty = zone_data["total_quantity"] - prev_zone_data.get(zone.total_quantity, 0) if prev_zone_data else zone_data["total_quantity"]
+    total_price = zone_data["total_price"] - prev_zone_data.get(zone.total_price, 0) if prev_zone_data else zone_data["total_price"]
+    discrepancy_dollars = zone_data["discrepancy_dollars"] - prev_zone_data.get(zone.discrepancy_dollars, 0) if prev_zone_data else zone_data["discrepancy_dollars"]
+    discrepancy_tags = zone_data["discrepancy_tags"] - prev_zone_data.get(zone.discrepancy_tags,0) if prev_zone_data else zone_data["discrepancy_tags"]
     store_increment = 0 if prev_zone_data else 1
 
     zone_totals_query = f"""

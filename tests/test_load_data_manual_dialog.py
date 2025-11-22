@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import Mock, patch
 from PyQt6 import QtWidgets
 
-from views.load_data_manual_dialog import LoadDataManualDialog
+from views import LoadDataManualDialog
 
 pytestmark = pytest.mark.gui
 

@@ -1,12 +1,13 @@
 """Store metadata loader for report headers."""
+from datetime import datetime
+
 import pyodbc
 from PyQt6 import QtWidgets
-from datetime import datetime
 
 from repositories.source_store_repository import fetch_wise_data
 
 
-def load_source_store_data(conn: pyodbc.Connection) -> dict:
+def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
     """Load store data for use in report headers.
 
     Args:
@@ -19,20 +20,20 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict:
         ValueError: If connection is invalid or database schema is malformed
         RuntimeError: If critical store data is missing or corrupted
     """
-    now = datetime.now()
-    store_data = {
-        "inventory_datetime": "",
-        "print_date": f"{now.month}/{now.day}/{now.year}",
-        "store": "",
-        "print_time": now.strftime("%I:%M:%S%p"),
-        "store_address": ""
-    }
-
     try:
         if conn is None:
             raise ValueError("Database connection cannot be None")
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
+
+        now = datetime.now()
+        store_data: dict = {
+            "inventory_datetime": "",
+            "print_date": f"{now.month}/{now.day}/{now.year}",
+            "store": "",
+            "print_time": now.strftime("%I:%M:%S%p"),
+            "store_address": ""
+        }
 
         wise_row = fetch_wise_data(conn=conn)
         if wise_row is None or len(wise_row) != 3:
@@ -43,17 +44,36 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict:
         store_data["store"] = wise_row[1] if wise_row[1] is not None else ""
         store_data["store_address"] = wise_row[2] if wise_row[2] is not None else ""
 
+        return store_data
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
-        raise 
-    except ValueError as e:
-        QtWidgets.QMessageBox.critical(None, "Configuration Error", f"Invalid configuration: {str(e)}")
-        raise
-    except RuntimeError as e:
-        QtWidgets.QMessageBox.critical(None, "Data Error", f"Data validation failed: {str(e)}")
-        raise
-    except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"An unexpected error occurred: {str(e)}")
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Database Error",
+            f"A database operation failed while loading store metadata.\n\nDetails:\n{str(e)}"
+        )
         raise
 
-    return store_data
+    except ValueError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Configuration Error",
+            f"Invalid database connection or missing required input while preparing store data.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except RuntimeError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Data Integrity Error",
+            f"Critical store metadata was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except Exception as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Unexpected Error",
+            f"An unexpected failure occurred while loading store metadata.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+        )
+        raise

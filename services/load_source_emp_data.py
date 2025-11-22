@@ -5,7 +5,7 @@ from PyQt6 import QtWidgets
 from repositories.source_emp_repository import fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data, fetch_emp_totals_data, fetch_emp_line_totals_data, fetch_emp_discrepancies_data, fetch_line_data
 
 
-def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
+def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
     """Load employee data with discrepancy calculations.
     
     - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
@@ -23,13 +23,13 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
         ValueError: If connection is invalid or database schema is malformed
         RuntimeError: If critical employee data is missing or corrupted
     """
-    emp_data = [] # type: list[dict]
-
     try:
         if conn is None:
             raise ValueError("Database connection cannot be None")
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
+
+        emp_data = [] # type: list[dict]
 
         emp_tags_map = {}
         emp_tags_rows = fetch_emp_tags_data(conn=conn)
@@ -46,7 +46,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
         for duplicate_tags_row in duplicate_tags_rows:
             if duplicate_tags_row is None or len(duplicate_tags_row) != 1:
                 raise RuntimeError(f"Invalid duplicate_tags query result structure - expected 1 column, got {len(duplicate_tags_row) if duplicate_tags_row else None}")
-            
+
             emp_tag = duplicate_tags_row[0] if duplicate_tags_row and duplicate_tags_row[0] is not None else ""
             duplicate_tags_set.add(emp_tag)
 
@@ -55,7 +55,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
             if emp_row is None or len(emp_row) != 2:
                 raise RuntimeError(f"Invalid emp query result structure - expected 2 columns, got {len(emp_row) if emp_row else None}")
 
-            emp_data_row = {
+            emp_data_row: dict = {
                 "emp_number": emp_row[0] if emp_row and emp_row[0] else "",
                 "emp_name": emp_row[1] if emp_row and emp_row[1] else "",
                 "total_tags": len(emp_tags_map.get(emp_row[0] if emp_row and emp_row[0] else "", set())),
@@ -89,7 +89,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
                 if len(emp_discrepancies_row) != 7:
                     raise RuntimeError(f"Invalid emp_discrepancies query result structure - expected 7 columns, got {len(emp_discrepancies_row) if emp_discrepancies_row else None}")
 
-                discrepancy_row = {
+                discrepancy_row: dict = {
                     "zone_id": emp_discrepancies_row[0] if emp_discrepancies_row and emp_discrepancies_row[0] is not None else "",
                     "tag_number": emp_discrepancies_row[1] if emp_discrepancies_row and emp_discrepancies_row[1] is not None else "",
                     "upc": emp_discrepancies_row[2] if emp_discrepancies_row and emp_discrepancies_row[2] is not None else "",
@@ -114,17 +114,36 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict]:
 
             emp_data.append(emp_data_row)
 
+        return emp_data
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
-        raise
-    except ValueError as e:
-        QtWidgets.QMessageBox.critical(None, "Configuration Error", f"Invalid configuration: {str(e)}")
-        raise
-    except RuntimeError as e:
-        QtWidgets.QMessageBox.critical(None, "Data Error", f"Data validation failed: {str(e)}")
-        raise
-    except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"An unexpected error occurred: {str(e)}")
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Database Error",
+            f"A database operation failed while loading employee data and discrepancies.\n\nDetails:\n{str(e)}"
+        )
         raise
 
-    return emp_data
+    except ValueError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Configuration Error",
+            f"Invalid database connection or missing required input while preparing employee data.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except RuntimeError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Data Integrity Error",
+            f"Critical employee or discrepancy data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except Exception as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Unexpected Error",
+            f"An unexpected failure occurred while loading employee data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+        )
+        raise

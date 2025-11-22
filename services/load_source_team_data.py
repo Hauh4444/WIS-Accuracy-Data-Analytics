@@ -5,7 +5,7 @@ from PyQt6 import QtWidgets
 from repositories.source_team_repository import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
 
 
-def load_source_team_data(conn: pyodbc.Connection) -> list[dict]:
+def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
     """Load team zone data with discrepancy calculations.
     
     - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
@@ -20,20 +20,20 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict]:
         ValueError: If connection is invalid or database schema is malformed
         RuntimeError: If critical team data is missing or corrupted
     """
-    team_data = [] # type: list[dict]
-    
     try:
         if conn is None:
             raise ValueError("Database connection cannot be None")
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
+        team_data = [] # type: list[dict]
+
         zone_rows = fetch_zone_data(conn=conn)
         for zone_row in zone_rows:
             if len(zone_row) != 2:
                 raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else None}")
 
-            team_data_row = {
+            team_data_row: dict = {
                 "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
                 "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else "",
                 "total_tags": 0,
@@ -59,20 +59,39 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict]:
             team_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
             team_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
             team_data_row["discrepancy_percent"] = (team_data_row["discrepancy_dollars"] / team_data_row["total_price"] * 100) if team_data_row["total_price"] > 0 else 0
-            
+
             team_data.append(team_data_row)
 
+        return team_data
+
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
-        QtWidgets.QMessageBox.critical(None, "Database Error", f"Database query failed: {str(e)}")
-        raise
-    except ValueError as e:
-        QtWidgets.QMessageBox.critical(None, "Configuration Error", f"Invalid configuration: {str(e)}")
-        raise
-    except RuntimeError as e:
-        QtWidgets.QMessageBox.critical(None, "Data Error", f"Data validation failed: {str(e)}")
-        raise
-    except Exception as e:
-        QtWidgets.QMessageBox.critical(None, "Unexpected Error", f"An unexpected error occurred: {str(e)}")
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Database Error",
+            f"A database operation failed while loading team zone or discrepancy data.\n\nDetails:\n{str(e)}"
+        )
         raise
 
-    return team_data
+    except ValueError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Configuration Error",
+            f"Invalid database connection or missing required input while preparing team data.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except RuntimeError as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Data Integrity Error",
+            f"Critical team zone or discrepancy data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
+        )
+        raise
+
+    except Exception as e:
+        QtWidgets.QMessageBox.warning(
+            None,
+            "Unexpected Error",
+            f"An unexpected failure occurred while loading team data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+        )
+        raise

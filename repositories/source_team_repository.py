@@ -1,7 +1,7 @@
 """Database query functions for retrieving team data."""
 import pyodbc
 
-from source_models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagRangeTable
+from models.source_models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagRangeTable
 
 
 def fetch_zone_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
