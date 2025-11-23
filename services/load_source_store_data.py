@@ -1,10 +1,9 @@
 """Store metadata loader for report headers."""
-from datetime import datetime
-
 import pyodbc
+from datetime import datetime
 from PyQt6 import QtWidgets
 
-from repositories.source_store_repository import fetch_wise_data
+from repositories import fetch_wise_data
 
 
 def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
@@ -35,14 +34,14 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
             "store_address": ""
         }
 
-        wise_row = fetch_wise_data(conn=conn)
+        wise_row = fetch_wise_data(conn)
         if wise_row is None or len(wise_row) != 3:
             raise RuntimeError(
                 f"Unexpected WISE data structure - expected 3 columns, got {len(wise_row) if wise_row else None}")
 
-        store_data["inventory_datetime"] = wise_row[0] if wise_row[0] is not None else ""
-        store_data["store"] = wise_row[1] if wise_row[1] is not None else ""
-        store_data["store_address"] = wise_row[2] if wise_row[2] is not None else ""
+        store_data["inventory_datetime"] = wise_row[0] or ""
+        store_data["store"] = wise_row[1] or ""
+        store_data["store_address"] = wise_row[2] or ""
 
         return store_data
 

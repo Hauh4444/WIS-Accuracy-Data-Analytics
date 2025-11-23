@@ -4,10 +4,10 @@ from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import Qt
 
 from services import save_local_data
-from database.connection import get_storage_db_connection
-from utils.paths import resource_path
-from utils.report_generator import generate_accuracy_report
-from utils.ui_utils import center_on_screen, apply_style
+from database import get_storage_db_connection
+from utils import resource_path
+from utils import generate_accuracy_report
+from utils import center_on_screen, apply_style
 
 
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
@@ -17,27 +17,27 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
     empRowsLayout: QtWidgets.QVBoxLayout
     btnPrint: QtWidgets.QPushButton
 
-    def __init__(self, store_data: dict, emp_data: list[dict], team_data: list[dict]) -> None:
-        """Initialize the window with employee and team data.
+    def __init__(self, store_data: dict, emp_data: list[dict], zone_data: list[dict]) -> None:
+        """Initialize the window with employee and zone data.
         
         Args:
             store_data: Dictionary containing store data
             emp_data: List of employee data dictionaries
-            team_data: List of team data dictionaries
+            zone_data: List of zone data dictionaries
         """
         super().__init__()
-        ui_path = resource_path("ui/emp_hours_window.ui")
+        ui_path = resource_path("assets/ui/emp_hours_window.ui")
         uic.loadUi(ui_path, self)
 
         self.store_data = store_data
         self.emp_data = emp_data
-        self.team_data = team_data
+        self.zone_data = zone_data
 
         self.rows_widgets: list[QtWidgets.QWidget] = []
         self.empRowsLayout = cast(QtWidgets.QVBoxLayout, self.scrollAreaWidgetContents.layout())
 
         for emp in emp_data:
-            row = self.create_emp_hour_input_row(emp=emp)
+            row = self.create_emp_hour_input_row(emp)
             self.empRowsLayout.addWidget(row)
             self.rows_widgets.append(row)
 
@@ -46,7 +46,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.btnPrint.clicked.connect(self.print_report)
 
         self.resize(600, 600)
-        apply_style(widget=self.scrollArea, style_path=resource_path("styles/scrollbar.qss"))
+        apply_style(widget=self.scrollArea, style_path=resource_path("assets/styles/scrollbar.qss"))
         center_on_screen(widget=self)
 
     @staticmethod
@@ -83,7 +83,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         row_widget.label_id = label_id
         row_widget.label_name = label_name
 
-        apply_style(widget=row_widget, style_path=resource_path("styles/emp_hour_input_row.qss"))
+        apply_style(widget=row_widget, style_path=resource_path("assets/styles/emp_hour_input_row.qss"))
         return row_widget
 
     def print_report(self) -> None:
@@ -107,11 +107,11 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             self.close()
             return
 
-        save_local_data(conn=conn, store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
+        save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
 
         if conn:
             conn.close()
 
-        generate_accuracy_report(store_data=self.store_data, emp_data=self.emp_data, team_data=self.team_data)
+        generate_accuracy_report(self.store_data, self.emp_data, self.zone_data, season=False)
 
         self.close()

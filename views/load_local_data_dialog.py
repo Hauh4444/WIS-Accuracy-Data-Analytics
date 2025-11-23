@@ -1,12 +1,11 @@
 """Dynamic database loading dialog using WISDOM job number convention."""
 import traceback
-import pyodbc
 from PyQt6 import QtWidgets, uic
 
-from database.connection import get_storage_db_connection
-from utils.paths import resource_path
-from utils.ui_utils import center_on_screen
-from services import load_local_store_data, load_local_emp_data, load_local_team_data
+from database import get_storage_db_connection
+from utils import resource_path
+from utils import center_on_screen
+from services import load_local_store_data, load_local_emp_data, load_local_zone_data
 
 
 class LoadLocalDataDialog(QtWidgets.QDialog):
@@ -16,12 +15,12 @@ class LoadLocalDataDialog(QtWidgets.QDialog):
 
     store_data: dict
     emp_data: list[dict]
-    team_data: list[dict]
+    zone_data: list[dict]
 
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""
         super().__init__()
-        ui_path = resource_path("ui/load_local_data_dialog.ui")
+        ui_path = resource_path("assets/ui/load_local_data_dialog.ui")
         uic.loadUi(ui_path, self)
 
         self.btnLoad.clicked.connect(self.load_database)
@@ -40,10 +39,11 @@ class LoadLocalDataDialog(QtWidgets.QDialog):
             self.reject()
             return
 
+        # noinspection PyBroadException
         try:
-            self.store_data = load_local_store_data(conn=conn, store=job_number)
-            self.emp_data = load_local_emp_data(conn=conn, store=job_number)
-            self.team_data = load_local_team_data(conn=conn, store=job_number)
+            self.store_data = load_local_store_data(conn, job_number)
+            self.emp_data = load_local_emp_data(conn, job_number)
+            self.zone_data = load_local_zone_data(conn, job_number)
 
             self.accept()
 
@@ -56,4 +56,4 @@ class LoadLocalDataDialog(QtWidgets.QDialog):
                 conn.close()
 
     def get_data(self):
-        return self.store_data, self.emp_data, self.team_data
+        return self.store_data, self.emp_data, self.zone_data

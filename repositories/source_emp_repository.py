@@ -1,7 +1,7 @@
 """Database query functions for retrieving employee data."""
 import pyodbc
 
-from models.source_models import TerminalControlTable, EmpNamesTable, DetailsTable, DLoadErrorsTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagTable
+from models import TerminalControlTable, EmpNamesTable, DetailsTable, DLoadErrorsTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagTable
 
 
 def fetch_emp_tags_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:

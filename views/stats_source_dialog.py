@@ -1,14 +1,12 @@
 """Manual database loading dialog with file browser."""
 import traceback
-import pyodbc
-
 from PyQt6 import QtWidgets, uic
 
-from utils.paths import resource_path
-from utils.ui_utils import center_on_screen
-from utils.season_report_generator import generate_season_accuracy_report
-from services import load_local_store_data, load_local_emp_data, load_local_team_data
-from database.connection import get_storage_db_connection
+from utils import resource_path
+from utils import center_on_screen
+from utils import generate_accuracy_report
+from services import load_local_store_data, load_local_emp_data, load_local_zone_data
+from database import get_storage_db_connection
 
 
 class StatsSourceDialog(QtWidgets.QDialog):
@@ -19,13 +17,13 @@ class StatsSourceDialog(QtWidgets.QDialog):
 
     store_data: dict
     emp_data: list[dict]
-    team_data: list[dict]
+    zone_data: list[dict]
     source: str
 
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""
         super().__init__()
-        ui_path = resource_path("ui/stats_source_dialog.ui")
+        ui_path = resource_path("assets/ui/stats_source_dialog.ui")
         uic.loadUi(ui_path, self)
 
         self.btnSeason.clicked.connect(self.load_season_stats)
@@ -42,12 +40,13 @@ class StatsSourceDialog(QtWidgets.QDialog):
             self.reject()
             return
 
+        # noinspection PyBroadException
         try:
-            store_data = load_local_store_data(conn=conn, store=None)
-            emp_data = load_local_emp_data(conn=conn, store=None)
-            team_data = load_local_team_data(conn=conn, store=None)
-            if store_data and emp_data and team_data:
-                generate_season_accuracy_report(store_data=store_data, emp_data=emp_data, team_data=team_data)
+            store_data = load_local_store_data(conn, store=None)
+            emp_data = load_local_emp_data(conn, store=None)
+            zone_data = load_local_zone_data(conn, store=None)
+            if store_data and emp_data and zone_data:
+                generate_accuracy_report(store_data, emp_data, zone_data, season=True)
 
             self.accept()
 

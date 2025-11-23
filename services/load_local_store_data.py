@@ -3,7 +3,7 @@ import pyodbc
 from datetime import datetime
 from PyQt6 import QtWidgets
 
-from repositories.local_store_repository import fetch_inventory_data, fetch_season_inventory_data
+from repositories import fetch_inventory_data, fetch_season_inventory_data
 
 
 def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | None:
@@ -33,21 +33,21 @@ def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | 
         }
 
         if not store:
-            inventory_rows = fetch_season_inventory_data(conn=conn)
+            inventory_rows = fetch_season_inventory_data(conn)
             if inventory_rows:
                 dates = [datetime.strptime(row[0], "%m/%d/%Y %I:%M:%S %p") for row in inventory_rows]
                 store_data["season_range"] = f"{max(dates).strftime('%b %Y')} - {min(dates).strftime('%b %Y')}"
             else:
                 store_data["season_range"] = None
         else:
-            inventory_row = fetch_inventory_data(conn=conn, store=store)
+            inventory_row = fetch_inventory_data(conn, store)
             if inventory_row is None or len(inventory_row) != 3:
                 raise RuntimeError(
                     f"Unexpected Inventory data structure - expected 3 columns, got {len(inventory_row) if inventory_row else None}")
 
-            store_data["inventory_datetime"] = inventory_row[0] if inventory_row[0] is not None else ""
-            store_data["store"] = inventory_row[1] if inventory_row[1] is not None else ""
-            store_data["store_address"] = inventory_row[2] if inventory_row[2] is not None else ""
+            store_data["inventory_datetime"] = inventory_row[0] or ""
+            store_data["store"] = inventory_row[1] or ""
+            store_data["store_address"] = inventory_row[2] or ""
 
         return store_data
 

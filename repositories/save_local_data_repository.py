@@ -1,7 +1,7 @@
 """Database query functions for managing locally stored."""
 import pyodbc
 
-from models.local_models import InventoryTable, EmployeeTable, EmployeeTotalsTable, ZoneTable, ZoneTotalsTable
+from models import InventoryTable, EmployeeTable, EmployeeTotalsTable, ZoneTable, ZoneTotalsTable
 
 
 def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
@@ -377,12 +377,12 @@ def update_employee_totals_data(conn: pyodbc.Connection, prev_emp_data: dict | N
     emp = EmployeeTable()
     emp_totals = EmployeeTotalsTable()
 
-    total_tags = emp_data["total_tags"] - prev_emp_data.get(emp.total_tags, 0) if prev_emp_data else emp_data["total_tags"]
-    total_qty = emp_data["total_quantity"] - prev_emp_data.get(emp.total_quantity, 0) if prev_emp_data else emp_data["total_quantity"]
-    total_price = emp_data["total_price"] - prev_emp_data.get(emp.total_price, 0) if prev_emp_data else emp_data["total_price"]
-    discrepancy_dollars = emp_data["discrepancy_dollars"] - prev_emp_data.get(emp.discrepancy_dollars, 0) if prev_emp_data else emp_data["discrepancy_dollars"]
-    discrepancy_tags = emp_data["discrepancy_tags"] - prev_emp_data.get(emp.discrepancy_tags, 0) if prev_emp_data else emp_data["discrepancy_tags"]
-    hours = emp_data["hours"] - prev_emp_data.get(emp.hours, 0) if prev_emp_data else emp_data["hours"]
+    total_tags = emp_data["total_tags"] - (prev_emp_data.get(emp.total_tags) or 0)
+    total_qty = emp_data["total_quantity"] - (prev_emp_data.get(emp.total_quantity) or 0)
+    total_price = emp_data["total_price"] - (prev_emp_data.get(emp.total_price) or 0)
+    discrepancy_dollars = emp_data["discrepancy_dollars"] - (prev_emp_data.get(emp.discrepancy_dollars) or 0)
+    discrepancy_tags = emp_data["discrepancy_tags"] - (prev_emp_data.get(emp.discrepancy_tags) or 0)
+    hours = emp_data["hours"] - (prev_emp_data.get(emp.hours) or 0)
     store_increment = 0 if prev_emp_data else 1
 
     emp_totals_query = f"""
@@ -415,11 +415,11 @@ def update_zone_totals_data(conn: pyodbc.Connection, prev_zone_data: dict | None
     zone = ZoneTable()
     zone_totals = ZoneTotalsTable()
 
-    total_tags = zone_data["total_tags"] - prev_zone_data.get(zone.total_tags, 0) if prev_zone_data else zone_data["total_tags"]
-    total_qty = zone_data["total_quantity"] - prev_zone_data.get(zone.total_quantity, 0) if prev_zone_data else zone_data["total_quantity"]
-    total_price = zone_data["total_price"] - prev_zone_data.get(zone.total_price, 0) if prev_zone_data else zone_data["total_price"]
-    discrepancy_dollars = zone_data["discrepancy_dollars"] - prev_zone_data.get(zone.discrepancy_dollars, 0) if prev_zone_data else zone_data["discrepancy_dollars"]
-    discrepancy_tags = zone_data["discrepancy_tags"] - prev_zone_data.get(zone.discrepancy_tags,0) if prev_zone_data else zone_data["discrepancy_tags"]
+    total_tags = zone_data["total_tags"] - (prev_zone_data.get(zone.total_tags) or 0)
+    total_qty = zone_data["total_quantity"] - (prev_zone_data.get(zone.total_quantity) or 0)
+    total_price = zone_data["total_price"] - (prev_zone_data.get(zone.total_price) or 0)
+    discrepancy_dollars = zone_data["discrepancy_dollars"] - (prev_zone_data.get(zone.discrepancy_dollars) or 0)
+    discrepancy_tags = zone_data["discrepancy_tags"] - (prev_zone_data.get(zone.discrepancy_tags) or 0)
     store_increment = 0 if prev_zone_data else 1
 
     zone_totals_query = f"""

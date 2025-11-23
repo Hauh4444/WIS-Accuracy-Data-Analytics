@@ -1,24 +1,24 @@
-"""Team zone data loader with inventory accuracy metrics."""
+"""zone zone data loader with inventory accuracy metrics."""
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories.source_team_repository import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
+from repositories import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
 
 
-def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
-    """Load team zone data with discrepancy calculations.
+def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
+    """Load zone zone data with discrepancy calculations.
     
-    - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the team.
+    - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the zone.
     
     Args:
         conn: Database connection object
         
     Returns:
-        List of dictionaries containing team data with totals and discrepancies
+        List of dictionaries containing zone data with totals and discrepancies
         
     Raises:
         ValueError: If connection is invalid or database schema is malformed
-        RuntimeError: If critical team data is missing or corrupted
+        RuntimeError: If critical zone data is missing or corrupted
     """
     try:
         if conn is None:
@@ -26,16 +26,16 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        team_data = [] # type: list[dict]
+        zone_data = [] # type: list[dict]
 
-        zone_rows = fetch_zone_data(conn=conn)
+        zone_rows = fetch_zone_data(conn)
         for zone_row in zone_rows:
             if len(zone_row) != 2:
                 raise RuntimeError(f"Invalid zone query result structure - expected 2 columns, got {len(zone_row) if zone_row else None}")
 
-            team_data_row: dict = {
-                "zone_id": zone_row[0] if zone_row and zone_row[0] is not None else "",
-                "zone_description": zone_row[1] if zone_row and zone_row[1] is not None else "",
+            zone_data_row: dict = {
+                "zone_id": zone_row[0] or "",
+                "zone_description": zone_row[1] or "",
                 "total_tags": 0,
                 "total_quantity": 0,
                 "total_price": 0.0,
@@ -44,31 +44,31 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
                 "discrepancy_percent": 0.0
             }
 
-            zone_totals_row = fetch_zone_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
+            zone_totals_row = fetch_zone_totals_data(conn, zone_data_row["zone_id"])
             if zone_totals_row is None or len(zone_totals_row) != 3:
                 raise RuntimeError(f"Invalid zone_totals query result - expected 3 columns, got {len(zone_totals_row) if zone_totals_row else None}")
 
-            team_data_row["total_tags"] = zone_totals_row[0] if zone_totals_row and zone_totals_row[0] is not None else 0
-            team_data_row["total_quantity"] = zone_totals_row[1] if zone_totals_row and zone_totals_row[1] is not None else 0
-            team_data_row["total_price"] = zone_totals_row[2] if zone_totals_row and zone_totals_row[2] is not None else 0
+            zone_data_row["total_tags"] = zone_totals_row[0] or 0
+            zone_data_row["total_quantity"] = zone_totals_row[1] or 0
+            zone_data_row["total_price"] = zone_totals_row[2] or 0
 
-            zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn=conn, zone_id=team_data_row["zone_id"])
+            zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn, zone_data_row["zone_id"])
             if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
                 raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}")
 
-            team_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[0] is not None else 0
-            team_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] if zone_discrepancy_totals_row and zone_discrepancy_totals_row[1] is not None else 0
-            team_data_row["discrepancy_percent"] = (team_data_row["discrepancy_dollars"] / team_data_row["total_price"] * 100) if team_data_row["total_price"] > 0 else 0
+            zone_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] or 0
+            zone_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] or 0
+            zone_data_row["discrepancy_percent"] = (zone_data_row["discrepancy_dollars"] / zone_data_row["total_price"] * 100) if zone_data_row["total_price"] > 0 else 0
 
-            team_data.append(team_data_row)
+            zone_data.append(zone_data_row)
 
-        return team_data
+        return zone_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
-            f"A database operation failed while loading team zone or discrepancy data.\n\nDetails:\n{str(e)}"
+            f"A database operation failed while loading zone zone or discrepancy data.\n\nDetails:\n{str(e)}"
         )
         raise
 
@@ -76,7 +76,7 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
-            f"Invalid database connection or missing required input while preparing team data.\n\nDetails:\n{str(e)}"
+            f"Invalid database connection or missing required input while preparing zone data.\n\nDetails:\n{str(e)}"
         )
         raise
 
@@ -84,7 +84,7 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
-            f"Critical team zone or discrepancy data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
+            f"Critical zone zone or discrepancy data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
         )
         raise
 
@@ -92,6 +92,6 @@ def load_source_team_data(conn: pyodbc.Connection) -> list[dict] | None:
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading team data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading zone data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
         )
         raise

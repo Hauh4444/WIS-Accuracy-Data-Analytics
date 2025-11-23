@@ -2,20 +2,20 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories.save_local_data_repository import (
+from repositories import (
     create_tables_if_not_exists, check_inventory_exists, check_employee_totals_exist, check_zone_totals_exist, insert_inventory_data, insert_employee_data,
     insert_zone_data, insert_employee_totals_data, insert_zone_totals_data, update_employee_data, update_zone_data, update_employee_totals_data, update_zone_totals_data
 )
 
 
-def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[dict], team_data: list[dict]) -> None:
+def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[dict], zone_data: list[dict]) -> None:
     """Save inventory and accuracy report data.
 
     Args:
         conn: Database connection object
         store_data: Dictionary containing store data
         emp_data: List of employee data dictionaries
-        team_data: List of team data dictionaries
+        zone_data: List of zone data dictionaries
 
     Raises:
         ValueError: If connection is invalid or database schema is malformed
@@ -27,7 +27,7 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        create_tables_if_not_exists(conn=conn)
+        create_tables_if_not_exists(conn)
 
         store_data["store_number"] = store_data["store"].strip().split()[-1]
 
@@ -49,7 +49,7 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
             if employee_totals_exist:
                 update_employee_totals_data(conn, prev_emp_data, emp)
 
-        for zone in team_data:
+        for zone in zone_data:
             zone_totals_exist = check_zone_totals_exist(conn, zone)
             if not zone_totals_exist:
                 insert_zone_totals_data(conn, zone)

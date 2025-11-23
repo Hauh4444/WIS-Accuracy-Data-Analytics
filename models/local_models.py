@@ -1,6 +1,6 @@
 """Database table schema definitions for the stored Accuracy Report data.
 
-- Immutable dataclass mappings for database table and column names.
+- Immutable dataclass mappings for local database table and column names.
 - All table models are frozen to prevent accidental modification.
 """
 from dataclasses import dataclass
@@ -31,7 +31,6 @@ class EmployeeTable:
 
 @dataclass(frozen=True)
 class EmployeeTotalsTable:
-    # Totals table used for efficiency in retrieving season accuracy statistics
     table: str = "tblEmpTotals"
     emp_number: str = "EmpNo"
     emp_name: str = "EmpName"
@@ -59,7 +58,6 @@ class ZoneTable:
 
 @dataclass(frozen=True)
 class ZoneTotalsTable:
-    # Totals table used for efficiency in retrieving season accuracy statistics
     table: str = "tblZoneTotals"
     zone_id: str = "ZoneID"
     zone_description: str = "ZoneDesc"

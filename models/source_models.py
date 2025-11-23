@@ -1,6 +1,6 @@
 """Database table schema definitions for the WIS inventory system.
 
-- Immutable dataclass mappings for database table and column names.
+- Immutable dataclass mappings for source database table and column names.
 - All table models are frozen to prevent accidental modification.
 """
 from dataclasses import dataclass
@@ -29,7 +29,7 @@ class EmpNamesTable:
 
 @dataclass(frozen=True)
 class DetailsTable:
-    """Stores every single line counted, required to query since it's the only table that maps employee numbers to tags and lines"""
+    """Stores every line counted, required to query since it's the only table that maps employee numbers to tags and lines"""
     table: str = "tblDetails"
     emp_number: str = "empno"
     tag_number: str = "tag"
