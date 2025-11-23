@@ -1,7 +1,7 @@
 """Database query functions for retrieving store data."""
 import pyodbc
 
-from models.local_models import InventoryTable
+from models import InventoryTable
 
 
 def fetch_inventory_data(conn: pyodbc.Connection, store: str) -> pyodbc.Row | None:

@@ -3,11 +3,11 @@ import sys
 
 from PyQt6 import QtWidgets
 
-from utils.report_generator import generate_accuracy_report
-from views import StatsSourceDialog, LoadDataDynamicDialog, LoadDataManualDialog, EmpHoursInputWindow, LoadLocalDataDialog
+from utils import generate_accuracy_report
+from views import StatsSourceDialog, LoadSourceDataDynamicDialog, LoadSourceDataManualDialog, EmpHoursInputWindow, LoadLocalDataDialog
 
 
-def select_stats_source() -> bool | None:
+def select_stats_source() -> str | None:
     """Show the stats source dialog and return the selected source.
 
     Returns:
@@ -25,18 +25,18 @@ def select_stats_source() -> bool | None:
 
 
 def load_data_with_fallback() -> tuple[dict, list[dict], list[dict]] | None:
-    """Load store, employee, and team data using dynamic dialog with a manual dialog fallback from source database for new inventory.
+    """Load store, employee, and zone data using dynamic dialog with a manual dialog fallback from source database for new inventory.
 
     Returns:
-        Tuple containing (store_data, emp_data, team_data) if successful, or None if data could not be loaded.
+        Tuple containing (store_data, emp_data, zone_data) if successful, or None if data could not be loaded.
     """
-    dynamic_dialog = LoadDataDynamicDialog()
+    dynamic_dialog = LoadSourceDataDynamicDialog()
     if dynamic_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
         data = dynamic_dialog.get_data()
         if all(data):
             return data
 
-    manual_dialog = LoadDataManualDialog()
+    manual_dialog = LoadSourceDataManualDialog()
     if manual_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
         data = manual_dialog.get_data()
         if all(data):
@@ -46,10 +46,10 @@ def load_data_with_fallback() -> tuple[dict, list[dict], list[dict]] | None:
 
 
 def load_old_inventory_data() -> tuple[dict, list[dict], list[dict]] | None:
-    """Load store, employee, and team data from local database for previous inventory.
+    """Load store, employee, and zone data from local database for previous inventory.
 
     Returns:
-        Tuple containing (store_data, emp_data, team_data) if successful, or None if data could not be loaded.
+        Tuple containing (store_data, emp_data, zone_data) if successful, or None if data could not be loaded.
     """
     local_dialog = LoadLocalDataDialog()
     if local_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
@@ -66,9 +66,9 @@ if __name__ == "__main__":
 
         stats_source = select_stats_source()
         if stats_source == "source":
-            store_data, emp_data, team_data = load_data_with_fallback()
-            if store_data and emp_data and team_data:
-                window = EmpHoursInputWindow(store_data=store_data, emp_data=emp_data, team_data=team_data)
+            store_data, emp_data, zone_data = load_data_with_fallback()
+            if store_data and emp_data and zone_data:
+                window = EmpHoursInputWindow(store_data=store_data, emp_data=emp_data, zone_data=zone_data)
                 window.setWindowTitle("WIS Accuracy Data Analytics")
                 window.show()
                 window.raise_()
@@ -76,9 +76,9 @@ if __name__ == "__main__":
                 app.exec()
 
         elif stats_source == "local":
-            store_data, emp_data, team_data = load_old_inventory_data()
-            if store_data and emp_data and team_data:
-                generate_accuracy_report(store_data=store_data, emp_data=emp_data, team_data=team_data)
+            store_data, emp_data, zone_data = load_old_inventory_data()
+            if store_data and emp_data and zone_data:
+                generate_accuracy_report(store_data=store_data, emp_data=emp_data, zone_data=zone_data, season=False)
 
     except Exception as e:
         QtWidgets.QMessageBox.critical(

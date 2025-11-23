@@ -5,7 +5,7 @@ import traceback
 from PyQt6 import QtWidgets
 from pathlib import Path
 
-from utils.paths import get_appdata_db_path
+from utils import get_appdata_db_path
 
 
 def get_db_connection(db_path: str) -> pyodbc.Connection | None:

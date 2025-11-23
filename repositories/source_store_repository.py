@@ -1,7 +1,7 @@
 """Database query functions for retrieving store data."""
 import pyodbc
 
-from models.source_models import WISEInfoTable
+from models import WISEInfoTable
 
 
 def fetch_wise_data(conn: pyodbc.Connection) -> pyodbc.Row | None:

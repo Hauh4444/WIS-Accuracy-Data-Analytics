@@ -1,7 +1,7 @@
 """Database query functions for retrieving employee data."""
 import pyodbc
 
-from models.local_models import EmployeeTable, EmployeeTotalsTable
+from models import EmployeeTable, EmployeeTotalsTable
 
 
 def fetch_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:

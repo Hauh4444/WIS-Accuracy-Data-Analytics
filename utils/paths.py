@@ -39,7 +39,7 @@ def get_appdata_db_path() -> Path:
 
     db_path = root / DB_FILENAME
     if not db_path.exists():
-        template = Path(resource_path(f"resources/{DB_FILENAME}"))
+        template = Path(resource_path(f"assets/resources/{DB_FILENAME}"))
         db_path.write_bytes(template.read_bytes())
 
     return db_path

@@ -10,10 +10,9 @@ A professional **Windows-only** Python application for generating WIS Internatio
   - Fallback: Manual file browser for custom database selection
 - **Store Data Integration**: Automatic loading of store information (name, address, inventory datetime) from WISE database
 - **Employee Hours Input**: Interactive interface for entering employee work hours with UPH calculations
-- **Team Zone Analytics**: Comprehensive team and zone-based discrepancy analysis
-- **Professional Reports**: Three integrated reports (Employee, Team, Discrepancy) rendered as PDF with store headers and opened in browser for printing
+- **Zone Analytics**: Comprehensive zone and zone-based discrepancy analysis
+- **Professional Reports**: Three integrated reports (Employee, zone, Discrepancy) rendered as PDF with store headers and opened in browser for printing
 - **Qt6 GUI**: Clean, professional interface for data input and report generation
-- **Professional Test Suite**: 194+ comprehensive test cases with senior engineer quality standards
 - **Data Models**: Comprehensive database table models for WISE Info, UPH, Details, Zone, Tag, and TagRange tables
 
 ## Installation
@@ -45,11 +44,11 @@ A professional **Windows-only** Python application for generating WIS Internatio
 5. (Optional) To build a standalone executable:
     ```bash
     pyinstaller --onefile --noconsole ^
-        --additional-hooks-dir=hooks ^
-        --add-data "ui;ui" ^
-        --add-data "styles;styles" ^
-        --add-data "templates;templates" ^
-        --add-data "resources;resources" ^
+        --additional-hooks-dir=packaging/hooks ^
+        --add-data "assets/ui;assets/ui" ^
+        --add-data "assets/styles;assets/styles" ^
+        --add-data "assets/templates;assets/templates" ^
+        --add-data "assets/resources;assets/resources" ^
         -n AccuracyReport ^
         main.py
     ```
@@ -64,79 +63,25 @@ A professional **Windows-only** Python application for generating WIS Internatio
    - **Fallback Method - File Browser**: If Job Number fails, browse and select database file manually (supports `.mdb` and `.accdb` files)
 3. **Store Data Loading**: Store information (name, address, inventory datetime) is automatically loaded from the WISE database
 4. **Employee Hours Input**: Enter work hours for each employee in the interactive interface with UPH calculations
-5. **Data Processing**: Employee, team, and store data is loaded, validated, and processed with discrepancy calculations
-6. **Report Generation**: Click "Print" to generate three integrated accuracy reports (Employee, Team, and Discrepancy) with store headers
+5. **Data Processing**: Employee, zone, and store data is loaded, validated, and processed with discrepancy calculations
+6. **Report Generation**: Click "Print" to generate three integrated accuracy reports (Employee, zone, and Discrepancy) with store headers
 7. **PDF Output**: Combined report is generated as a single PDF with page breaks and opened in browser for printing
-
-### Building Standalone Executable
-
-```bash
-pyinstaller --onefile --noconsole \
-    --additional-hooks-dir=hooks \
-    --add-data "ui;ui" \
-    --add-data "styles;styles" \
-    --add-data "templates;templates" \
-    -n AccuracyReport \
-    main.py
-```
 
 ## Testing
 
-### Professional Test Suite (194+ Tests)
+### Test Suite
 
-The application includes a comprehensive, professional-grade test suite written at senior engineer standards:
+The application includes a comprehensive test suite:
+1. Run all tests (requires PyQt6 + Windows environment)
+    ```bash
+    python -m pytest tests/ -v
+    ```
 
-```bash
-# Run safe tests (recommended - 37 tests, 100% passing)
-python run_safe_tests.py
-
-# Or manually run core tests
-python -m pytest tests/test_models.py tests/test_paths.py -v
-
-# Run all tests (requires PyQt6 + Windows environment)
-python -m pytest tests/ -v
-
-# Run with coverage reporting
-python -m pytest tests/ --cov=. --cov-report=html:htmlcov
-```
-
-### Test Categories
-
-#### **Core Modules (37 tests - 100% passing)**
-- **Models** (30 tests): All dataclass definitions with immutability testing
-- **Paths** (7 tests): Resource path resolution for dev/PyInstaller environments  
-
-#### **Repository Layer (31 tests - Mocked database)**
-- **Store Repository** (5 tests): Data access patterns with comprehensive mocking
-- **Employee Repository** (12 tests): Employee data fetching with SQL validation
-- **Team Repository** (12 tests): Team and zone data access patterns
-
-#### **Service Layer (60+ tests - PyQt6 environment required)**
-- **Load Data Services**: Store, employee, and team data loading with comprehensive error handling
-- **Business Logic**: UPH calculations, discrepancy analysis, data validation
-- **Error Handling**: Exception testing and edge cases
-
-#### **UI Layer (40+ tests - PyQt6 environment required)**
-- **Main Window**: Employee hours input functionality
-- **Dialogs**: Manual and dynamic data loading dialogs
-- **User Interactions**: Form validation and data processing
-
-#### **Utilities (15+ tests - PyQt6 environment required)**
-- **Report Generator**: PDF generation with template rendering
-- **Main Application**: Application entry point and workflow
-
-#### **Database Layer (15+ tests - Windows environment required)**
-- **Database Connection**: Microsoft Access connectivity testing
-
-### Test Quality Standards
-
-- **Professional Coverage**: 90%+ coverage target with comprehensive testing
-- **Appropriate Mocking**: All external dependencies properly isolated
-- **No Redundancy**: Each test serves a specific purpose
-- **Error Handling**: Comprehensive exception and edge case testing
-- **Data Validation**: Input/output verification and data integrity
-- **Senior Engineer Quality**: Professional standards throughout
-
+2. Run with coverage reporting
+    ```bash
+    python -m pytest tests/ --cov=. --cov-report=html:htmlcov
+    ```
+   
 ### Test Documentation
 
 See `tests/README.md` for detailed test documentation including:
@@ -144,69 +89,6 @@ See `tests/README.md` for detailed test documentation including:
 - Running instructions for different environments
 - Coverage analysis and quality metrics
 - Best practices and recommendations
-
-## Project Structure
-
-```
-WIS-Accuracy-Data-Analytics/
-├── main.py                                 # Application entry point
-├── models.py                               # Database ORM models (WISE Info, UPH, Details, Zone, Tag, etc.)
-├── pytest.ini                              # Pytest configuration file
-├── README.md                               # Project overview and setup guide
-├── requirements.txt                        # Python dependencies
-├── run_safe_tests.py                       # Safe test runner for core tests (37 tests)
-├── database/                               # Database configuration and connections
-│   └── connection.py                       # Database connection management
-├── hooks/                                  # Custom PyInstaller hooks for packaging
-│   └── hook-xhtml2pdf.py                   # Hook for including xhtml2pdf assets in builds
-├── repositories/                           # Data access and repository layer
-│   ├── emp_repository.py                   # Fetches employee data
-│   ├── store_repository.py                 # Fetches store data
-│   └── team_repository.py                  # Fetches team data
-├── services/                               # Business logic and service layer
-│   ├── __init__.py
-│   ├── load_emp_data.py                    # Employee data loading with UPH calculation logic
-│   ├── load_team_data.py                   # Team zone data loading with discrepancy analysis
-│   └── load_store_data.py                  # Store data loading from WISE table
-├── styles/                                 # Application stylesheets for PyQt UI
-│   ├── emp_hour_input_row.qss              # Styles for employee input row widgets
-│   └── scrollbar.qss                       # Custom scrollbar theme
-├── templates/                              # HTML templates for PDF and report generation
-│   ├── disc_report.html                    # Discrepancy report template
-│   ├── emp_report.html                     # UPH report template
-│   └── team_report.html                    # Team/zone report template
-├── tests/                                  # Professional test suite (194+ tests)
-│   ├── __init__.py
-│   ├── conftest.py                         # Test fixtures and configuration
-│   ├── README.md                           # Comprehensive test documentation
-│   ├── test_database.py                    # Database connection tests (15+ tests)
-│   ├── test_emp_hours_input_window.py      # Main window tests (15+ tests)
-│   ├── test_emp_repository.py              # Employee repository tests (12 tests)
-│   ├── test_load_data_dynamic_dialog.py    # Dynamic dialog tests (10+ tests)
-│   ├── test_load_data_manual_dialog.py     # Manual dialog tests (10+ tests)
-│   ├── test_load_emp_data.py               # Employee data loading tests (25+ tests)
-│   ├── test_load_store_data.py             # Store data loading tests (20+ tests)
-│   ├── test_load_team_data.py              # Team data loading tests (20+ tests)
-│   ├── test_main.py                        # Application entry point tests (10+ tests)
-│   ├── test_models.py                      # Model tests (30 tests)
-│   ├── test_paths.py                       # Path utility tests (7 tests)
-│   ├── test_report_generator.py            # Report generation tests (15+ tests)
-│   ├── test_store_repository.py            # Store repository tests (5 tests)
-│   └── test_team_repository.py             # Team repository tests (12 tests)
-├── ui/                                     # Qt Designer UI layout files
-│   ├── emp_hours_window.ui                 # Employee hours input window design
-│   ├── load_data_dynamic_dialog.ui         # Dynamic data load dialog layout
-│   └── load_data_manual_dialog.ui          # Manual data load dialog layout
-├── utils/                                  # Shared utility functions and helpers    
-│   ├── paths.py                            # Resource and filesystem path utilities
-│   ├── report_generator.py                 # PDF/HTML report formatting and rendering tools
-│   └── ui_utils.py                         # Common PyQt widget and dialog utilities
-└── views/                                  # View classes implementing the application’s UI logic
-    ├── __init__.py
-    ├── emp_hours_input_window.py           # Main window view for employee hour input
-    ├── load_data_dynamic_dialog.py         # Logic for dynamic data loading dialog
-    └── load_data_manual_dialog.py          # Logic for manual data loading dialog
-```
 
 ## Dependencies
 
@@ -216,10 +98,6 @@ WIS-Accuracy-Data-Analytics/
 - **Jinja2** - HTML templating engine
 - **xhtml2pdf** - HTML-to-PDF rendering
 - **reportlab** - PDF generation support
-- **pillow** - Image processing
-- **pytest** - Testing framework with coverage reporting
-- **pytest-cov** - Coverage analysis
-- **pytest-mock** - Advanced mocking capabilities
 - **PyInstaller** - Executable packaging (optional)
 
 ## Database Requirements
@@ -227,30 +105,92 @@ WIS-Accuracy-Data-Analytics/
 - **Windows Only**: Requires Microsoft Access Driver (*.mdb, *.accdb) - **NOT compatible with Linux/Mac**
 - **Database Path**: `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
 - **Supported Formats**: `.mdb` and `.accdb` files
-- **Required Tables**: 
-  - `tblWISEInfo` - Store information (name, address, inventory datetime)
-  - `tblUPH` - Employee data (employee number, name, tag count)
-  - `tblDetailsOrg` - Employee tag assignments
-  - `tblZone` - Zone information
-  - `tblZoneChangeQueue` - Discrepancy tracking
-  - `tblZoneChangeInfo` - Discrepancy details
-  - `tblTag` - Tag totals and pricing
-  - `tblTagRange` - Tag range summaries
+- **Required Source Tables**: 
+  - `tblWISEInfo` - WISE data, stores general inventory data
+  - `tblTerminalControl` - Terminal data, stores employees active within the store
+  - `tblEmpNames` - Employee data, maps employee numbers to names
+  - `tblDetails` - Counting data, maps employees to tags
+  - `tblDLoadErrors` - Download errors, stores duplicate tags
+  - `tblZone` - Zone data, maps zones to descriptions
+  - `tblZoneChangeQueue` - Discrepancy data, stores original quantities & assigned reason
+  - `tblZoneChangeInfo` - Discrepancy data, stores corrected quantities
+  - `tblTag` - Tag data, maps tags to total quantities & price
+  - `tblTagRange` - Tag range data, maps tag ranges to zones & totals
+- **Required Local Tables**: 
+  - `tblInventory` - Inventory data, stores store information
+  - `tblEmps` - Employee data, stores single inventory employee stats
+  - `tblEmpTotals` - Employee totals data, stores season employee total stats
+  - `tblZones` - Zone data, stores single inventory zone stats
+  - `tblZoneTotals` - Zone totals data, stores season employee total stats
 
-## Development
+## Project Structure
 
-### Code Style
-- Follow PEP 8 guidelines
-- Use type hints for function parameters and return values
-- Maintain clean, professional code with minimal comments
-- Remove unused imports and dead code
-
-### Testing
-- **194+ professional test cases** written at senior engineer standards
-- **Comprehensive Coverage**: 90%+ coverage target with professional quality
-- **Appropriate Mocking**: All external dependencies properly isolated
-- **No Redundancy**: Each test serves a specific purpose with clear documentation
-- **Multi-Environment Support**: Core tests (68) work in any environment, full suite requires PyQt6/Windows
-- **Professional Standards**: Senior engineer quality with comprehensive error handling
-- **Test Categories**: Unit, Integration, Error Handling, Data Validation, UI Testing
-- **Documentation**: Comprehensive test documentation in `tests/README.md`
+```
+WIS-Accuracy-Data-Analytics
+├── main.py
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── assets
+│   ├── resources
+│   │   ├── accuracy.laccdb
+│   │   └── accuracy.mdb
+│   ├── styles
+│   │   ├── emp_hour_input_row.qss
+│   │   └── scrollbar.qss
+│   ├── templates
+│   │   ├── disc_report.html
+│   │   ├── emp_report.html
+│   │   ├── season_emp_report.html
+│   │   ├── season_team_report.html
+│   │   └── team_report.html
+│   └── ui
+│       ├── emp_hours_window.ui
+│       ├── load_local_data_dialog.ui
+│       ├── load_source_data_dynamic_dialog.ui
+│       ├── load_source_data_manual_dialog.ui
+│       └── stats_source_dialog.ui
+├── build
+├── database
+│   ├── connection.py
+│   └── __init__.py
+├── dist
+│   └── AccuracyReport.exe
+├── models
+│   ├── local_models.py
+│   ├── source_models.py
+│   └── __init__.py
+├── packaging
+│   └── hooks
+│       └── hook-xhtml2pdf.py
+├── repositories
+│   ├── local_emp_repository.py
+│   ├── local_store_repository.py
+│   ├── local_zone_repository.py
+│   ├── save_local_data_repository.py
+│   ├── source_emp_repository.py
+│   ├── source_store_repository.py
+│   ├── source_zone_repository.py
+│   └── __init__.py
+├── services
+│   ├── load_local_emp_data.py
+│   ├── load_local_store_data.py
+│   ├── load_local_zone_data.py
+│   ├── load_source_emp_data.py
+│   ├── load_source_store_data.py
+│   ├── load_source_zone_data.py
+│   ├── save_local_data.py
+│   └── __init__.py
+├── utils
+│   ├── paths.py
+│   ├── report_generator.py
+│   ├── ui_utils.py
+│   └── __init__.py
+└── views
+    ├── emp_hours_input_window.py
+    ├── load_local_data_dialog.py
+    ├── load_source_data_dynamic_dialog.py
+    ├── load_source_data_manual_dialog.py
+    ├── stats_source_dialog.py
+    └── __init__.py
+```
