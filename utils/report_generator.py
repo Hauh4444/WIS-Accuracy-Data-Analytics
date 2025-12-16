@@ -28,7 +28,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
         if not isinstance(emp_data, list) or not isinstance(zone_data, list):
             raise ValueError("emp_data and zone_data must be lists")
 
-        templates_path = resource_path("templates")
+        templates_path = resource_path("assets/templates")
         if not templates_path or not Path(templates_path).exists():
             raise RuntimeError("Templates directory not found or invalid")
 
@@ -50,14 +50,14 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
 
         if season:
             html_fragments = [
-                templates[0].render(store_data, sorted_emp_data),
-                templates[1].render(store_data, sorted_zone_data),
+                templates[0].render(page_headers=store_data, emp_data=sorted_emp_data),
+                templates[1].render(page_headers=store_data, zone_data=sorted_zone_data),
             ]
         else:
             html_fragments = [
-                templates[0].render(store_data, sorted_emp_data),
-                templates[1].render(store_data, sorted_zone_data),
-                templates[2].render(store_data, sorted_emp_data),
+                templates[0].render(page_headers=store_data, emp_data=sorted_emp_data),
+                templates[1].render(page_headers=store_data, zone_data=sorted_zone_data),
+                templates[2].render(page_headers=store_data, emp_data=sorted_emp_data),
             ]
 
         full_html = ""

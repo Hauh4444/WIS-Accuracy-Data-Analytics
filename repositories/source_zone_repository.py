@@ -1,7 +1,7 @@
 """Database query functions for retrieving zone data."""
 import pyodbc
 
-from models import ZoneTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagRangeTable
+from models import ZonesTable, ZoneChangeQueueTable, ZoneChangeInfoTable, TagRangeTable
 
 
 def fetch_zone_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
@@ -14,7 +14,7 @@ def fetch_zone_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
         List of pyodbc rows containing zone data
     """
     cursor = conn.cursor()
-    zone = ZoneTable()
+    zone = ZonesTable()
 
     zone_query = f"""
         SELECT DISTINCT

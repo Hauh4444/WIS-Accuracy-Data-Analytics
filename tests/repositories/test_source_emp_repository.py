@@ -36,7 +36,7 @@ def test_fetch_duplicate_tags_data_returns_rows(mock_conn, mock_cursor):
 
 
 def test_fetch_emp_data_returns_rows(mock_conn, mock_cursor):
-    result = repo.fetch_emp_data(mock_conn)
+    result = repo.fetch_old_emp_data(mock_conn)
     assert result == mock_cursor.fetchall.return_value
     mock_cursor.execute.assert_called_once()
     mock_cursor.close.assert_called_once()
@@ -86,7 +86,7 @@ def test_sql_contains_table_names(mock_conn, mock_cursor):
     dload_table = repo.DLoadErrorsTable().table
     assert dload_table in mock_cursor.execute.call_args[0][0]
 
-    repo.fetch_emp_data(mock_conn)
+    repo.fetch_old_emp_data(mock_conn)
     emp_table = repo.EmpNamesTable().table
     term_table = repo.TerminalControlTable().table
     sql = mock_cursor.execute.call_args[0][0]

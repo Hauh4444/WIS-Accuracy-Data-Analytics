@@ -4,7 +4,7 @@ import pyodbc
 from models import EmployeeTable, EmployeeTotalsTable
 
 
-def fetch_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
+def fetch_old_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
     """Fetch employee data from the database for a given store.
 
     Args:

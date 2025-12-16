@@ -2,7 +2,7 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories import fetch_zone_data, fetch_season_zone_data
+from repositories import fetch_old_zone_data, fetch_season_zone_data
 
 
 def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dict] | None:
@@ -26,7 +26,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
             raise ValueError("Invalid database connection object - missing cursor method")
 
         if store:
-            zone_rows = fetch_zone_data(conn, store)
+            zone_rows = fetch_old_zone_data(conn, store)
         else:
             zone_rows = fetch_season_zone_data(conn)
 
@@ -44,13 +44,13 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
             }
 
             if not store:
-                zone_data_row["stores"] = zone_row[7] or 1
+                zone_data_row["stores"] = zone_row[7] or 0
 
-                zone_data_row["total_tags"] = zone_data_row["total_tags"] / zone_data_row["stores"] or 1
-                zone_data_row["total_quantity"] = zone_data_row["total_quantity"] / zone_data_row["stores"] or 1
-                zone_data_row["total_price"] = zone_data_row["total_price"] / zone_data_row["stores"] or 1
-                zone_data_row["discrepancy_dollars"] = zone_data_row["discrepancy_dollars"] / zone_data_row["stores"] or 1
-                zone_data_row["discrepancy_tags"] = zone_data_row["discrepancy_tags"] / zone_data_row["stores"] or 1
+                zone_data_row["total_tags"] = zone_data_row["total_tags"] / zone_data_row["stores"] or 0
+                zone_data_row["total_quantity"] = zone_data_row["total_quantity"] / zone_data_row["stores"] or 0
+                zone_data_row["total_price"] = zone_data_row["total_price"] / zone_data_row["stores"] or 0
+                zone_data_row["discrepancy_dollars"] = zone_data_row["discrepancy_dollars"] / zone_data_row["stores"] or 0
+                zone_data_row["discrepancy_tags"] = zone_data_row["discrepancy_tags"] / zone_data_row["stores"] or 0
 
             zone_data_row["discrepancy_percent"] = (
                 (zone_data_row["discrepancy_dollars"] / zone_data_row["total_price"] * 100)

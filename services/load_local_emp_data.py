@@ -2,7 +2,7 @@
 import pyodbc
 from PyQt6 import QtWidgets
 
-from repositories import fetch_emp_data, fetch_season_emp_data
+from repositories import fetch_old_emp_data, fetch_season_emp_data
 
 
 def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict] | None:
@@ -26,7 +26,7 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
             raise ValueError("Invalid database connection object - missing cursor method")
 
         if store:
-            emp_rows = fetch_emp_data(conn, store)
+            emp_rows = fetch_old_emp_data(conn, store)
         else:
             emp_rows = fetch_season_emp_data(conn)
 
@@ -45,7 +45,7 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
             }
 
             if not store:
-                stores = emp_row[7] or 1
+                stores = emp_row[7] or 0
                 emp_data_row["stores"] = stores
 
                 emp_data_row["total_tags"] /= stores

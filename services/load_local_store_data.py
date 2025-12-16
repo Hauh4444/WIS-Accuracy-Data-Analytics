@@ -3,7 +3,7 @@ import pyodbc
 from datetime import datetime
 from PyQt6 import QtWidgets
 
-from repositories import fetch_inventory_data, fetch_season_inventory_data
+from repositories import fetch_old_inventory_data, fetch_season_inventory_data
 
 
 def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | None:
@@ -40,7 +40,7 @@ def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | 
             else:
                 store_data["season_range"] = None
         else:
-            inventory_row = fetch_inventory_data(conn, store)
+            inventory_row = fetch_old_inventory_data(conn, store)
             if inventory_row is None or len(inventory_row) != 3:
                 raise RuntimeError(
                     f"Unexpected Inventory data structure - expected 3 columns, got {len(inventory_row) if inventory_row else None}")

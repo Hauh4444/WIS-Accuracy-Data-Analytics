@@ -4,7 +4,7 @@ import pyodbc
 from models import ZoneTable, ZoneTotalsTable
 
 
-def fetch_zone_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
+def fetch_old_zone_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
     """Fetch zone data from the database for a given store.
 
     Args:

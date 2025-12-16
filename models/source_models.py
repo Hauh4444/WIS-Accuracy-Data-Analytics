@@ -47,7 +47,7 @@ class DLoadErrorsTable:
 
 
 @dataclass(frozen=True)
-class ZoneTable:
+class ZonesTable:
     table: str = "tblZone"
     zone_id: str = "ZoneID"
     zone_description: str = "ZoneDesc"
