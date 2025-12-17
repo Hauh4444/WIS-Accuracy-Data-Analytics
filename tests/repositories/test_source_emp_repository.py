@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import MagicMock
 import pyodbc
+from unittest.mock import MagicMock
 
 import repositories.source_emp_repository as repo
 
@@ -36,7 +36,7 @@ def test_fetch_duplicate_tags_data_returns_rows(mock_conn, mock_cursor):
 
 
 def test_fetch_emp_data_returns_rows(mock_conn, mock_cursor):
-    result = repo.fetch_old_emp_data(mock_conn)
+    result = repo.fetch_emp_data(mock_conn)
     assert result == mock_cursor.fetchall.return_value
     mock_cursor.execute.assert_called_once()
     mock_cursor.close.assert_called_once()
@@ -77,17 +77,13 @@ def test_fetch_line_data_returns_row(mock_conn, mock_cursor):
 
 
 def test_sql_contains_table_names(mock_conn, mock_cursor):
-    """Ensure that SQL queries contain the correct table names."""
     repo.fetch_emp_tags_data(mock_conn)
-    details_table = repo.DetailsTable().table
-    assert details_table in mock_cursor.execute.call_args[0][0]
+    assert repo.DetailsTable().table in mock_cursor.execute.call_args[0][0]
 
     repo.fetch_duplicate_tags_data(mock_conn)
-    dload_table = repo.DLoadErrorsTable().table
-    assert dload_table in mock_cursor.execute.call_args[0][0]
+    assert repo.DLoadErrorsTable().table in mock_cursor.execute.call_args[0][0]
 
-    repo.fetch_old_emp_data(mock_conn)
-    emp_table = repo.EmpNamesTable().table
-    term_table = repo.TerminalControlTable().table
+    repo.fetch_emp_data(mock_conn)
     sql = mock_cursor.execute.call_args[0][0]
-    assert emp_table in sql and term_table in sql
+    assert repo.EmpNamesTable().table in sql
+    assert repo.TerminalControlTable().table in sql

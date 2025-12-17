@@ -3,7 +3,7 @@ import sys
 from unittest.mock import patch, MagicMock
 from PyQt6 import QtWidgets
 
-from views.load_local_data_dialog import LoadLocalDataDialog
+from views.load_source_data_dynamic_dialog import LoadSourceDataDynamicDialog
 
 
 @pytest.fixture
@@ -26,10 +26,10 @@ def sample_data():
 
 
 def test_dialog_initialization(q_app):
-    with patch("views.load_local_data_dialog.uic.loadUi"), \
-            patch("views.load_local_data_dialog.resource_path", side_effect=lambda x: x), \
-            patch("views.load_local_data_dialog.center_on_screen"):
-        dialog = LoadLocalDataDialog.__new__(LoadLocalDataDialog)
+    with patch("views.load_source_data_dynamic_dialog.uic.loadUi"), \
+            patch("views.load_source_data_dynamic_dialog.resource_path", side_effect=lambda x: x), \
+            patch("views.load_source_data_dynamic_dialog.center_on_screen"):
+        dialog = LoadSourceDataDynamicDialog.__new__(LoadSourceDataDynamicDialog)
         dialog.__init__ = MagicMock()
 
         mock_txt_job = MagicMock(spec=QtWidgets.QLineEdit)
@@ -46,19 +46,19 @@ def test_dialog_initialization(q_app):
 def test_load_database_success(q_app, sample_data):
     store_data, emp_data, zone_data = sample_data
 
-    with patch("views.load_local_data_dialog.uic.loadUi"), \
-            patch("views.load_local_data_dialog.resource_path", side_effect=lambda x: x), \
-            patch("views.load_local_data_dialog.center_on_screen"), \
-            patch("views.load_local_data_dialog.get_storage_db_connection") as mock_conn, \
-            patch("views.load_local_data_dialog.load_local_store_data") as mock_store, \
-            patch("views.load_local_data_dialog.load_local_emp_data") as mock_emp, \
-            patch("views.load_local_data_dialog.load_local_zone_data") as mock_zone:
+    with patch("views.load_source_data_dynamic_dialog.uic.loadUi"), \
+            patch("views.load_source_data_dynamic_dialog.resource_path", side_effect=lambda x: x), \
+            patch("views.load_source_data_dynamic_dialog.center_on_screen"), \
+            patch("views.load_source_data_dynamic_dialog.get_db_connection") as mock_conn, \
+            patch("views.load_source_data_dynamic_dialog.load_source_store_data") as mock_store, \
+            patch("views.load_source_data_dynamic_dialog.load_source_emp_data") as mock_emp, \
+            patch("views.load_source_data_dynamic_dialog.load_source_zone_data") as mock_zone:
         mock_conn.return_value = MagicMock()
         mock_store.return_value = store_data
         mock_emp.return_value = emp_data
         mock_zone.return_value = zone_data
 
-        dialog = LoadLocalDataDialog.__new__(LoadLocalDataDialog)
+        dialog = LoadSourceDataDynamicDialog.__new__(LoadSourceDataDynamicDialog)
         dialog.__init__ = MagicMock()
 
         mock_txt_job = MagicMock(spec=QtWidgets.QLineEdit)
@@ -80,11 +80,11 @@ def test_load_database_success(q_app, sample_data):
 
 
 def test_load_database_no_job_number_shows_warning(q_app):
-    with patch("views.load_local_data_dialog.uic.loadUi"), \
-            patch("views.load_local_data_dialog.resource_path", side_effect=lambda x: x), \
-            patch("views.load_local_data_dialog.center_on_screen"), \
-            patch("views.load_local_data_dialog.get_storage_db_connection") as mock_conn:
-        dialog = LoadLocalDataDialog.__new__(LoadLocalDataDialog)
+    with patch("views.load_source_data_dynamic_dialog.uic.loadUi"), \
+            patch("views.load_source_data_dynamic_dialog.resource_path", side_effect=lambda x: x), \
+            patch("views.load_source_data_dynamic_dialog.center_on_screen"), \
+            patch("views.load_source_data_dynamic_dialog.get_db_connection") as mock_conn:
+        dialog = LoadSourceDataDynamicDialog.__new__(LoadSourceDataDynamicDialog)
         dialog.__init__ = MagicMock()
 
         mock_txt_job = MagicMock(spec=QtWidgets.QLineEdit)
@@ -98,38 +98,39 @@ def test_load_database_no_job_number_shows_warning(q_app):
 
 
 def test_load_database_connection_failure(q_app):
-    with patch("views.load_local_data_dialog.uic.loadUi"), \
-            patch("views.load_local_data_dialog.resource_path", side_effect=lambda x: x), \
-            patch("views.load_local_data_dialog.center_on_screen"), \
-            patch("views.load_local_data_dialog.get_storage_db_connection") as mock_conn:
+    with patch("views.load_source_data_dynamic_dialog.uic.loadUi"), \
+            patch("views.load_source_data_dynamic_dialog.resource_path", side_effect=lambda x: x), \
+            patch("views.load_source_data_dynamic_dialog.center_on_screen"), \
+            patch("views.load_source_data_dynamic_dialog.get_db_connection") as mock_conn:
         mock_conn.return_value = None
+
+        dialog = LoadSourceDataDynamicDialog.__new__(LoadSourceDataDynamicDialog)
+
+        mock_txt_job = MagicMock(spec=QtWidgets.QLineEdit)
+        mock_txt_job.text.return_value = "JOB123"
 
         class MockDialog:
             def __init__(self):
-                self.txtJobNumber = MagicMock(spec=QtWidgets.QLineEdit)
-                self.txtJobNumber.text.return_value = "JOB123"
+                self.txtJobNumber = mock_txt_job
                 self.reject_called = False
-                self.store_data = None
-                self.emp_data = None
-                self.zone_data = None
 
             def reject(self):
                 self.reject_called = True
 
         mock_dialog = MockDialog()
 
-        with patch.object(LoadLocalDataDialog, 'load_database', lambda self: mock_dialog.reject()):
-            LoadLocalDataDialog.load_database(mock_dialog)
+        with patch.object(LoadSourceDataDynamicDialog, 'load_database', lambda self: mock_dialog.reject()):
+            LoadSourceDataDynamicDialog.load_database(mock_dialog)
 
             assert mock_dialog.reject_called == True
 
 
 def test_load_database_exception_handling(q_app):
-    with patch("views.load_local_data_dialog.uic.loadUi"), \
-            patch("views.load_local_data_dialog.resource_path", side_effect=lambda x: x), \
-            patch("views.load_local_data_dialog.center_on_screen"), \
-            patch("views.load_local_data_dialog.get_storage_db_connection") as mock_conn, \
-            patch("views.load_local_data_dialog.load_local_store_data") as mock_store:
+    with patch("views.load_source_data_dynamic_dialog.uic.loadUi"), \
+            patch("views.load_source_data_dynamic_dialog.resource_path", side_effect=lambda x: x), \
+            patch("views.load_source_data_dynamic_dialog.center_on_screen"), \
+            patch("views.load_source_data_dynamic_dialog.get_db_connection") as mock_conn, \
+            patch("views.load_source_data_dynamic_dialog.load_source_store_data") as mock_store:
 
         mock_conn.return_value = MagicMock()
         mock_store.side_effect = Exception("Database error")
@@ -148,7 +149,7 @@ def test_load_database_exception_handling(q_app):
 
         mock_dialog = MockDialog()
 
-        original_load_database = LoadLocalDataDialog.load_database
+        original_load_database = LoadSourceDataDynamicDialog.load_database
 
         def mock_load_database(self):
             job_number = self.txtJobNumber.text().strip()
@@ -162,15 +163,17 @@ def test_load_database_exception_handling(q_app):
                 return
 
             try:
-                self.store_data = mock_store(conn, job_number)
+                self.store_data = mock_store(conn)
                 self.emp_data = []
                 self.zone_data = []
                 self.accept()
             except:
                 self.reject()
+            finally:
+                pass
 
-        with patch.object(LoadLocalDataDialog, 'load_database', mock_load_database):
-            LoadLocalDataDialog.load_database(mock_dialog)
+        with patch.object(LoadSourceDataDynamicDialog, 'load_database', mock_load_database):
+            LoadSourceDataDynamicDialog.load_database(mock_dialog)
 
             assert mock_dialog.reject_called == True
             assert mock_dialog.store_data is None
@@ -179,7 +182,7 @@ def test_load_database_exception_handling(q_app):
 def test_get_data_returns_correct_tuple(q_app, sample_data):
     store_data, emp_data, zone_data = sample_data
 
-    dialog = LoadLocalDataDialog.__new__(LoadLocalDataDialog)
+    dialog = LoadSourceDataDynamicDialog.__new__(LoadSourceDataDynamicDialog)
     dialog.__init__ = MagicMock()
 
     dialog.store_data = store_data

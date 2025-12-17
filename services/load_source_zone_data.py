@@ -26,7 +26,7 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        zone_data = [] # type: list[dict]
+        zone_data: list[dict] = []
 
         zone_rows = fetch_zone_data(conn)
         for zone_row in zone_rows:

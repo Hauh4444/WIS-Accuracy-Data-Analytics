@@ -23,8 +23,8 @@ def apply_style(widget: QtWidgets.QWidget, style_path: str) -> None:
         widget: QtWidget to apply style to
         style_path: String path of the qss stylesheet
     """
-    if os.path.exists(style_path):
+    try:
         with open(style_path, "r") as f:
             widget.setStyleSheet(f.read())
-    else:
-        print(f"Warning: Style file not found at {style_path}")
+    except Exception as e:
+        print(f"Warning: Could not apply style from {style_path}: {e}")

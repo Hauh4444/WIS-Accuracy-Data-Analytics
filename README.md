@@ -97,14 +97,6 @@ The application includes a comprehensive test suite:
     ```bash
     python -m pytest tests/ --cov=. --cov-report=html:htmlcov
     ```
-   
-### Test Documentation
-
-See `tests/README.md` for detailed test documentation including:
-- Test structure and organization
-- Running instructions for different environments
-- Coverage analysis and quality metrics
-- Best practices and recommendations
 
 ## Dependencies
 

@@ -29,7 +29,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
 
-        emp_data = [] # type: list[dict]
+        emp_data: list[dict] = []
 
         emp_tags_map = {}
         emp_tags_rows = fetch_emp_tags_data(conn)
