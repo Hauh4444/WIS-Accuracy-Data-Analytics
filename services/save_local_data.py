@@ -1,5 +1,6 @@
 """Saves accuracy report data locally for future retrieval and season accuracy reports."""
 import pyodbc
+import logging
 from PyQt6 import QtWidgets
 
 from repositories import (
@@ -64,6 +65,7 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
                 update_zone_totals_data(conn, prev_zone_data, zone)
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while saving local data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
@@ -72,6 +74,7 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while saving local data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -80,6 +83,7 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while saving local data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -88,9 +92,10 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while saving local data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while saving local data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while saving local data.\n\nDetails:\n{str(e)}"
         )
         raise

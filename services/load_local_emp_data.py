@@ -1,5 +1,6 @@
 """Employee data loader with inventory accuracy metrics."""
 import pyodbc
+import logging
 from PyQt6 import QtWidgets
 
 from repositories import fetch_old_emp_data, fetch_season_emp_data
@@ -41,19 +42,17 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
                 "total_price": emp_row[4] or 0.0,
                 "discrepancy_dollars": emp_row[5] or 0.0,
                 "discrepancy_tags": emp_row[6] or 0,
+                "stores": (emp_row[7] or 1) if not store else None,
                 "hours": emp_row[7] or 0 if store else emp_row[8] or 0,
             }
 
             if not store:
-                stores = emp_row[7] or 0
-                emp_data_row["stores"] = stores
-
-                emp_data_row["total_tags"] /= stores
-                emp_data_row["total_quantity"] /= stores
-                emp_data_row["total_price"] /= stores
-                emp_data_row["discrepancy_dollars"] /= stores
-                emp_data_row["discrepancy_tags"] /= stores
-                emp_data_row["hours"] /= stores
+                emp_data_row["total_tags"] /= emp_data_row["stores"]
+                emp_data_row["total_quantity"] /= emp_data_row["stores"]
+                emp_data_row["total_price"] /= emp_data_row["stores"]
+                emp_data_row["discrepancy_dollars"] /= emp_data_row["stores"]
+                emp_data_row["discrepancy_tags"] /= emp_data_row["stores"]
+                emp_data_row["hours"] /= emp_data_row["stores"]
 
             emp_data_row["discrepancy_percent"] = (
                 (emp_data_row["discrepancy_dollars"] / emp_data_row["total_price"] * 100)
@@ -70,14 +69,16 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
         return emp_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while loading local employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
-            f"A database operation failed while loading local or season employee data.\n\nDetails:\n{str(e)}"
+            f"A database operation failed while loading local local or season employee data.\n\nDetails:\n{str(e)}"
         )
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while loading local employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -86,6 +87,7 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while loading local employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -94,9 +96,10 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while loading local employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading employee data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading local employee data.\n\nDetails:\n{str(e)}"
         )
         raise

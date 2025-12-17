@@ -108,10 +108,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             return
 
         save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
-
-        if conn:
-            conn.close()
-
         generate_accuracy_report(self.store_data, self.emp_data, self.zone_data, season=False)
 
+        conn.close()
         self.close()

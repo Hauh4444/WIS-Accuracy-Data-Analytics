@@ -1,12 +1,13 @@
 """zone zone data loader with inventory accuracy metrics."""
 import pyodbc
+import logging
 from PyQt6 import QtWidgets
 
 from repositories import fetch_zone_data, fetch_zone_totals_data, fetch_zone_discrepancy_totals_data
 
 
 def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
-    """Load zone zone data with discrepancy calculations.
+    """Load zone data with discrepancy calculations.
     
     - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the zone.
     
@@ -54,7 +55,9 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
 
             zone_discrepancy_totals_row = fetch_zone_discrepancy_totals_data(conn, zone_data_row["zone_id"])
             if zone_discrepancy_totals_row is None or len(zone_discrepancy_totals_row) != 2:
-                raise RuntimeError(f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}")
+                raise RuntimeError(
+                    f"Invalid zone_discrepancy_totals query result - expected 2 columns, got {len(zone_discrepancy_totals_row) if zone_discrepancy_totals_row else None}"
+                )
 
             zone_data_row["discrepancy_dollars"] = zone_discrepancy_totals_row[0] or 0
             zone_data_row["discrepancy_tags"] = zone_discrepancy_totals_row[1] or 0
@@ -65,6 +68,7 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
         return zone_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while loading source zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
@@ -73,6 +77,7 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while loading source zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -81,6 +86,7 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while loading source zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -89,9 +95,10 @@ def load_source_zone_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while loading source zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading zone data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading zone data.\n\nDetails:\n{str(e)}"
         )
         raise

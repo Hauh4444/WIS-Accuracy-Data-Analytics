@@ -1,5 +1,6 @@
 import tempfile
 import webbrowser
+import logging
 from io import BytesIO
 from pathlib import Path
 from PyQt6 import QtWidgets
@@ -80,6 +81,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
             webbrowser.open(f"file://{pdf_path}")
 
     except ValueError as e:
+        logging.exception("Data validation error while generating accuracy report")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Validation Error",
@@ -88,6 +90,7 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
         raise
 
     except RuntimeError as e:
+        logging.exception("Report generation error while generating accuracy report")
         QtWidgets.QMessageBox.warning(
             None,
             "Report Generation Error",
@@ -96,9 +99,10 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while generating accuracy report")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred during accuracy report generation.\nThis may indicate missing templates, corrupt input data, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred during accuracy report generation.\n\nDetails:\n{str(e)}"
         )
         raise

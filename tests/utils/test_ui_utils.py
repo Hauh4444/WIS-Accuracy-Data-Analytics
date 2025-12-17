@@ -1,7 +1,6 @@
 import os
 from unittest.mock import MagicMock
 from PyQt6 import QtWidgets
-import pytest
 
 from utils import center_on_screen, apply_style
 

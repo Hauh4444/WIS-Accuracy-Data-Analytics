@@ -1,5 +1,4 @@
 """Dynamic database loading dialog using WISDOM job number convention."""
-import traceback
 from PyQt6 import QtWidgets, uic
 
 from database import get_db_connection
@@ -41,21 +40,12 @@ class LoadSourceDataDynamicDialog(QtWidgets.QDialog):
             self.reject()
             return
 
-        # noinspection PyBroadException
-        try:
-            self.store_data = load_source_store_data(conn)
-            self.emp_data = load_source_emp_data(conn)
-            self.zone_data = load_source_zone_data(conn)
+        self.store_data = load_source_store_data(conn)
+        self.emp_data = load_source_emp_data(conn)
+        self.zone_data = load_source_zone_data(conn)
 
-            self.accept()
-
-        except:
-            traceback.print_exc()
-            self.reject()
-
-        finally:
-            if conn:
-                conn.close()
+        conn.close()
+        self.accept()
 
     def get_data(self):
         return self.store_data, self.emp_data, self.zone_data

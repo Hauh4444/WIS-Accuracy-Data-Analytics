@@ -1,9 +1,9 @@
 """WIS Accuracy Data Analytics - Inventory accuracy reporting tool."""
 import sys
-
+import logging
 from PyQt6 import QtWidgets
 
-from utils import generate_accuracy_report
+from utils import generate_accuracy_report, setup_logging
 from views import StatsSourceDialog, LoadSourceDataDynamicDialog, LoadSourceDataManualDialog, EmpHoursInputWindow, LoadLocalDataDialog
 
 
@@ -61,6 +61,8 @@ def load_old_inventory_data() -> tuple[dict, list[dict], list[dict]] | None:
 
 
 if __name__ == "__main__":
+    setup_logging()
+
     try:
         app = QtWidgets.QApplication(sys.argv)
 
@@ -87,6 +89,7 @@ if __name__ == "__main__":
             app.exec()
 
     except Exception as e:
+        logging.exception("Unhandled application error")
         QtWidgets.QMessageBox.critical(
             None,
             "Application Error",

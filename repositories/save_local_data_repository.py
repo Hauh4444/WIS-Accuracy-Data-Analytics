@@ -253,7 +253,7 @@ def insert_zone_totals_data(conn: pyodbc.Connection, zone_data: dict) -> None:
     """Inserts zone totals record.
 
     Args:
-        conn: pyodbc Connection objectstore
+        conn: pyodbc Connection object
         zone_data: Dictionary containing zone data
     """
     cursor = conn.cursor()

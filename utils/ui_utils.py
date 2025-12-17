@@ -1,4 +1,4 @@
-import os
+import logging
 from PyQt6 import QtWidgets
 
 
@@ -27,4 +27,4 @@ def apply_style(widget: QtWidgets.QWidget, style_path: str) -> None:
         with open(style_path, "r") as f:
             widget.setStyleSheet(f.read())
     except Exception as e:
-        print(f"Warning: Could not apply style from {style_path}: {e}")
+        logging.warning(f"Could not apply style from {style_path}: {e}")

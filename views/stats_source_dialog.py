@@ -1,5 +1,4 @@
 """Manual database loading dialog with file browser."""
-import traceback
 from PyQt6 import QtWidgets, uic
 
 from utils import resource_path
@@ -40,18 +39,14 @@ class StatsSourceDialog(QtWidgets.QDialog):
             self.reject()
             return
 
-        # noinspection PyBroadException
-        try:
-            store_data = load_local_store_data(conn, store=None)
-            emp_data = load_local_emp_data(conn, store=None)
-            zone_data = load_local_zone_data(conn, store=None)
-            if store_data and emp_data and zone_data:
-                generate_accuracy_report(store_data, emp_data, zone_data, season=True)
+        store_data = load_local_store_data(conn, store=None)
+        emp_data = load_local_emp_data(conn, store=None)
+        zone_data = load_local_zone_data(conn, store=None)
+        if store_data and emp_data and zone_data:
+            generate_accuracy_report(store_data, emp_data, zone_data, season=True)
 
-            self.accept()
-
-        except:
-            traceback.print_exc()
+        conn.close()
+        self.accept()
 
     def load_old_stats(self):
         self.source = "local"

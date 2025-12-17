@@ -1,5 +1,6 @@
 """Store metadata loader for report headers."""
 import pyodbc
+import logging
 from datetime import datetime
 from PyQt6 import QtWidgets
 
@@ -46,6 +47,7 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
         return store_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while loading source store data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
@@ -54,6 +56,7 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while loading source store data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -62,6 +65,7 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while loading source store data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -70,9 +74,10 @@ def load_source_store_data(conn: pyodbc.Connection) -> dict | None:
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while loading source store data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading store metadata.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading store metadata.\n\nDetails:\n{str(e)}"
         )
         raise

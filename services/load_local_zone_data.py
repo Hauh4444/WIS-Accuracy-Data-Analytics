@@ -1,5 +1,6 @@
 """zone data loader with inventory accuracy metrics."""
 import pyodbc
+import logging
 from PyQt6 import QtWidgets
 
 from repositories import fetch_old_zone_data, fetch_season_zone_data
@@ -41,16 +42,15 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
                 "total_price": zone_row[4] or 0.0,
                 "discrepancy_dollars": zone_row[5] or 0.0,
                 "discrepancy_tags": zone_row[6] or 0,
+                "stores": (zone_row[7] or 1) if not store else None
             }
 
             if not store:
-                zone_data_row["stores"] = zone_row[7] or 0
-
-                zone_data_row["total_tags"] = zone_data_row["total_tags"] / zone_data_row["stores"] or 0
-                zone_data_row["total_quantity"] = zone_data_row["total_quantity"] / zone_data_row["stores"] or 0
-                zone_data_row["total_price"] = zone_data_row["total_price"] / zone_data_row["stores"] or 0
-                zone_data_row["discrepancy_dollars"] = zone_data_row["discrepancy_dollars"] / zone_data_row["stores"] or 0
-                zone_data_row["discrepancy_tags"] = zone_data_row["discrepancy_tags"] / zone_data_row["stores"] or 0
+                zone_data_row["total_tags"] /= zone_data_row["stores"]
+                zone_data_row["total_quantity"] /= zone_data_row["stores"]
+                zone_data_row["total_price"] /= zone_data_row["stores"]
+                zone_data_row["discrepancy_dollars"] /= zone_data_row["stores"]
+                zone_data_row["discrepancy_tags"] /= zone_data_row["stores"]
 
             zone_data_row["discrepancy_percent"] = (
                 (zone_data_row["discrepancy_dollars"] / zone_data_row["total_price"] * 100)
@@ -62,6 +62,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
         return zone_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while loading local zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
@@ -70,6 +71,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while loading local zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -78,6 +80,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while loading local zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -86,9 +89,10 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while loading local zone data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading zone data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading zone data.\n\nDetails:\n{str(e)}"
         )
         raise

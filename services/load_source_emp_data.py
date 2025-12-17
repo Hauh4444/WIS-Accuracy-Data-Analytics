@@ -1,8 +1,17 @@
 """Employee data loader with inventory accuracy metrics."""
 import pyodbc
+import logging
 from PyQt6 import QtWidgets
 
-from repositories import fetch_emp_tags_data, fetch_duplicate_tags_data, fetch_emp_data, fetch_emp_totals_data, fetch_emp_line_totals_data, fetch_emp_discrepancies_data, fetch_line_data
+from repositories import (
+    fetch_emp_tags_data,
+    fetch_duplicate_tags_data,
+    fetch_emp_data,
+    fetch_emp_totals_data,
+    fetch_emp_line_totals_data,
+    fetch_emp_discrepancies_data,
+    fetch_line_data
+)
 
 
 def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
@@ -87,7 +96,9 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
             emp_discrepancies_rows = fetch_emp_discrepancies_data(conn, tags_filter=",".join(emp_data_row["tags"]))
             for emp_discrepancies_row in emp_discrepancies_rows:
                 if len(emp_discrepancies_row) != 7:
-                    raise RuntimeError(f"Invalid emp_discrepancies query result structure - expected 7 columns, got {len(emp_discrepancies_row) if emp_discrepancies_row else None}")
+                    raise RuntimeError(
+                        f"Invalid emp_discrepancies query result structure - expected 7 columns, got {len(emp_discrepancies_row) if emp_discrepancies_row else None}"
+                    )
 
                 discrepancy_row: dict = {
                     "zone_id": emp_discrepancies_row[0] or "",
@@ -117,6 +128,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         return emp_data
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
+        logging.exception("Database error while loading source employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
@@ -125,6 +137,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except ValueError as e:
+        logging.exception("Configuration error while loading source employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Configuration Error",
@@ -133,6 +146,7 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except RuntimeError as e:
+        logging.exception("Data integrity error while loading source employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
@@ -141,9 +155,10 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         raise
 
     except Exception as e:
+        logging.exception("Unhandled error while loading source employee data")
         QtWidgets.QMessageBox.warning(
             None,
             "Unexpected Error",
-            f"An unexpected failure occurred while loading employee data.\nThis may indicate corrupt input, missing fields, or an unhandled edge case.\n\nDetails:\n{str(e)}"
+            f"An unexpected failure occurred while loading employee data.\n\nDetails:\n{str(e)}"
         )
         raise
