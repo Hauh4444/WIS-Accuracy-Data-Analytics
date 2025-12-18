@@ -10,6 +10,7 @@ from utils import generate_accuracy_report
 from utils import center_on_screen, apply_style
 
 
+# TODO: Change to QtDialog
 class EmpHoursInputWindow(QtWidgets.QMainWindow):
     """Main window for employee hours input and report generation."""
     scrollArea: QtWidgets.QScrollArea
@@ -37,17 +38,50 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         self.empRowsLayout = cast(QtWidgets.QVBoxLayout, self.scrollAreaWidgetContents.layout())
 
         for emp in emp_data:
+            # TODO: Replace with .ui file
             row = self.create_emp_hour_input_row(emp)
             self.empRowsLayout.addWidget(row)
             self.rows_widgets.append(row)
 
         self.empRowsLayout.addStretch()
-
         self.btnPrint.clicked.connect(self.print_report)
 
+        self.setWindowTitle("WIS Accuracy Data Analytics")
+        self.show()
+        self.raise_()
+        self.activateWindow()
         self.resize(600, 600)
+
+        # TODO: Probably a way to not have to do this
         apply_style(widget=self.scrollArea, style_path=resource_path("assets/styles/scrollbar.qss"))
         center_on_screen(widget=self)
+
+    def print_report(self) -> None:
+        """Process hours inputs and generate accuracy report."""
+        for i, row_widget in enumerate(self.rows_widgets):
+            txt_hours = cast(QtWidgets.QLineEdit, getattr(row_widget, "txt_hours"))
+            hours_text = txt_hours.text().strip()
+            emp_hours = float(hours_text) if hours_text.replace(".", "", 1).isdigit() else 0.0
+            self.emp_data[i]["hours"] = emp_hours
+            if emp_hours > 0:
+                self.emp_data[i]["uph"] = self.emp_data[i]["total_quantity"] / emp_hours
+            else:
+                self.emp_data[i]["uph"] = 0
+        
+        if not self.emp_data:
+            QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
+            return
+
+        conn = get_storage_db_connection()
+        if not conn:
+            self.close()
+            return
+
+        save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
+        generate_accuracy_report(self.store_data, self.emp_data, self.zone_data, season=False)
+
+        conn.close()
+        self.close()
 
     @staticmethod
     def create_emp_hour_input_row(emp: dict) -> QtWidgets.QWidget:
@@ -55,7 +89,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
 
         Args:
             emp: Employee data dictionary
-            
+
         Returns:
             Row widget containing employee ID, name, and hours input field
         """
@@ -85,30 +119,3 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
 
         apply_style(widget=row_widget, style_path=resource_path("assets/styles/emp_hour_input_row.qss"))
         return row_widget
-
-    def print_report(self) -> None:
-        """Process hours inputs and generate accuracy report."""
-        for i, row_widget in enumerate(self.rows_widgets):
-            txt_hours = cast(QtWidgets.QLineEdit, getattr(row_widget, "txt_hours"))
-            hours_text = txt_hours.text().strip()
-            emp_hours = float(hours_text) if hours_text.replace(".", "", 1).isdigit() else 0.0
-            self.emp_data[i]["hours"] = emp_hours
-            if emp_hours > 0:
-                self.emp_data[i]["uph"] = self.emp_data[i]["total_quantity"] / emp_hours
-            else:
-                self.emp_data[i]["uph"] = 0
-        
-        if not self.emp_data:
-            QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
-            return
-
-        conn = get_storage_db_connection()
-        if not conn:
-            self.close()
-            return
-
-        save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
-        generate_accuracy_report(self.store_data, self.emp_data, self.zone_data, season=False)
-
-        conn.close()
-        self.close()

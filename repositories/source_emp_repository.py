@@ -154,6 +154,7 @@ def fetch_emp_discrepancies_data(conn: pyodbc.Connection, tags_filter: str) -> l
     info = ZoneChangeInfoTable()
 
     # Can't parameterize tags since Access will throw a 'System resources exceeded' error
+    # Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the employee.
     emp_discrepancies_query = f"""
         SELECT
             {queue.table}.{queue.zone_id},

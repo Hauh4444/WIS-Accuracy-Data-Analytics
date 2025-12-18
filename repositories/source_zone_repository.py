@@ -72,6 +72,7 @@ def fetch_zone_discrepancy_totals_data(conn: pyodbc.Connection, zone_id: str) ->
     queue = ZoneChangeQueueTable()
     info = ZoneChangeInfoTable()
 
+    # Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the zone.
     zone_discrepancy_totals_query = f"""
         SELECT 
             Sum(Abs(({queue.table}.{queue.price} * {queue.table}.{queue.quantity}) - ({queue.table}.{queue.price} * {info.table}.{info.quantity}))),

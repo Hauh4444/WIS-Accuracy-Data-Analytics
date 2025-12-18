@@ -46,14 +46,7 @@ A professional **Windows-only** Python application for generating WIS Internatio
    
 5. (Optional) To build a standalone executable:
     ```bash
-    pyinstaller --onefile --noconsole ^
-        --additional-hooks-dir=packaging/hooks ^
-        --add-data "assets/ui;assets/ui" ^
-        --add-data "assets/styles;assets/styles" ^
-        --add-data "assets/templates;assets/templates" ^
-        --add-data "assets/resources;assets/resources" ^
-        -n AccuracyReport ^
-        main.py
+    pyinstaller --onefile --noconsole --additional-hooks-dir=packaging/hooks --add-data "assets/ui;assets/ui" --add-data "assets/styles;assets/styles" --add-data "assets/templates;assets/templates" --add-data "assets/resources;assets/resources" -n AccuracyReport main.py
     ```
 
 ## Usage

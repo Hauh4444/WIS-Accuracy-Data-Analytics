@@ -57,6 +57,3 @@ class LoadSourceDataManualDialog(QtWidgets.QDialog):
 
         conn.close()
         self.accept()
-
-    def get_data(self):
-        return self.store_data, self.emp_data, self.zone_data

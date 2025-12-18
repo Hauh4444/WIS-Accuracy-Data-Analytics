@@ -9,6 +9,7 @@ from repositories import (
 )
 
 
+# TODO: Need to store discrepancies
 def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[dict], zone_data: list[dict]) -> None:
     """Save inventory and accuracy report data.
 

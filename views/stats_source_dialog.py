@@ -1,4 +1,5 @@
 """Manual database loading dialog with file browser."""
+from functools import partial
 from PyQt6 import QtWidgets, uic
 
 from utils import resource_path
@@ -25,36 +26,32 @@ class StatsSourceDialog(QtWidgets.QDialog):
         ui_path = resource_path("assets/ui/stats_source_dialog.ui")
         uic.loadUi(ui_path, self)
 
-        self.btnSeason.clicked.connect(self.load_season_stats)
-        self.btnOld.clicked.connect(self.load_old_stats)
-        self.btnNew.clicked.connect(self.load_new_stats)
+        self.btnSeason.clicked.connect(partial(self.select_source, "season"))
+        self.btnOld.clicked.connect(partial(self.select_source, "local"))
+        self.btnNew.clicked.connect(partial(self.select_source, "source"))
 
         center_on_screen(widget=self)
 
-    def load_season_stats(self):
-        self.source = "season"
+    def select_source(self, source_type: str) -> None:
+        """Handle the selection of a data source when a button is clicked.
 
-        conn = get_storage_db_connection()
-        if not conn:
-            self.reject()
-            return
+        Args:
+            source_type: One of 'season', 'local', or 'source'.
+        """
+        self.source = source_type
 
-        store_data = load_local_store_data(conn, store=None)
-        emp_data = load_local_emp_data(conn, store=None)
-        zone_data = load_local_zone_data(conn, store=None)
-        if store_data and emp_data and zone_data:
-            generate_accuracy_report(store_data, emp_data, zone_data, season=True)
+        if self.source == "season":
+            conn = get_storage_db_connection()
+            if not conn:
+                self.reject()
+                return
 
-        conn.close()
+            store_data = load_local_store_data(conn, store=None)
+            emp_data = load_local_emp_data(conn, store=None)
+            zone_data = load_local_zone_data(conn, store=None)
+            if store_data and emp_data and zone_data:
+                generate_accuracy_report(store_data, emp_data, zone_data, season=True)
+
+            conn.close()
+
         self.accept()
-
-    def load_old_stats(self):
-        self.source = "local"
-        self.accept()
-
-    def load_new_stats(self):
-        self.source = "source"
-        self.accept()
-
-    def get_result(self):
-        return self.source

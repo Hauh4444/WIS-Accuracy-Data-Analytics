@@ -11,16 +11,13 @@ LOG_FILENAME = "app.log"
 def resource_path(relative_path: str) -> str:
     """Get absolute path to resource, works for dev and for PyInstaller.
     
-    - PyInstaller extracts bundled files to a temp folder and sets sys._MEIPASS.
-    
     Args:
         relative_path: Path relative to the project root
         
     Returns:
-        Absolute path to the resource file
+        Absolute path object pointing to the resource file
     """
     try:
-        # noinspection PyProtectedMember,PyUnresolvedReferences
         base_path = sys._MEIPASS
 
     except (AttributeError, Exception):
@@ -39,7 +36,7 @@ def get_appdata_db_path() -> Path:
     """Get the path to the local application database in the user's AppData folder.
 
     Returns:
-       Path: Absolute Path object pointing to the local database file.
+       Absolute Path object pointing to the local database file.
     """
     root = get_appdata_root()
     db_path = root / DB_FILENAME
@@ -49,7 +46,13 @@ def get_appdata_db_path() -> Path:
 
     return db_path
 
+
 def get_log_path() -> Path:
+    """Return the path to the log file, creating the logs folder if needed.
+
+    Returns:
+        Absolute Path object pointing to the log file.
+    """
     log_dir = get_appdata_root() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     return log_dir / LOG_FILENAME

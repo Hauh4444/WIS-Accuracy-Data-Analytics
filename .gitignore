@@ -19,6 +19,7 @@ env/
 # PyInstaller build artifacts
 dist/
 build/
+Output/
 *.exe
 *.dll
 *.so

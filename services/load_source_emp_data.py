@@ -16,21 +16,12 @@ from repositories import (
 
 def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
     """Load employee data with discrepancy calculations.
-    
-    - Business rule: Only discrepancies >$50 with reason='SERVICE_MISCOUNTED' are counted against the zone.
-    - Currently, 'ZZ9999' added items will be credited to whoever counted the tag, except for duplicate tags where we check line by line.
-    - Added items will be few and far between so verifying all counts line by line would be too expensive to be worth it.
-    - Discrepancies of 'ZZ9999' added items get credited to all counters of a tag
 
     Args:
         conn: Database connection object
 
     Returns:
         List of dictionaries containing employee data with totals and discrepancies
-        
-    Raises:
-        ValueError: If connection is invalid or database schema is malformed
-        RuntimeError: If critical employee data is missing or corrupted
     """
     try:
         if conn is None:
