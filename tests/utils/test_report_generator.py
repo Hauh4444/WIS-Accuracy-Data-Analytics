@@ -40,7 +40,7 @@ def test_generate_report_standard_success(q_app):
          patch("utils.report_generator.resource_path", side_effect=lambda p: f"/fake/{p}") as mock_res:
 
         setup_basic_mocks(mock_env, mock_pdf, ["emp_report.html", "zone_report.html", "disc_report.html"])
-        generate_accuracy_report(store_data, emp_data, zone_data, season=False)
+        generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=False)
 
         assert mock_env.called
         assert mock_pdf.called
@@ -59,7 +59,7 @@ def test_generate_report_season_success(q_app):
          patch("utils.report_generator.resource_path", side_effect=lambda p: f"/fake/{p}") as mock_res:
 
         setup_basic_mocks(mock_env, mock_pdf, ["date_range_emp_report.html", "date_range_zone_report.html"])
-        generate_accuracy_report(store_data, emp_data, zone_data, season=True)
+        generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=True)
 
         assert mock_env.called
         assert mock_pdf.called
@@ -93,7 +93,7 @@ def test_missing_specific_template(q_app):
          patch("utils.report_generator.Path.exists", side_effect=[True, False]) as mock_exists, \
          patch("utils.report_generator.QtWidgets.QMessageBox.warning") as mock_msg:
         with pytest.raises(RuntimeError):
-            generate_accuracy_report({"store": "ABC"}, [], [], season=False)
+            generate_accuracy_report({"store": "ABC"}, [], [], is_date_range=False)
         assert mock_msg.called
 
 

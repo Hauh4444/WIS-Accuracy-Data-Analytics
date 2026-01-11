@@ -74,7 +74,8 @@ if __name__ == "__main__":
                 raise Exception("Failed to load range data.")
 
             store_data, emp_data, zone_data = result
-            generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=True)
+            window = EmpHoursInputWindow(store_data, emp_data, zone_data)
+            app.exec()
 
     except Exception as e:
         logging.exception("Unhandled application error")
