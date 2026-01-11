@@ -4,15 +4,16 @@ import logging
 from datetime import datetime
 from PyQt6 import QtWidgets
 
-from repositories import fetch_old_inventory_data, fetch_season_inventory_data
+from repositories import fetch_old_inventory_data
 
 
-def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | None:
+def load_local_store_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None) -> dict | None:
     """Load store data for use in report headers.
 
     Args:
         conn: Database connection object
         store: Store number inputted by user or None if retrieving season stats
+        date_range: Range of datetimes inputted by user or None if retrieving store stats
 
     Returns:
         Dictionary containing store information for report page headers
@@ -33,14 +34,7 @@ def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | 
             "print_time": now.strftime("%I:%M:%S%p"),
         }
 
-        if not store:
-            inventory_rows = fetch_season_inventory_data(conn)
-            if inventory_rows:
-                dates = [datetime.strptime(row[0], "%m/%d/%Y %I:%M:%S %p") for row in inventory_rows]
-                store_data["season_range"] = f"{max(dates).strftime('%b %Y')} - {min(dates).strftime('%b %Y')}"
-            else:
-                store_data["season_range"] = None
-        else:
+        if store:
             inventory_row = fetch_old_inventory_data(conn, store)
             if inventory_row is None or len(inventory_row) != 3:
                 raise RuntimeError(
@@ -49,6 +43,9 @@ def load_local_store_data(conn: pyodbc.Connection, store: str | None) -> dict | 
             store_data["inventory_datetime"] = inventory_row[0] or ""
             store_data["store"] = inventory_row[1] or ""
             store_data["store_address"] = inventory_row[2] or ""
+        else:
+            store_data["start_date"] = date_range[0].strftime("%m/%d/%Y")
+            store_data["end_date"] = date_range[1].strftime("%m/%d/%Y")
 
         return store_data
 

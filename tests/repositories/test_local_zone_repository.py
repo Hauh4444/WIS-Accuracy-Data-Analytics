@@ -37,20 +37,6 @@ def test_fetch_old_zone_data_no_rows(mock_conn, mock_cursor):
     assert result == []
 
 
-def test_fetch_season_zone_data_returns_rows(mock_conn, mock_cursor):
-    result = repo.fetch_season_zone_data(mock_conn)
-    mock_conn.cursor.assert_called_once()
-    mock_cursor.close.assert_called_once()
-    mock_cursor.execute.assert_called_once()
-    assert result == mock_cursor.fetchall.return_value
-
-
-def test_fetch_season_zone_data_no_rows(mock_conn, mock_cursor):
-    mock_cursor.fetchall.return_value = []
-    result = repo.fetch_season_zone_data(mock_conn)
-    assert result == []
-
-
 def test_fetch_old_zone_data_executes_correct_query(mock_conn, mock_cursor):
     repo.fetch_old_zone_data(mock_conn, "001")
     executed_sql = mock_cursor.execute.call_args[0][0]
@@ -60,14 +46,3 @@ def test_fetch_old_zone_data_executes_correct_query(mock_conn, mock_cursor):
         if field.name != "table":
             assert getattr(zone, field.name) in executed_sql
     assert zone.table in executed_sql
-
-
-def test_fetch_season_zone_data_executes_correct_query(mock_conn, mock_cursor):
-    repo.fetch_season_zone_data(mock_conn)
-    executed_sql = mock_cursor.execute.call_args[0][0]
-
-    zone_totals = models.ZoneTotalsTable()
-    for field in fields(zone_totals):
-        if field.name != "table":
-            assert getattr(zone_totals, field.name) in executed_sql
-    assert zone_totals.table in executed_sql

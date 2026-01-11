@@ -1,7 +1,8 @@
 """Database query functions for retrieving employee data."""
 import pyodbc
+from datetime import datetime
 
-from models import EmployeeTable, EmployeeTotalsTable
+from models import EmployeeTable, InventoryTable
 
 
 def fetch_old_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
@@ -37,33 +38,42 @@ def fetch_old_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] 
     return emp_rows
 
 
-def fetch_season_emp_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
-    """Fetch employee data from the database for the season.
+def fetch_range_emp_data(conn: pyodbc.Connection, date_range: list[datetime]) -> list[pyodbc.Row] | None:
+    """Fetch employee data from the database for a range of dates.
 
     Args:
         conn: Database connection object
+        date_range: Range of datetimes inputted by user or None if retrieving store stats
 
     Returns:
-        List of pyodbc rows containing season employee data
+        List of pyodbc rows containing range employee data
     """
     cursor = conn.cursor()
-    emp_totals = EmployeeTotalsTable()
+    emp = EmployeeTable()
+    inventory = InventoryTable()
 
-    emp_totals_query = f"""
-        SELECT DISTINCT 
-            {emp_totals.table}.{emp_totals.emp_number},
-            {emp_totals.table}.{emp_totals.emp_name},
-            {emp_totals.table}.{emp_totals.total_tags},
-            {emp_totals.table}.{emp_totals.total_quantity},
-            {emp_totals.table}.{emp_totals.total_price},
-            {emp_totals.table}.{emp_totals.discrepancy_dollars},
-            {emp_totals.table}.{emp_totals.discrepancy_tags},
-            {emp_totals.table}.{emp_totals.stores},
-            {emp_totals.table}.{emp_totals.hours}
-        FROM {emp_totals.table}
+    query = f"""
+        SELECT
+            e.{emp.emp_number},
+            FIRST(e.{emp.emp_name}) AS {emp.emp_name},
+            AVG(e.{emp.total_tags}) AS {emp.total_tags},
+            AVG(e.{emp.total_quantity}) AS {emp.total_quantity},
+            AVG(e.{emp.total_price}) AS {emp.total_price},
+            AVG(e.{emp.discrepancy_dollars}) AS {emp.discrepancy_dollars},
+            AVG(e.{emp.discrepancy_tags}) AS {emp.discrepancy_tags},
+            AVG(e.{emp.hours}) AS {emp.hours},
+            COUNT(*) AS TotalStores
+        FROM {emp.table} AS e
+        INNER JOIN {inventory.table} AS i
+            ON e.{emp.store_number} = i.{inventory.store_number}
+        WHERE
+            CDate(i.{inventory.job_datetime}) BETWEEN ? AND ?
+        GROUP BY
+            e.{emp.emp_number}
     """
-    cursor.execute(emp_totals_query)
-    emp_totals_rows = cursor.fetchall()
 
+    cursor.execute(query, (date_range[0], date_range[1]))
+    rows = cursor.fetchall()
     cursor.close()
-    return emp_totals_rows
+
+    return rows

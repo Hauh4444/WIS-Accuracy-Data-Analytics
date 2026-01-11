@@ -42,25 +42,6 @@ def test_fetch_old_emp_data_with_no_rows(mock_conn, mock_cursor):
     assert result == []
 
 
-def test_fetch_season_emp_data_returns_rows(mock_conn, mock_cursor):
-    result = repo.fetch_season_emp_data(mock_conn)
-
-    mock_conn.cursor.assert_called_once()
-    mock_cursor.close.assert_called_once()
-    mock_cursor.execute.assert_called_once()
-    assert result == mock_cursor.fetchall.return_value
-
-
-def test_fetch_season_emp_data_with_no_rows(mock_conn, mock_cursor):
-    mock_cursor.fetchall.return_value = []
-
-    result = repo.fetch_season_emp_data(mock_conn)
-
-    mock_conn.cursor.assert_called_once()
-    mock_cursor.close.assert_called_once()
-    assert result == []
-
-
 def test_fetch_old_emp_data_executes_correct_query(mock_conn, mock_cursor):
     repo.fetch_old_emp_data(mock_conn, "001")
 
@@ -69,13 +50,3 @@ def test_fetch_old_emp_data_executes_correct_query(mock_conn, mock_cursor):
     emp = models.EmployeeTable()
     for field in fields(emp):
         assert getattr(emp, field.name) in executed_sql
-
-
-def test_fetch_season_emp_data_executes_correct_query(mock_conn, mock_cursor):
-    repo.fetch_season_emp_data(mock_conn)
-
-    executed_sql = mock_cursor.execute.call_args[0][0]
-
-    emp_totals = models.EmployeeTotalsTable()
-    for field in fields(emp_totals):
-        assert getattr(emp_totals, field.name) in executed_sql

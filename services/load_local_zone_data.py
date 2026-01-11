@@ -2,16 +2,18 @@
 import pyodbc
 import logging
 from PyQt6 import QtWidgets
+from datetime import datetime
 
-from repositories import fetch_old_zone_data, fetch_season_zone_data
+from repositories import fetch_old_zone_data, fetch_range_zone_data
 
 
-def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dict] | None:
+def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None) -> list[dict] | None:
     """Load zone data with discrepancy calculations.
 
     Args:
         conn: Database connection object
         store: Store number inputted by user or None if retrieving season stats
+        date_range: Range of datetimes inputted by user or None if retrieving store stats
 
     Returns:
         List of dictionaries containing zone data with totals and discrepancies
@@ -25,11 +27,15 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
             raise ValueError("Database connection cannot be None")
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
+        if not (store or date_range):
+            raise ValueError("Either store or range must be set")
+        if date_range and len(date_range) != 2:
+            raise ValueError("date_range must contain exactly two datetime objects")
 
         if store:
             zone_rows = fetch_old_zone_data(conn, store)
         else:
-            zone_rows = fetch_season_zone_data(conn)
+            zone_rows = fetch_range_zone_data(conn, date_range)
 
         zone_data: list[dict] = []
 
@@ -42,21 +48,8 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None) -> list[dic
                 "total_price": zone_row[4] or 0.0,
                 "discrepancy_dollars": zone_row[5] or 0.0,
                 "discrepancy_tags": zone_row[6] or 0,
-                "stores": (zone_row[7] or 1) if not store else None
+                "stores": (zone_row[7] or 1) if date_range else None
             }
-
-            if not store:
-                zone_data_row["total_tags"] /= zone_data_row["stores"]
-                zone_data_row["total_quantity"] /= zone_data_row["stores"]
-                zone_data_row["total_price"] /= zone_data_row["stores"]
-                zone_data_row["discrepancy_dollars"] /= zone_data_row["stores"]
-                zone_data_row["discrepancy_tags"] /= zone_data_row["stores"]
-
-            zone_data_row["discrepancy_percent"] = (
-                (zone_data_row["discrepancy_dollars"] / zone_data_row["total_price"] * 100)
-                if zone_data_row["total_price"] > 0 else 0
-            )
-
             zone_data.append(zone_data_row)
 
         return zone_data

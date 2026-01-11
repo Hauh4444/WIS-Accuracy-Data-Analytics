@@ -1,6 +1,6 @@
-from .local_emp_repository import fetch_old_emp_data, fetch_season_emp_data
-from .local_store_repository import fetch_old_inventory_data, fetch_season_inventory_data
-from .local_zone_repository import fetch_old_zone_data, fetch_season_zone_data
+from .local_emp_repository import fetch_old_emp_data, fetch_range_emp_data
+from .local_store_repository import fetch_old_inventory_data
+from .local_zone_repository import fetch_old_zone_data, fetch_range_zone_data
 from .save_local_data_repository import (
     create_tables_if_not_exists,
     check_inventory_exists,

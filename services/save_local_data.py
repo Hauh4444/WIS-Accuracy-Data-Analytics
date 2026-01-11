@@ -33,37 +33,19 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
 
         store_data["store_number"] = store_data["store"].strip().split()[-1]
 
-        inventory_exists = check_inventory_exists(conn, store_data)
-        if not inventory_exists:
+        if check_inventory_exists(conn, store_data):
+            handle_employee = update_employee_data
+            handle_zone = update_zone_data
+        else:
             insert_inventory_data(conn, store_data)
+            handle_employee = insert_employee_data
+            handle_zone = insert_zone_data
 
         for emp in emp_data:
-            employee_totals_exist = check_employee_totals_exist(conn, emp)
-            if not employee_totals_exist:
-                insert_employee_totals_data(conn, emp)
-
-            if inventory_exists:
-                prev_emp_data = update_employee_data(conn, store_data, emp)
-            else:
-                insert_employee_data(conn, store_data, emp)
-                prev_emp_data = None
-
-            if employee_totals_exist:
-                update_employee_totals_data(conn, prev_emp_data, emp)
+            handle_employee(conn, store_data, emp)
 
         for zone in zone_data:
-            zone_totals_exist = check_zone_totals_exist(conn, zone)
-            if not zone_totals_exist:
-                insert_zone_totals_data(conn, zone)
-
-            if inventory_exists:
-                prev_zone_data = update_zone_data(conn, store_data, zone)
-            else:
-                insert_zone_data(conn, store_data, zone)
-                prev_zone_data = None
-
-            if zone_totals_exist:
-                update_zone_totals_data(conn, prev_zone_data, zone)
+            handle_zone(conn, store_data, zone)
 
     except (pyodbc.Error, pyodbc.DatabaseError) as e:
         logging.exception("Database error while saving local data")

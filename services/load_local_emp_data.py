@@ -2,16 +2,18 @@
 import pyodbc
 import logging
 from PyQt6 import QtWidgets
+from datetime import datetime
 
-from repositories import fetch_old_emp_data, fetch_season_emp_data
+from repositories import fetch_old_emp_data, fetch_range_emp_data
 
 
-def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict] | None:
+def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None) -> list[dict] | None:
     """Load employee data with discrepancy calculations.
 
     Args:
         conn: Database connection object
-        store: Store number inputted by user or None if retrieving season stats
+        store: Store number inputted by user or None if retrieving range stats
+        date_range: Range of datetimes inputted by user or None if retrieving store stats
 
     Returns:
         List of dictionaries containing employee data with totals and discrepancies
@@ -25,11 +27,15 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
             raise ValueError("Database connection cannot be None")
         if not hasattr(conn, 'cursor'):
             raise ValueError("Invalid database connection object - missing cursor method")
+        if not (store or date_range):
+            raise ValueError("Either store or range must be set")
+        if date_range and len(date_range) != 2:
+            raise ValueError("date_range must contain exactly two datetime objects")
 
         if store:
             emp_rows = fetch_old_emp_data(conn, store)
         else:
-            emp_rows = fetch_season_emp_data(conn)
+            emp_rows = fetch_range_emp_data(conn, date_range)
 
         emp_data: list[dict] = []
 
@@ -42,28 +48,9 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None) -> list[dict
                 "total_price": emp_row[4] or 0.0,
                 "discrepancy_dollars": emp_row[5] or 0.0,
                 "discrepancy_tags": emp_row[6] or 0,
-                "stores": (emp_row[7] or 1) if not store else None,
-                "hours": emp_row[7] or 0 if store else emp_row[8] or 0,
+                "hours": emp_row[7] or 0,
+                "stores": (emp_row[8] or 1) if date_range else None,
             }
-
-            if not store:
-                emp_data_row["total_tags"] /= emp_data_row["stores"]
-                emp_data_row["total_quantity"] /= emp_data_row["stores"]
-                emp_data_row["total_price"] /= emp_data_row["stores"]
-                emp_data_row["discrepancy_dollars"] /= emp_data_row["stores"]
-                emp_data_row["discrepancy_tags"] /= emp_data_row["stores"]
-                emp_data_row["hours"] /= emp_data_row["stores"]
-
-            emp_data_row["discrepancy_percent"] = (
-                (emp_data_row["discrepancy_dollars"] / emp_data_row["total_price"] * 100)
-                if emp_data_row["total_price"] > 0 else 0
-            )
-
-            emp_data_row["uph"] = (
-                emp_data_row["total_quantity"] / emp_data_row["hours"]
-                if emp_data_row["total_price"] > 0 and emp_data_row["hours"] > 0 else 0
-            )
-
             emp_data.append(emp_data_row)
 
         return emp_data

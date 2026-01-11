@@ -9,7 +9,8 @@ from views import (
     StatsSourceDialog,
     LoadLocalDataDialog,
     LoadSourceDataDynamicDialog,
-    LoadSourceDataManualDialog
+    LoadSourceDataManualDialog,
+    LoadRangeDataDialog
 )
 
 
@@ -29,7 +30,7 @@ def handle_dialog(dialog: QtWidgets.QDialog) -> str | tuple[dict, list[dict], li
 
     if hasattr(dialog, "source"):
         source = dialog.source
-        if source in ("local", "source"):
+        if source in ("local", "source", "season"):
             return source
 
     if hasattr(dialog, "store_data") and hasattr(dialog, "emp_data") and hasattr(dialog, "zone_data"):
@@ -54,7 +55,7 @@ if __name__ == "__main__":
                 raise Exception("Failed to load local data.")
 
             store_data, emp_data, zone_data = result
-            generate_accuracy_report(store_data, emp_data, zone_data, season=False)
+            generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=False)
 
         elif stats_source == "source":
             result = handle_dialog(LoadSourceDataDynamicDialog())
@@ -66,6 +67,14 @@ if __name__ == "__main__":
             store_data, emp_data, zone_data = result
             window = EmpHoursInputWindow(store_data, emp_data, zone_data)
             app.exec()
+
+        elif stats_source == "season":
+            result = handle_dialog(LoadRangeDataDialog())
+            if not result:
+                raise Exception("Failed to load range data.")
+
+            store_data, emp_data, zone_data = result
+            generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=True)
 
     except Exception as e:
         logging.exception("Unhandled application error")

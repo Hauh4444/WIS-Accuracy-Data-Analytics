@@ -1,7 +1,7 @@
 """Database query functions for managing locally stored."""
 import pyodbc
 
-from models import InventoryTable, EmployeeTable, EmployeeTotalsTable, ZoneTable, ZoneTotalsTable
+from models import InventoryTable, EmployeeTable, ZoneTable
 
 
 def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
@@ -13,9 +13,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
     cursor = conn.cursor()
     inventory = InventoryTable()
     emp = EmployeeTable()
-    emp_totals = EmployeeTotalsTable()
     zone = ZoneTable()
-    zone_totals = ZoneTotalsTable()
     existing_tables = [row.table_name for row in cursor.tables(tableType='TABLE')]
 
     create_tables_queries = {
@@ -25,19 +23,6 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
                 {inventory.store_name} TEXT(50),
                 {inventory.job_datetime} TEXT(50),
                 {inventory.store_address} TEXT(255)
-            )
-        """,
-        emp_totals.table: f"""
-            CREATE TABLE {emp_totals.table} (
-                {emp_totals.emp_number} TEXT(50) PRIMARY KEY,
-                {emp_totals.emp_name} TEXT(255),
-                {emp_totals.total_tags} INTEGER,
-                {emp_totals.total_quantity} INTEGER,
-                {emp_totals.total_price} DOUBLE,
-                {emp_totals.discrepancy_dollars} DOUBLE,
-                {emp_totals.discrepancy_tags} INTEGER,
-                {emp_totals.stores} INTEGER,
-                {emp_totals.hours} DOUBLE
             )
         """,
         emp.table: f"""
@@ -51,18 +36,6 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
                 {emp.discrepancy_dollars} DOUBLE,
                 {emp.discrepancy_tags} INTEGER,
                 {emp.hours} DOUBLE
-            )
-        """,
-        zone_totals.table: f"""
-            CREATE TABLE {zone_totals.table} (
-                {zone_totals.zone_id} TEXT(50) PRIMARY KEY,
-                {zone_totals.zone_description} TEXT(255),
-                {zone_totals.total_tags} INTEGER,
-                {zone_totals.total_quantity} INTEGER,
-                {zone_totals.total_price} DOUBLE,
-                {zone_totals.discrepancy_dollars} DOUBLE,
-                {zone_totals.discrepancy_tags} INTEGER,
-                {zone_totals.stores} INTEGER
             )
         """,
         zone.table: f"""
@@ -99,42 +72,6 @@ def check_inventory_exists(conn: pyodbc.Connection, store_data: dict) -> bool:
 
     inventory_exists_query = f"SELECT TOP 1 1 FROM {inventory.table} WHERE {inventory.store_number} = ?"
     cursor.execute(inventory_exists_query, (store_data["store_number"],))
-    exists = cursor.fetchone() is not None
-
-    cursor.close()
-    return exists
-
-
-def check_employee_totals_exist(conn: pyodbc.Connection, emp_data: dict) -> bool:
-    """Checks if employee record exists for employee totals
-
-    Args:
-        conn: pyodbc Connection object
-        emp_data: Dictionary containing emp data
-    """
-    cursor = conn.cursor()
-    emp_totals = EmployeeTotalsTable()
-
-    employee_totals_exist_query = f"SELECT TOP 1 1 FROM {emp_totals.table} WHERE {emp_totals.emp_number} = ?"
-    cursor.execute(employee_totals_exist_query, (emp_data["emp_number"],))
-    exists = cursor.fetchone() is not None
-
-    cursor.close()
-    return exists
-
-
-def check_zone_totals_exist(conn: pyodbc.Connection, zone_data: dict) -> bool:
-    """Checks if zone record exists for zone totals
-
-    Args:
-        conn: pyodbc Connection object
-        zone_data: Dictionary containing zone data
-    """
-    cursor = conn.cursor()
-    zone_totals = ZoneTotalsTable()
-
-    zone_totals_exist_query = f"SELECT TOP 1 1 FROM {zone_totals.table} WHERE {zone_totals.zone_id} = ?"
-    cursor.execute(zone_totals_exist_query, (zone_data["zone_id"],))
     exists = cursor.fetchone() is not None
 
     cursor.close()
@@ -214,62 +151,6 @@ def insert_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
         zone_query, (
             store_data["store_number"], zone_data["zone_id"], zone_data["zone_description"], zone_data["total_tags"], zone_data["total_quantity"],
             zone_data["total_price"], zone_data["discrepancy_dollars"], zone_data["discrepancy_tags"]
-        )
-    )
-    conn.commit()
-
-    cursor.close()
-
-
-def insert_employee_totals_data(conn: pyodbc.Connection, emp_data: dict) -> None:
-    """Inserts employee totals record.
-
-    Args:
-        conn: pyodbc Connection object
-        emp_data: Dictionary containing emp data
-    """
-    cursor = conn.cursor()
-    emp_totals = EmployeeTotalsTable()
-    
-    emp_totals_query = f"""
-        INSERT INTO {emp_totals.table} (
-            {emp_totals.emp_number}, {emp_totals.emp_name}, {emp_totals.total_tags}, {emp_totals.total_quantity}, {emp_totals.total_price},
-            {emp_totals.discrepancy_dollars}, {emp_totals.discrepancy_tags}, {emp_totals.hours}, {emp_totals.stores}
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    cursor.execute(
-        emp_totals_query, (
-            emp_data["emp_number"], emp_data["emp_name"], emp_data["total_tags"], emp_data["total_quantity"], emp_data["total_price"],
-            emp_data["discrepancy_dollars"], emp_data["discrepancy_tags"], emp_data["hours"], 1
-        )
-    )
-    conn.commit()
-
-    cursor.close()
-
-
-def insert_zone_totals_data(conn: pyodbc.Connection, zone_data: dict) -> None:
-    """Inserts zone totals record.
-
-    Args:
-        conn: pyodbc Connection object
-        zone_data: Dictionary containing zone data
-    """
-    cursor = conn.cursor()
-    zone_totals = ZoneTotalsTable()
-
-    zone_totals_query = f"""
-        INSERT INTO {zone_totals.table} (
-            {zone_totals.zone_id}, {zone_totals.zone_description}, {zone_totals.total_tags}, {zone_totals.total_quantity}, {zone_totals.total_price},
-            {zone_totals.discrepancy_dollars}, {zone_totals.discrepancy_tags}, {zone_totals.stores}
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """
-
-    cursor.execute(
-        zone_totals_query, (
-            zone_data["zone_id"], zone_data["zone_description"], zone_data["total_tags"], zone_data["total_quantity"], zone_data["total_price"],
-            zone_data["discrepancy_dollars"], zone_data["discrepancy_tags"], 1
         )
     )
     conn.commit()
@@ -363,76 +244,3 @@ def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
 
     cursor.close()
     return prev_zone_data
-
-
-def update_employee_totals_data(conn: pyodbc.Connection, prev_emp_data: dict | None, emp_data: dict) -> None:
-    """Updates employee totals record.
-
-    Args:
-        conn: pyodbc Connection object
-        prev_emp_data: Dictionary of the existing employee row before the update, or None if not found
-        emp_data: Dictionary containing emp data
-    """
-    cursor = conn.cursor()
-    emp = EmployeeTable()
-    emp_totals = EmployeeTotalsTable()
-
-    total_tags = emp_data["total_tags"] - (prev_emp_data.get(emp.total_tags) or 0)
-    total_qty = emp_data["total_quantity"] - (prev_emp_data.get(emp.total_quantity) or 0)
-    total_price = emp_data["total_price"] - (prev_emp_data.get(emp.total_price) or 0)
-    discrepancy_dollars = emp_data["discrepancy_dollars"] - (prev_emp_data.get(emp.discrepancy_dollars) or 0)
-    discrepancy_tags = emp_data["discrepancy_tags"] - (prev_emp_data.get(emp.discrepancy_tags) or 0)
-    hours = emp_data["hours"] - (prev_emp_data.get(emp.hours) or 0)
-    store_increment = 0 if prev_emp_data else 1
-
-    emp_totals_query = f"""
-        UPDATE {emp_totals.table}
-        SET
-            {emp_totals.total_tags} = {emp_totals.total_tags} + ?, {emp_totals.total_quantity} = {emp_totals.total_quantity} + ?,
-            {emp_totals.total_price} = {emp_totals.total_price} + ?, {emp_totals.discrepancy_dollars} = {emp_totals.discrepancy_dollars} + ?,
-            {emp_totals.discrepancy_tags} = {emp_totals.discrepancy_tags} + ?, {emp_totals.hours} = {emp_totals.hours} + ?,
-            {emp_totals.stores} = {emp_totals.stores} + ?
-        WHERE {emp_totals.emp_number} = ?
-    """
-
-    cursor.execute(emp_totals_query, (
-        total_tags, total_qty, total_price, discrepancy_dollars, discrepancy_tags, hours, store_increment, emp_data["emp_number"]
-    ))
-    conn.commit()
-
-    cursor.close()
-
-
-def update_zone_totals_data(conn: pyodbc.Connection, prev_zone_data: dict | None, zone_data: dict) -> None:
-    """Updates zone totals record.
-
-    Args:
-        conn: pyodbc Connection object
-        prev_zone_data: Dictionary of the existing zone row before the update, or None if not found
-        zone_data: Dictionary containing zone data
-    """
-    cursor = conn.cursor()
-    zone = ZoneTable()
-    zone_totals = ZoneTotalsTable()
-
-    total_tags = zone_data["total_tags"] - (prev_zone_data.get(zone.total_tags) or 0)
-    total_qty = zone_data["total_quantity"] - (prev_zone_data.get(zone.total_quantity) or 0)
-    total_price = zone_data["total_price"] - (prev_zone_data.get(zone.total_price) or 0)
-    discrepancy_dollars = zone_data["discrepancy_dollars"] - (prev_zone_data.get(zone.discrepancy_dollars) or 0)
-    discrepancy_tags = zone_data["discrepancy_tags"] - (prev_zone_data.get(zone.discrepancy_tags) or 0)
-    store_increment = 0 if prev_zone_data else 1
-
-    zone_totals_query = f"""
-        UPDATE {zone_totals.table}
-        SET
-            {zone_totals.total_tags} = {zone_totals.total_tags} + ?, {zone_totals.total_quantity} = {zone_totals.total_quantity} + ?,
-            {zone_totals.total_price} = {zone_totals.total_price} + ?, {zone_totals.discrepancy_dollars} = {zone_totals.discrepancy_dollars} + ?,
-            {zone_totals.discrepancy_tags} = {zone_totals.discrepancy_tags} + ?, {zone_totals.stores} = {zone_totals.stores} + ?
-        WHERE {zone_totals.zone_id} = ?
-    """
-    cursor.execute(zone_totals_query, (
-        total_tags, total_qty, total_price, discrepancy_dollars, discrepancy_tags, store_increment, zone_data["zone_id"]
-    ))
-    conn.commit()
-
-    cursor.close()

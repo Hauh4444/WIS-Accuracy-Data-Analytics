@@ -39,19 +39,4 @@ class StatsSourceDialog(QtWidgets.QDialog):
             source_type: One of 'season', 'local', or 'source'.
         """
         self.source = source_type
-
-        if self.source == "season":
-            conn = get_storage_db_connection()
-            if not conn:
-                self.reject()
-                return
-
-            store_data = load_local_store_data(conn, store=None)
-            emp_data = load_local_emp_data(conn, store=None)
-            zone_data = load_local_zone_data(conn, store=None)
-            if store_data and emp_data and zone_data:
-                generate_accuracy_report(store_data, emp_data, zone_data, season=True)
-
-            conn.close()
-
         self.accept()

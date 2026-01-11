@@ -120,9 +120,7 @@ The application includes a comprehensive test suite:
 - **Required Local Tables**: 
   - `tblInventory` - Inventory data, stores store information
   - `tblEmps` - Employee data, stores single inventory employee stats
-  - `tblEmpTotals` - Employee totals data, stores season employee total stats
   - `tblZones` - Zone data, stores single inventory zone stats
-  - `tblZoneTotals` - Zone totals data, stores season employee total stats
 
 ## Local Data Storage
 
