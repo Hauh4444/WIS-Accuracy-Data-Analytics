@@ -39,17 +39,17 @@ def test_fetch_old_inventory_data_no_row(mock_conn, mock_cursor):
     assert result is None
 
 
-def test_fetch_season_inventory_data_returns_rows(mock_conn, mock_cursor):
-    result = repo.fetch_season_inventory_data(mock_conn)
+def test_fetch_aggregate_inventory_data_returns_rows(mock_conn, mock_cursor):
+    result = repo.fetch_aggregate_inventory_data(mock_conn)
     mock_conn.cursor.assert_called_once()
     mock_cursor.close.assert_called_once()
     mock_cursor.execute.assert_called_once()
     assert result == mock_cursor.fetchall.return_value
 
 
-def test_fetch_season_inventory_data_no_rows(mock_conn, mock_cursor):
+def test_fetch_aggregate_inventory_data_no_rows(mock_conn, mock_cursor):
     mock_cursor.fetchall.return_value = []
-    result = repo.fetch_season_inventory_data(mock_conn)
+    result = repo.fetch_aggregate_inventory_data(mock_conn)
     assert result == []
 
 
@@ -64,8 +64,8 @@ def test_fetch_old_inventory_data_executes_correct_query(mock_conn, mock_cursor)
     assert inventory.table in executed_sql
 
 
-def test_fetch_season_inventory_data_executes_correct_query(mock_conn, mock_cursor):
-    repo.fetch_season_inventory_data(mock_conn)
+def test_fetch_aggregate_inventory_data_executes_correct_query(mock_conn, mock_cursor):
+    repo.fetch_aggregate_inventory_data(mock_conn)
     executed_sql = mock_cursor.execute.call_args[0][0]
 
     inventory = models.InventoryTable()

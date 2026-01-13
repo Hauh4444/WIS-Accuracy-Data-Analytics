@@ -19,14 +19,14 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
 
     def __init__(self, store_data: dict, emp_data: list[dict], zone_data: list[dict]) -> None:
         """Initialize the window with employee and zone data.
-        
+
         Args:
             store_data: Dictionary containing store data
             emp_data: List of employee data dictionaries
             zone_data: List of zone data dictionaries
         """
         super().__init__()
-        ui_path = resource_path("assets/ui/emp_hours_window.ui")
+        ui_path = resource_path("assets/ui/emp_input_window.ui")
         uic.loadUi(ui_path, self)
 
         self.store_data = store_data
@@ -65,7 +65,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
                 self.emp_data[i]["uph"] = self.emp_data[i]["total_quantity"] / emp_hours
             else:
                 self.emp_data[i]["uph"] = 0
-        
+
         if not self.emp_data:
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
@@ -76,7 +76,7 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             return
 
         save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
-        generate_accuracy_report(self.store_data, self.emp_data, self.zone_data, is_date_range=False)
+        generate_accuracy_report(self.store_data, self.emp_data, self.zone_data)
 
         conn.close()
         self.close()

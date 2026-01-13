@@ -1,4 +1,4 @@
-from .local_models import InventoryTable, EmployeeTable, ZoneTable
+from .local_models import InventoryTable, EmployeeTable, ZoneTable, DiscrepancyTable
 from .source_models import (
     WISEInfoTable,
     TerminalControlTable,

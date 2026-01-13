@@ -9,8 +9,8 @@ A professional **Windows-only** Python application for generating WIS Internatio
   - Primary: Job Number input for automatic database path resolution (`C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`)
   - Fallback: Manual file browser for custom database selection
 - **Historical Inventory Stats**: Ability to load and view statistics from previous inventories for the same store 
-- **Season-to-Date Analytics**: Aggregated season statistics calculated from all inventories completed during the current season 
-- **Conditional Availability**: Historical and season stats are available only when local data has been saved for the relevant inventory or inventories
+- **Date Range Analytics**: Aggregated statistics calculated from all inventories completed during a user defined date range 
+- **Conditional Availability**: Historical and Date Range stats are available only when local data has been saved for the relevant inventory or inventories
 - **Store Data Integration**: Automatic loading of store information (name, address, inventory datetime) from WISE database
 - **Employee Hours Input**: Interactive interface for entering employee work hours with UPH calculations
 - **Zone Analytics**: Comprehensive zone and zone-based discrepancy analysis
@@ -46,7 +46,7 @@ A professional **Windows-only** Python application for generating WIS Internatio
    
 5. (Optional) To build a standalone executable:
     ```bash
-    pyinstaller --onefile --noconsole --additional-hooks-dir=packaging/hooks --add-data "assets/ui;assets/ui" --add-data "assets/styles;assets/styles" --add-data "assets/templates;assets/templates" --add-data "assets/resources;assets/resources" -n AccuracyReport main.py
+    pyinstaller --onefile --noconsole --additional-hooks-dir=packaging/hooks --add-data "assets/images;assets/images" --add-data "assets/ui;assets/ui" --add-data "assets/styles;assets/styles" --add-data "assets/templates;assets/templates" --add-data "assets/resources;assets/resources" -n AccuracyReport main.py
     ```
 
 ## Usage
@@ -57,8 +57,8 @@ A professional **Windows-only** Python application for generating WIS Internatio
 2. **Inventory Data Mode Selection**: Select how inventory statistics should be loaded
    - **New Inventory Stats**: Load and process data from a WISE source database for a new inventory 
    - **Previous Inventory Stats**: Load statistics from a previously processed and locally saved inventory 
-   - **Season Stats**: Load aggregated statistics from all inventories completed during the current season 
-   - *Previous Inventory and Season options are only enabled if corresponding local data exists.*
+   - **Date Range Stats**: Load aggregated statistics from all inventories completed during a user defined range 
+   - *Previous Inventory and Date Range options are only enabled if corresponding local data exists.*
 3. **New Inventory Stats Workflow**:
    - **Database Loading**:
       - **Primary Method - Job Number Input**: Enter a Job Number to automatically connect to `C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB`
@@ -70,10 +70,10 @@ A professional **Windows-only** Python application for generating WIS Internatio
    - **Database Loading**: Enter a Store Number to automatically resolve and load the locally saved inventory data for that store.
    - **Data Processing**: Employee, zone, and store data is loaded, validated, and processed with saved discrepancy data
    - **Report Generation**: Accuracy reports (Employee, Zone, and Discrepancy) are generated using the loaded historical inventory data.
-5. **Season Stats Workflow**:
-   - **Database Loading**: Automatically resolves and loads the locally saved season data.
-   - **Data Processing**: Employee, zone, and store data is loaded with prevalidated and preprocessed saved season data
-   - **Report Generation**: Accuracy reports (Employee, Zone, and Discrepancy) are generated using the loaded season data.
+5. **Date Range Stats Workflow**:
+   - **Database Loading**: Automatically resolves and loads the locally saved data.
+   - **Data Processing**: Employee, zone, and store data are loaded with aggregate data
+   - **Report Generation**: Accuracy reports (Employee, Zone, and Discrepancy) are generated using the loaded aggregate data.
 6. **PDF Output**: Combined report is generated as a single PDF with page breaks and opened in browser for printing
 
 ## Testing
@@ -124,11 +124,11 @@ The application includes a comprehensive test suite:
 
 ## Local Data Storage
 
-- The application stores processed inventory and season statistics in a Microsoft Access database located in the user’s local AppData directory:
+- The application stores processed inventory and aggregate statistics in a Microsoft Access database located in the user’s local AppData directory:
     ```bash
     %LOCALAPPDATA%\WIS-Accuracy-Data-Analytics\accuracy.mdb
     ```
-- All historical inventory stats and season-to-date stats are read from and written to this database. Previous Inventory and Season Stats workflows rely on this database and will only be available if the corresponding data has been previously saved.
+- All historical inventory stats are read from and written to this database. Previous Inventory and Date Range Stats workflows rely on this database and will only be available if the corresponding data has been previously saved.
 
 ## Project Structure
 
@@ -144,30 +144,34 @@ WIS-Accuracy-Data-Analytics
 │   │   └── accuracy.mdb
 │   ├── styles/
 │   │   ├── emp_hour_input_row.qss
+│   │   ├── emp_select_row.qss
 │   │   └── scrollbar.qss
 │   ├── templates/
+│   │   ├── aggregate_emp_report.html
+│   │   ├── aggregate_zone_report.html
 │   │   ├── disc_report.html
 │   │   ├── emp_report.html
-│   │   ├── season_emp_report.html
-│   │   ├── season_team_report.html
 │   │   └── team_report.html
 │   └── ui/
 │       ├── emp_hours_window.ui
+│       ├── emp_select_window.ui
+│       ├── load_aggregate_data_dialog.ui
 │       ├── load_local_data_dialog.ui
 │       ├── load_source_data_dynamic_dialog.ui
 │       ├── load_source_data_manual_dialog.ui
 │       └── stats_source_dialog.ui
 ├── database/
-│   ├── connection.py
 │   └── __init__.py
+│   ├── connection.py
 ├── models/
+│   └── __init__.py
 │   ├── local_models.py
 │   ├── source_models.py
-│   └── __init__.py
 ├── packaging/
 │   └── hooks/
 │       └── hook-xhtml2pdf.py
 ├── repositories/
+│   └── __init__.py
 │   ├── local_emp_repository.py
 │   ├── local_store_repository.py
 │   ├── local_zone_repository.py
@@ -175,8 +179,8 @@ WIS-Accuracy-Data-Analytics
 │   ├── source_emp_repository.py
 │   ├── source_store_repository.py
 │   ├── source_zone_repository.py
-│   └── __init__.py
 ├── services/
+│   └── __init__.py
 │   ├── load_local_emp_data.py
 │   ├── load_local_store_data.py
 │   ├── load_local_zone_data.py
@@ -184,18 +188,20 @@ WIS-Accuracy-Data-Analytics
 │   ├── load_source_store_data.py
 │   ├── load_source_zone_data.py
 │   ├── save_local_data.py
-│   └── __init__.py
 ├── tests/
 ├── utils/
+│   └── __init__.py
+│   ├── logging_config.py
 │   ├── paths.py
 │   ├── report_generator.py
 │   ├── ui_utils.py
-│   └── __init__.py
 └── views/
+    └── __init__.py
     ├── emp_hours_input_window.py
+    ├── emp_select_window.py
+    ├── load_aggregate_data_dialog.py
     ├── load_local_data_dialog.py
     ├── load_source_data_dynamic_dialog.py
     ├── load_source_data_manual_dialog.py
     ├── stats_source_dialog.py
-    └── __init__.py
 ```

@@ -107,7 +107,7 @@
      </spacer>
     </item>
     <item>
-     <widget class="QLineEdit" name="txtJobNumber">
+     <widget class="QLineEdit" name="txtStoreNumber">
       <property name="minimumSize">
        <size>
         <width>100</width>

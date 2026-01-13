@@ -21,7 +21,7 @@ def q_app():
 def dialog(q_app):
     dlg = StatsSourceDialog.__new__(StatsSourceDialog)
     QtWidgets.QDialog.__init__(dlg)
-    dlg.btnSeason = MagicMock(spec=QtWidgets.QPushButton)
+    dlg.btnRange = MagicMock(spec=QtWidgets.QPushButton)
     dlg.btnOld = MagicMock(spec=QtWidgets.QPushButton)
     dlg.btnNew = MagicMock(spec=QtWidgets.QPushButton)
     dlg.accept = MagicMock()
@@ -37,7 +37,7 @@ def sample_data():
     return store_data, emp_data, zone_data
 
 
-def test_load_season_stats_success(dialog, sample_data):
+def test_load_aggregate_stats_success(dialog, sample_data):
     store_data, emp_data, zone_data = sample_data
 
     with patch("views.stats_source_dialog.get_storage_db_connection", return_value=MagicMock()) as mock_conn, \
@@ -46,20 +46,20 @@ def test_load_season_stats_success(dialog, sample_data):
          patch("views.stats_source_dialog.load_local_zone_data", return_value=zone_data), \
          patch("views.stats_source_dialog.generate_accuracy_report") as mock_generate:
 
-        dialog.load_season_stats()
+        dialog.load_aggregate_stats()
 
-        assert dialog.source == "season"
-        mock_generate.assert_called_once_with(store_data, emp_data, zone_data, season=True)
+        assert dialog.source == "aggregate"
+        mock_generate.assert_called_once_with(store_data, emp_data, zone_data, aggregate=True)
         dialog.accept.assert_called_once()
 
 
-def test_load_season_stats_no_connection(dialog):
+def test_load_aggregate_stats_no_connection(dialog):
     with patch("views.stats_source_dialog.get_storage_db_connection", return_value=None):
-        dialog.load_season_stats()
+        dialog.load_aggregate_stats()
         dialog.reject.assert_called_once()
 
 
-def test_load_season_stats_exception_handling(dialog):
+def test_load_aggregate_stats_exception_handling(dialog):
     with patch("views.stats_source_dialog.get_storage_db_connection", return_value=MagicMock()) as mock_conn, \
          patch("views.stats_source_dialog.load_local_store_data", side_effect=Exception("DB error")), \
          patch("views.stats_source_dialog.load_local_emp_data"), \
@@ -68,7 +68,7 @@ def test_load_season_stats_exception_handling(dialog):
 
         import pytest
         with pytest.raises(Exception, match="DB error"):
-            dialog.load_season_stats()
+            dialog.load_aggregate_stats()
 
         mock_generate.assert_not_called()
         dialog.accept.assert_not_called()

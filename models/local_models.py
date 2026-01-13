@@ -40,3 +40,17 @@ class ZoneTable:
     total_price: str = "TotalEXTPRICE"
     discrepancy_dollars: str = "DiscrepancyDollars"
     discrepancy_tags: str = "DiscrepancyTags"
+
+
+@dataclass(frozen=True)
+class DiscrepancyTable:
+    table: str = "tblDiscrepancies"
+    store_number: str = "StoreNo"
+    emp_number: str = "EmpNo"
+    zone_id: str = "ZoneID"
+    tag_number: str = "TagNo"
+    upc: str = "UPC"
+    price: str = "EXTPRICE"
+    counted_quantity: str = "OrigQty"
+    new_quantity: str = "NewQty"
+    price_change: str = "DiscrepancyDollars"

@@ -8,8 +8,8 @@ from utils import center_on_screen
 from services import load_local_store_data, load_local_emp_data, load_local_zone_data
 
 
-class LoadRangeDataDialog(QtWidgets.QDialog):
-    """Dialog for loading range of data."""
+class LoadAggregateDataDialog(QtWidgets.QDialog):
+    """Dialog for loading aggregate data."""
     dateStart: QtWidgets.QDateEdit
     dateEnd: QtWidgets.QDateEdit
     btnLoad: QtWidgets.QPushButton
@@ -21,18 +21,16 @@ class LoadRangeDataDialog(QtWidgets.QDialog):
     def __init__(self) -> None:
         """Initialize the dialog and connect UI elements."""
         super().__init__()
-        ui_path = resource_path("assets/ui/load_range_data_dialog.ui")
+        ui_path = resource_path("assets/ui/load_aggregate_data_dialog.ui")
         uic.loadUi(ui_path, self)
 
         today = date.today()
         start_of_year = QtCore.QDate(today.year, 1, 1)
         end_of_year = QtCore.QDate(today.year, 12, 31)
 
-        self.dateStart = QtWidgets.QDateEdit(self)
         self.dateStart.setCalendarPopup(True)
         self.dateStart.setDate(start_of_year)
 
-        self.dateEnd = QtWidgets.QDateEdit(self)
         self.dateEnd.setCalendarPopup(True)
         self.dateEnd.setDate(end_of_year)
 

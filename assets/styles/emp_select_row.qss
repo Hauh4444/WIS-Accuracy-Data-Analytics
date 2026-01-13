@@ -24,8 +24,27 @@ QLineEdit {
     selection-color: #ffffff;
 }
 
-QCheckBox:focus {
-    border: 1px solid #4a90e2;
+QCheckBox::indicator {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #9aa0a6;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #4f8cff;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #ffffff;
+    border-color: #4f8cff;
+    image: url(CHECKMARK_IMAGE);
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #f2f2f2;
+    border-color: #c6c6c6;
 }
 
 QPushButton {

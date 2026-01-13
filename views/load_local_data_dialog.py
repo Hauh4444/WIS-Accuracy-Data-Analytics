@@ -9,7 +9,7 @@ from services import load_local_store_data, load_local_emp_data, load_local_zone
 
 class LoadLocalDataDialog(QtWidgets.QDialog):
     """Dialog for loading database using job number input."""
-    txtJobNumber: QtWidgets.QLineEdit
+    txtStoreNumber: QtWidgets.QLineEdit
     btnLoad: QtWidgets.QPushButton
 
     store_data: dict
@@ -27,10 +27,10 @@ class LoadLocalDataDialog(QtWidgets.QDialog):
         center_on_screen(widget=self)
 
     def load_database(self) -> None:
-        """Load database using WISDOM path convention: C:\\WISDOM\\JOBS\\{job_number}\\11355\\{job_number}.MDB"""
-        job_number = self.txtJobNumber.text().strip()
-        if not job_number:
-            QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Job Number.")
+        """Load database from local appdata path"""
+        store_number = self.txtStoreNumber.text().strip()
+        if not store_number:
+            QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Store Number.")
             return
 
         conn = get_storage_db_connection()
@@ -38,9 +38,9 @@ class LoadLocalDataDialog(QtWidgets.QDialog):
             self.reject()
             return
 
-        self.store_data = load_local_store_data(conn, job_number)
-        self.emp_data = load_local_emp_data(conn, job_number)
-        self.zone_data = load_local_zone_data(conn, job_number)
+        self.store_data = load_local_store_data(conn, store_number)
+        self.emp_data = load_local_emp_data(conn, store_number)
+        self.zone_data = load_local_zone_data(conn, store_number)
 
         conn.close()
         self.accept()

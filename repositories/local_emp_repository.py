@@ -5,7 +5,7 @@ from datetime import datetime
 from models import EmployeeTable, InventoryTable
 
 
-def fetch_old_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
+def fetch_historical_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
     """Fetch employee data from the database for a given store.
 
     Args:
@@ -38,7 +38,7 @@ def fetch_old_emp_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] 
     return emp_rows
 
 
-def fetch_range_emp_data(conn: pyodbc.Connection, date_range: list[datetime]) -> list[pyodbc.Row] | None:
+def fetch_aggregate_emp_data(conn: pyodbc.Connection, date_range: list[datetime]) -> list[pyodbc.Row] | None:
     """Fetch employee data from the database for a range of dates.
 
     Args:
@@ -55,7 +55,7 @@ def fetch_range_emp_data(conn: pyodbc.Connection, date_range: list[datetime]) ->
     query = f"""
         SELECT
             e.{emp.emp_number},
-            FIRST(e.{emp.emp_name}) AS {emp.emp_name},
+            MIN(e.{emp.emp_name}) AS {emp.emp_name},
             AVG(e.{emp.total_tags}) AS {emp.total_tags},
             AVG(e.{emp.total_quantity}) AS {emp.total_quantity},
             AVG(e.{emp.total_price}) AS {emp.total_price},
@@ -67,7 +67,7 @@ def fetch_range_emp_data(conn: pyodbc.Connection, date_range: list[datetime]) ->
         INNER JOIN {inventory.table} AS i
             ON e.{emp.store_number} = i.{inventory.store_number}
         WHERE
-            CDate(i.{inventory.job_datetime}) BETWEEN ? AND ?
+            i.{inventory.job_datetime} BETWEEN ? AND ?
         GROUP BY
             e.{emp.emp_number}
     """

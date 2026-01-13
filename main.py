@@ -5,12 +5,8 @@ from PyQt6 import QtWidgets
 
 from utils import generate_accuracy_report, setup_logging
 from views import (
-    EmpHoursInputWindow,
-    StatsSourceDialog,
-    LoadLocalDataDialog,
-    LoadSourceDataDynamicDialog,
-    LoadSourceDataManualDialog,
-    LoadRangeDataDialog
+    EmpHoursInputWindow, EmpSelectWindow, StatsSourceDialog, LoadLocalDataDialog,
+    LoadSourceDataDynamicDialog, LoadSourceDataManualDialog, LoadAggregateDataDialog
 )
 
 
@@ -21,7 +17,7 @@ def handle_dialog(dialog: QtWidgets.QDialog) -> str | tuple[dict, list[dict], li
         dialog: The QDialog to execute.
 
     Returns:
-        'local' or 'source' if a source is selected,
+        'historical', 'current', or 'aggregate' if a source is selected,
         tuple containing store_data, emp_data, and zone_data if data is loaded,
         or None if cancelled or failed.
     """
@@ -30,7 +26,7 @@ def handle_dialog(dialog: QtWidgets.QDialog) -> str | tuple[dict, list[dict], li
 
     if hasattr(dialog, "source"):
         source = dialog.source
-        if source in ("local", "source", "season"):
+        if source in ("historical", "current", "aggregate"):
             return source
 
     if hasattr(dialog, "store_data") and hasattr(dialog, "emp_data") and hasattr(dialog, "zone_data"):
@@ -49,15 +45,15 @@ if __name__ == "__main__":
 
         stats_source = handle_dialog(StatsSourceDialog())
 
-        if stats_source == "local":
+        if stats_source == "historical":
             result = handle_dialog(LoadLocalDataDialog())
             if not result:
                 raise Exception("Failed to load local data.")
 
             store_data, emp_data, zone_data = result
-            generate_accuracy_report(store_data, emp_data, zone_data, is_date_range=False)
+            generate_accuracy_report(store_data, emp_data, zone_data)
 
-        elif stats_source == "source":
+        elif stats_source == "current":
             result = handle_dialog(LoadSourceDataDynamicDialog())
             if not result:
                 result = handle_dialog(LoadSourceDataManualDialog())
@@ -68,13 +64,13 @@ if __name__ == "__main__":
             window = EmpHoursInputWindow(store_data, emp_data, zone_data)
             app.exec()
 
-        elif stats_source == "season":
-            result = handle_dialog(LoadRangeDataDialog())
+        elif stats_source == "aggregate":
+            result = handle_dialog(LoadAggregateDataDialog())
             if not result:
-                raise Exception("Failed to load range data.")
+                raise Exception("Failed to load aggregate data.")
 
             store_data, emp_data, zone_data = result
-            window = EmpHoursInputWindow(store_data, emp_data, zone_data)
+            window = EmpSelectWindow(store_data, emp_data, zone_data)
             app.exec()
 
     except Exception as e:

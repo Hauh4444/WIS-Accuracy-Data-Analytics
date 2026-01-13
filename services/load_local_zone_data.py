@@ -4,15 +4,15 @@ import logging
 from PyQt6 import QtWidgets
 from datetime import datetime
 
-from repositories import fetch_old_zone_data, fetch_range_zone_data
+from repositories import fetch_historical_zone_data, fetch_aggregate_zone_data
 
 
-def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None) -> list[dict] | None:
+def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None = None) -> list[dict] | None:
     """Load zone data with discrepancy calculations.
 
     Args:
         conn: Database connection object
-        store: Store number inputted by user or None if retrieving season stats
+        store: Store number inputted by user or None if retrieving aggregate stats
         date_range: Range of datetimes inputted by user or None if retrieving store stats
 
     Returns:
@@ -33,9 +33,9 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range:
             raise ValueError("date_range must contain exactly two datetime objects")
 
         if store:
-            zone_rows = fetch_old_zone_data(conn, store)
+            zone_rows = fetch_historical_zone_data(conn, store)
         else:
-            zone_rows = fetch_range_zone_data(conn, date_range)
+            zone_rows = fetch_aggregate_zone_data(conn, date_range)
 
         zone_data: list[dict] = []
 
@@ -50,6 +50,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range:
                 "discrepancy_tags": zone_row[6] or 0,
                 "stores": (zone_row[7] or 1) if date_range else None
             }
+            zone_data_row["discrepancy_percent"] = (zone_data_row["discrepancy_dollars"] / zone_data_row["total_price"] * 100) if zone_data_row["total_price"] > 0 else 0
             zone_data.append(zone_data_row)
 
         return zone_data
@@ -59,7 +60,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range:
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
-            f"A database operation failed while loading local zone or season zone data.\n\nDetails:\n{str(e)}"
+            f"A database operation failed while loading local zone or aggregate date range zone data.\n\nDetails:\n{str(e)}"
         )
         raise
 
@@ -77,7 +78,7 @@ def load_local_zone_data(conn: pyodbc.Connection, store: str | None, date_range:
         QtWidgets.QMessageBox.warning(
             None,
             "Data Integrity Error",
-            f"Critical zone or season zone data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
+            f"Critical zone or aggregate date range zone data was missing or inconsistent during the load process.\n\nDetails:\n{str(e)}"
         )
         raise
 

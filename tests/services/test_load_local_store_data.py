@@ -24,15 +24,15 @@ def test_load_local_store_data_store_specific(mock_conn):
         mock_fetch.assert_called_once_with(mock_conn, "001")
 
 
-def test_load_local_store_data_season_specific(mock_conn):
+def test_load_local_store_data_aggregate_specific(mock_conn):
     sample_rows = [
         ("01/01/2025 10:00:00 AM",),
         ("12/15/2025 03:00:00 PM",)
     ]
-    with patch("services.load_local_store_data.fetch_season_inventory_data", return_value=sample_rows) as mock_fetch:
+    with patch("services.load_local_store_data.fetch_aggregate_inventory_data", return_value=sample_rows) as mock_fetch:
         result = load_local_store_data(mock_conn, store=None)
-        assert "season_range" in result
-        assert result["season_range"] == "Dec 2025 - Jan 2025"
+        assert "aggregate_range" in result
+        assert result["aggregate_range"] == "Dec 2025 - Jan 2025"
         mock_fetch.assert_called_once_with(mock_conn)
 
 

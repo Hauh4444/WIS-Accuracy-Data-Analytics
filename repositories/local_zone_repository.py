@@ -5,7 +5,7 @@ from datetime import datetime
 from models import ZoneTable, InventoryTable
 
 
-def fetch_old_zone_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
+def fetch_historical_zone_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row] | None:
     """Fetch zone data from the database for a given store.
 
     Args:
@@ -37,7 +37,7 @@ def fetch_old_zone_data(conn: pyodbc.Connection, store: str) -> list[pyodbc.Row]
     return zone_rows
 
 
-def fetch_range_zone_data(conn: pyodbc.Connection, date_range: list[datetime]) -> list[pyodbc.Row] | None:
+def fetch_aggregate_zone_data(conn: pyodbc.Connection, date_range: list[datetime]) -> list[pyodbc.Row] | None:
     """Fetch zone data from the database for a range of dates.
 
     Args:
@@ -54,7 +54,7 @@ def fetch_range_zone_data(conn: pyodbc.Connection, date_range: list[datetime]) -
     query = f"""
         SELECT
             z.{zone.zone_id},
-            FIRST(z.{zone.zone_description}) AS {zone.zone_description},
+            MIN(z.{zone.zone_description}) AS {zone.zone_description},
             AVG(z.{zone.total_tags}) AS {zone.total_tags},
             AVG(z.{zone.total_quantity}) AS {zone.total_quantity},
             AVG(z.{zone.total_price}) AS {zone.total_price},
@@ -65,7 +65,7 @@ def fetch_range_zone_data(conn: pyodbc.Connection, date_range: list[datetime]) -
         INNER JOIN {inventory.table} AS i
             ON z.{zone.store_number} = i.{inventory.store_number}
         WHERE
-            CDate(i.{inventory.job_datetime}) BETWEEN ? AND ?
+            i.{inventory.job_datetime} BETWEEN ? AND ?
         GROUP BY
             z.{zone.zone_id}
     """

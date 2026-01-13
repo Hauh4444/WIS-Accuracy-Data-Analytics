@@ -1,7 +1,7 @@
 """Database query functions for managing locally stored."""
 import pyodbc
 
-from models import InventoryTable, EmployeeTable, ZoneTable
+from models import InventoryTable, EmployeeTable, ZoneTable, DiscrepancyTable
 
 
 def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
@@ -14,6 +14,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
     inventory = InventoryTable()
     emp = EmployeeTable()
     zone = ZoneTable()
+    disc = DiscrepancyTable()
     existing_tables = [row.table_name for row in cursor.tables(tableType='TABLE')]
 
     create_tables_queries = {
@@ -21,7 +22,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
             CREATE TABLE {inventory.table} (
                 {inventory.store_number} TEXT(50) PRIMARY KEY,
                 {inventory.store_name} TEXT(50),
-                {inventory.job_datetime} TEXT(50),
+                {inventory.job_datetime} DATETIME,
                 {inventory.store_address} TEXT(255)
             )
         """,
@@ -49,14 +50,27 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
                 {zone.discrepancy_dollars} DOUBLE,
                 {zone.discrepancy_tags} INTEGER
             )
+        """,
+        disc.table: f"""
+            CREATE TABLE {disc.table} (
+                {disc.store_number} TEXT(50),
+                {disc.emp_number} TEXT(50),
+                {disc.zone_id} TEXT(50),
+                {disc.tag_number} TEXT(50),
+                {disc.upc} TEXT(50),
+                {disc.price} DOUBLE,
+                {disc.counted_quantity} INTEGER,
+                {disc.new_quantity} INTEGER,
+                {disc.price_change} DOUBLE
+            )
         """
     }
 
     for table_name, create_sql in create_tables_queries.items():
         if table_name not in existing_tables:
             cursor.execute(create_sql)
-            conn.commit()
 
+    conn.commit()
     cursor.close()
 
 
@@ -96,7 +110,6 @@ def insert_inventory_data(conn: pyodbc.Connection, store_data: dict) -> None:
 
     cursor.execute(inventory_query, (store_data["store_number"], store_data["store"], store_data["inventory_datetime"], store_data["store_address"]))
     conn.commit()
-
     cursor.close()
 
 
@@ -123,9 +136,8 @@ def insert_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
             store_data["store_number"], emp_data["emp_number"], emp_data["emp_name"], emp_data["total_tags"], emp_data["total_quantity"], emp_data["total_price"],
             emp_data["discrepancy_dollars"], emp_data["discrepancy_tags"], emp_data["hours"]
         )
-   )
+    )
     conn.commit()
-
     cursor.close()
 
 
@@ -154,20 +166,45 @@ def insert_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
         )
     )
     conn.commit()
-
     cursor.close()
 
 
-def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: dict) -> dict | None:
-    """Updates employee record for a given store and returns the previous row.
+def insert_discrepancy_data(conn: pyodbc.Connection, store_data: dict, emp_data: dict) -> None:
+    """Inserts discrepancy records for a given employee.
+
+    Args:
+        conn: pyodbc Connection object
+        store_data: Dictionary containing store data
+        emp_data: Dictionary containing emp data
+    """
+    cursor = conn.cursor()
+    disc = DiscrepancyTable()
+
+    disc_query = f"""
+        INSERT INTO {disc.table} (
+            {disc.store_number}, {disc.emp_number}, {disc.zone_id}, {disc.tag_number}, {disc.upc}, {disc.price}, 
+            {disc.counted_quantity}, {disc.new_quantity}, {disc.price_change}
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """
+
+    for discrepancy in emp_data["discrepancies"]:
+        cursor.execute(
+            disc_query, (
+                store_data["store_number"], emp_data["emp_number"], discrepancy["zone_id"], discrepancy["tag_number"], discrepancy["upc"],
+                discrepancy["price"], discrepancy["counted_quantity"], discrepancy["new_quantity"], discrepancy["price_change"],
+            )
+        )
+    conn.commit()
+    cursor.close()
+
+
+def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: dict) ->  None:
+    """Updates employee record for a given store.
 
     Args:
         conn: pyodbc Connection object
         store_data: Dictionary containing store data
         emp_data: Dictionary containing employee data
-
-    Returns:
-        Dictionary of the existing employee row before the update, or None if not found.
     """
     cursor = conn.cursor()
     emp = EmployeeTable()
@@ -178,10 +215,7 @@ def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
 
     if not existing_row:
         insert_employee_data(conn=conn, store_data=store_data, emp_data=emp_data)
-        return None
-
-    columns = [column[0] for column in cursor.description]
-    prev_emp_data = dict(zip(columns, existing_row))
+        return
 
     emp_query = f"""
         UPDATE {emp.table}
@@ -198,21 +232,16 @@ def update_employee_data(conn: pyodbc.Connection, store_data: dict, emp_data: di
         )
     )
     conn.commit()
-
     cursor.close()
-    return prev_emp_data
 
 
-def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict) -> dict | None:
+def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict) -> None:
     """Updates zone record for a given store.
 
     Args:
         conn: pyodbc Connection object
         store_data: Dictionary containing store data
         zone_data: Dictionary containing zone data
-
-    Returns:
-        Dictionary of the existing zone row before the update, or None if not found.
     """
     cursor = conn.cursor()
     zone = ZoneTable()
@@ -223,10 +252,7 @@ def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
 
     if not existing_row:
         insert_zone_data(conn=conn, store_data=store_data, zone_data=zone_data)
-        return None
-
-    columns = [column[0] for column in cursor.description]
-    prev_zone_data = dict(zip(columns, existing_row))
+        return
 
     zone_query = f"""
         UPDATE {zone.table}
@@ -241,6 +267,23 @@ def update_zone_data(conn: pyodbc.Connection, store_data: dict, zone_data: dict)
         )
     )
     conn.commit()
-
     cursor.close()
-    return prev_zone_data
+
+
+def update_discrepancy_data(conn: pyodbc.Connection, store_data: dict, emp_data: dict) ->  None:
+    """Updates discrepancy records for a given employee.
+
+    Args:
+        conn: pyodbc Connection object
+        store_data: Dictionary containing store data
+        emp_data: Dictionary containing employee data
+    """
+    cursor = conn.cursor()
+    disc = DiscrepancyTable()
+
+    disc_query = f"""DELETE FROM {disc.table} WHERE {disc.store_number} = ? AND {disc.emp_number} = ?"""
+    cursor.execute(disc_query, (store_data["store_number"], emp_data["emp_number"]))
+    conn.commit()
+    cursor.close()
+
+    insert_discrepancy_data(conn, store_data, emp_data)

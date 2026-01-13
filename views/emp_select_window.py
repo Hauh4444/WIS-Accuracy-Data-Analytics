@@ -1,10 +1,9 @@
 """Main employee hours input window for calculating UPH and generating reports."""
+import sys
+import os
 from typing import cast
-from PyQt6 import QtWidgets, uic
-from PyQt6.QtCore import Qt
+from PyQt6 import QtWidgets, QtCore, uic
 
-from services import save_local_data
-from database import get_storage_db_connection
 from utils import resource_path
 from utils import generate_accuracy_report
 from utils import center_on_screen, apply_style
@@ -26,7 +25,7 @@ class EmpSelectWindow(QtWidgets.QMainWindow):
             zone_data: List of zone data dictionaries
         """
         super().__init__()
-        ui_path = resource_path("assets/ui/emp_select_window.ui")
+        ui_path = resource_path("assets/ui/emp_input_window.ui")
         uic.loadUi(ui_path, self)
 
         self.store_data = store_data
@@ -59,22 +58,35 @@ class EmpSelectWindow(QtWidgets.QMainWindow):
         selected_emp_data = []
 
         for i, row_widget in enumerate(self.rows_widgets):
-            selected = cast(QtWidgets.QCheckBox, getattr(row_widget, "emp_select")).checkState()
-            if not selected: continue
-
+            checkbox = cast(QtWidgets.QCheckBox, getattr(row_widget, "emp_select"))
+            if checkbox.checkState() != QtCore.Qt.CheckState.Checked: continue
             selected_emp_data.append(self.emp_data[i])
 
         if not self.emp_data:
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
 
-        generate_accuracy_report(self.store_data, selected_emp_data, self.zone_data, is_date_range=True)
+        generate_accuracy_report(self.store_data, selected_emp_data, self.zone_data, is_aggregate=True)
 
         self.close()
 
-    # TODO: Replace with .ui file
     @staticmethod
-    def create_emp_select_row(emp: dict) -> QtWidgets.QWidget:
+    def get_installed_image_path():
+        if getattr(sys, "frozen", False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(__file__)
+        return os.path.join(base_dir, "assets", "images", "checkmark.png").replace("\\", "/")
+
+    @staticmethod
+    def apply_qss_with_image(widget, qss_file_path, image_path):
+        with open(qss_file_path, "r") as f:
+            qss = f.read()
+        qss = qss.replace("CHECKMARK_IMAGE", image_path.replace("\\", "/"))
+        widget.setStyleSheet(qss)
+
+    # TODO: Replace with .ui file
+    def create_emp_select_row(self, emp: dict) -> QtWidgets.QWidget:
         """Create a widget row for employee data input.
 
         Args:
@@ -97,8 +109,7 @@ class EmpSelectWindow(QtWidgets.QMainWindow):
         layout.addWidget(label_name)
 
         emp_select = QtWidgets.QCheckBox()
-        emp_select.setFixedWidth(40)
-        emp_select.setFixedHeight(40)
+        emp_select.setChecked(True)
         layout.addWidget(emp_select)
 
         row_widget.setMinimumHeight(40)
@@ -106,5 +117,8 @@ class EmpSelectWindow(QtWidgets.QMainWindow):
         row_widget.label_id = label_id
         row_widget.label_name = label_name
 
-        apply_style(widget=row_widget, style_path=resource_path("assets/styles/emp_select_row.qss"))
+        qss_file = resource_path("assets/styles/emp_select_row.qss")
+        image_path = self.get_installed_image_path()
+        self.apply_qss_with_image(row_widget, qss_file, image_path)
+
         return row_widget

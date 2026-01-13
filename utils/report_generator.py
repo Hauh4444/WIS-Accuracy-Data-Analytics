@@ -10,14 +10,14 @@ from jinja2 import Environment, FileSystemLoader
 from utils import resource_path
 
 
-def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: list[dict], is_date_range: bool = False) -> None:
+def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: list[dict], is_aggregate: bool = False) -> None:
     """Generate and display accuracy reports for employees and zones.
     
     Args:
         store_data: Dictionary containing store data
         emp_data: List of employee data dictionaries
         zone_data: List of zone data dictionaries
-        is_date_range: If True, generates date_range report. Otherwise, generates standard store report.
+        is_aggregate: If True, generates aggregate report. Otherwise, generates standard store report.
     
     Raises:
         ValueError: Invalid or missing input data
@@ -35,8 +35,8 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
 
         env = Environment(loader=FileSystemLoader(templates_path))
 
-        if is_date_range:
-            template_files = ["date_range_emp_report.html", "date_range_zone_report.html"]
+        if is_aggregate:
+            template_files = ["aggregate_emp_report.html", "aggregate_zone_report.html"]
         else:
             template_files = ["emp_report.html", "zone_report.html", "disc_report.html"]
 
@@ -47,9 +47,9 @@ def generate_accuracy_report(store_data: dict, emp_data: list[dict], zone_data: 
         templates = [env.get_template(t) for t in template_files]
 
         sorted_emp_data = sorted(emp_data, key=lambda x: (-x["uph"], -x["total_quantity"]))
-        sorted_zone_data = sorted(zone_data, key=lambda x: x["zone_id"])
+        sorted_zone_data = sorted(zone_data, key=lambda x: int(x["zone_id"]))
 
-        if is_date_range:
+        if is_aggregate:
             html_fragments = [
                 templates[0].render(page_headers=store_data, emp_data=sorted_emp_data),
                 templates[1].render(page_headers=store_data, zone_data=sorted_zone_data),

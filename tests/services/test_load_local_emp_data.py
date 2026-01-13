@@ -29,11 +29,11 @@ def test_load_local_emp_data_store_calls_fetch_old_emp_data(mock_conn):
         mock_fetch.assert_called_once_with(mock_conn, "001")
 
 
-def test_load_local_emp_data_season_calls_fetch_season_emp_data(mock_conn):
+def test_load_local_emp_data_aggregate_calls_fetch_aggregate_emp_data(mock_conn):
     sample_rows = [
         (201, "Charlie", 20, 100, 1000.0, 50.0, 2, 2, 10),
     ]
-    with patch("services.load_local_emp_data.fetch_season_emp_data", return_value=sample_rows) as mock_fetch:
+    with patch("services.load_local_emp_data.fetch_aggregate_emp_data", return_value=sample_rows) as mock_fetch:
         result = load_local_emp_data(mock_conn, store=None)
         assert len(result) == 1
         row = result[0]

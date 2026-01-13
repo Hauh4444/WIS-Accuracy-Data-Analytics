@@ -4,10 +4,10 @@ import logging
 from PyQt6 import QtWidgets
 from datetime import datetime
 
-from repositories import fetch_old_emp_data, fetch_range_emp_data
+from repositories import fetch_historical_emp_data, fetch_historical_discrepancy_data, fetch_aggregate_emp_data
 
 
-def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None) -> list[dict] | None:
+def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: list[datetime] | None = None) -> list[dict] | None:
     """Load employee data with discrepancy calculations.
 
     Args:
@@ -33,9 +33,9 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: 
             raise ValueError("date_range must contain exactly two datetime objects")
 
         if store:
-            emp_rows = fetch_old_emp_data(conn, store)
+            emp_rows = fetch_historical_emp_data(conn, store)
         else:
-            emp_rows = fetch_range_emp_data(conn, date_range)
+            emp_rows = fetch_aggregate_emp_data(conn, date_range)
 
         emp_data: list[dict] = []
 
@@ -48,9 +48,29 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: 
                 "total_price": emp_row[4] or 0.0,
                 "discrepancy_dollars": emp_row[5] or 0.0,
                 "discrepancy_tags": emp_row[6] or 0,
+                "discrepancies": [],
                 "hours": emp_row[7] or 0,
                 "stores": (emp_row[8] or 1) if date_range else None,
             }
+            emp_data_row["uph"] = emp_data_row["total_quantity"] / emp_data_row["hours"] if emp_data_row["total_quantity"] and emp_data_row["hours"] else 0
+            emp_data_row["discrepancy_percent"] = (emp_data_row["discrepancy_dollars"] / emp_data_row["total_price"] * 100) if emp_data_row["total_price"] > 0 else 0
+
+            if not store:
+                emp_data.append(emp_data_row)
+                continue
+
+            emp_discrepancies_rows = fetch_historical_discrepancy_data(conn, store, emp_data_row["emp_number"])
+            for emp_discrepancies_row in emp_discrepancies_rows:
+                discrepancy_row: dict = {
+                    "zone_id": emp_discrepancies_row[0] or "",
+                    "tag_number": emp_discrepancies_row[1] or "",
+                    "upc": emp_discrepancies_row[2] or "",
+                    "counted_quantity": emp_discrepancies_row[3] or 0,
+                    "new_quantity": emp_discrepancies_row[4] or 0,
+                    "price": emp_discrepancies_row[5] or 0.0,
+                    "price_change": emp_discrepancies_row[6] or 0.0
+                }
+                emp_data_row["discrepancies"].append(discrepancy_row)
             emp_data.append(emp_data_row)
 
         return emp_data
@@ -60,7 +80,7 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: 
         QtWidgets.QMessageBox.warning(
             None,
             "Database Error",
-            f"A database operation failed while loading local local or season employee data.\n\nDetails:\n{str(e)}"
+            f"A database operation failed while loading local local or aggregate date range employee data.\n\nDetails:\n{str(e)}"
         )
         raise
 

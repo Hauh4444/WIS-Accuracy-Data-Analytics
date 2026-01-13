@@ -29,9 +29,9 @@ def test_load_local_zone_data_store_specific(mock_conn):
         mock_fetch.assert_called_once_with(mock_conn, "001")
 
 
-def test_load_local_zone_data_season_specific(mock_conn):
+def test_load_local_zone_data_aggregate_specific(mock_conn):
     sample_row = ("001", "Electronics", 10, 50, 500.0, 20.0, 2, 2)
-    with patch("services.load_local_zone_data.fetch_season_zone_data", return_value=[sample_row]) as mock_fetch:
+    with patch("services.load_local_zone_data.fetch_aggregate_zone_data", return_value=[sample_row]) as mock_fetch:
         result = load_local_zone_data(mock_conn, store=None)
         assert len(result) == 1
         row = result[0]

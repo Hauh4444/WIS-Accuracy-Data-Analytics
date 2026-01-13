@@ -4,7 +4,7 @@ import pyodbc
 from models import InventoryTable
 
 
-def fetch_old_inventory_data(conn: pyodbc.Connection, store: str) -> pyodbc.Row | None:
+def fetch_historical_inventory_data(conn: pyodbc.Connection, store: str) -> pyodbc.Row | None:
     """Fetch inventory data from the local database.
 
     Args:

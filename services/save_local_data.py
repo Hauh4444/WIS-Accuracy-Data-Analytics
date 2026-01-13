@@ -1,17 +1,16 @@
-"""Saves accuracy report data locally for future retrieval and season accuracy reports."""
+"""Saves accuracy report data locally for future retrieval."""
 import pyodbc
 import logging
 from PyQt6 import QtWidgets
 
 from repositories import (
-    create_tables_if_not_exists, check_inventory_exists, check_employee_totals_exist, check_zone_totals_exist, insert_inventory_data, insert_employee_data,
-    insert_zone_data, insert_employee_totals_data, insert_zone_totals_data, update_employee_data, update_zone_data, update_employee_totals_data, update_zone_totals_data
+    create_tables_if_not_exists, check_inventory_exists, insert_inventory_data, insert_employee_data, insert_zone_data, insert_discrepancy_data,
+    update_employee_data, update_zone_data, update_discrepancy_data
 )
 
 
-# TODO: Need to store discrepancies
 def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[dict], zone_data: list[dict]) -> None:
-    """Save inventory and accuracy report data.
+    """Save inventory and zone accuracy report data.
 
     Args:
         conn: Database connection object
@@ -36,13 +35,16 @@ def save_local_data(conn: pyodbc.Connection, store_data: dict, emp_data: list[di
         if check_inventory_exists(conn, store_data):
             handle_employee = update_employee_data
             handle_zone = update_zone_data
+            handle_discrepancies = update_discrepancy_data
         else:
             insert_inventory_data(conn, store_data)
             handle_employee = insert_employee_data
             handle_zone = insert_zone_data
+            handle_discrepancies = insert_discrepancy_data
 
         for emp in emp_data:
             handle_employee(conn, store_data, emp)
+            handle_discrepancies(conn, store_data, emp)
 
         for zone in zone_data:
             handle_zone(conn, store_data, zone)
