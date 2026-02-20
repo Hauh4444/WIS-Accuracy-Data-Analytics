@@ -1,4 +1,6 @@
 """Dynamic database loading dialog using WISDOM job number convention."""
+import os
+import re
 from PyQt6 import QtWidgets, uic
 
 from database import get_db_connection
@@ -32,9 +34,8 @@ class LoadSourceDataDynamicDialog(QtWidgets.QDialog):
         if not job_number:
             QtWidgets.QMessageBox.warning(self, "Input Required", "Please enter a Job Number.")
             return
-        
-        db_path = rf"C:\WISDOM\JOBS\{job_number}\11355\{job_number}.MDB"
 
+        db_path = self.build_db_path(job_number)
         conn = get_db_connection(db_path)
         if not conn:
             self.reject()
@@ -46,3 +47,26 @@ class LoadSourceDataDynamicDialog(QtWidgets.QDialog):
 
         conn.close()
         self.accept()
+
+    def build_db_path(self, job_number: str) -> str:
+        """Build database path using job_number
+
+        Args:
+            job_number: String containing the job number of the current inventory
+
+        Returns:
+            Full absolute string path to database connection
+        """
+        base_path = rf"C:\WISDOM\JOBS\{job_number}"
+        try:
+            wisdom_dirs = [
+                d for d in os.listdir(base_path)
+                if os.path.isdir(os.path.join(base_path, d)) and re.fullmatch(r"\d{5}", d)
+            ]
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.warning(self, "Path Error", "Unable to locate a valid WISDOM job directory for the specified job number.")
+            return ""
+
+        wisdom_dir = wisdom_dirs[0]
+        db_path = os.path.join(base_path, wisdom_dir, f"{job_number}.MDB")
+        return db_path

@@ -28,7 +28,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
         """,
         emp.table: f"""
             CREATE TABLE {emp.table} (
-                {emp.emp_number} TEXT(50) PRIMARY KEY,
+                {emp.emp_number} TEXT(50),
                 {emp.store_number} TEXT(50),
                 {emp.emp_name} TEXT(255),
                 {emp.total_tags} INTEGER,
@@ -41,7 +41,7 @@ def create_tables_if_not_exists(conn: pyodbc.Connection) -> None:
         """,
         zone.table: f"""
             CREATE TABLE {zone.table} (
-                {zone.zone_id} TEXT(50) PRIMARY KEY,
+                {zone.zone_id} TEXT(50),
                 {zone.store_number} TEXT(50),
                 {zone.zone_description} TEXT(255),
                 {zone.total_tags} INTEGER,
