@@ -1,7 +1,7 @@
 [Setup]
 AppId={{08E49D96-FC81-4729-9CCF-DCE70EFF758E}
 AppName=Accuracy Report
-AppVersion=1.1.3
+AppVersion=1.1.4
 AppPublisher=Preston Fox
 AppPublisherURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
 AppSupportURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
@@ -27,6 +27,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "assets\resources\accessdatabaseengine_X64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "assets\resources\config.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "assets\images\checkmark.png"; DestDir: "{app}\assets\images"; Flags: ignoreversion
 Source: "dist\AccuracyReport.exe"; DestDir: "{app}"; Flags: replacesameversion restartreplace
 

@@ -5,7 +5,7 @@ import logging
 from PyQt6 import QtWidgets
 from pathlib import Path
 
-from utils import get_appdata_db_path
+from utils import get_db_path
 
 
 def get_db_connection(db_path: str) -> pyodbc.Connection | None:
@@ -49,7 +49,7 @@ def get_storage_db_connection() -> pyodbc.Connection | None:
     """
     db_path = None
     try:
-        db_path = get_appdata_db_path()
+        db_path = get_db_path()
         if not db_path.exists() or not db_path.is_file():
             raise FileNotFoundError(f"Storage database file not found: {db_path}")
         if platform.system() != "Windows":

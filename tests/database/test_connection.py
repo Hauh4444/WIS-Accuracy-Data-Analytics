@@ -65,7 +65,7 @@ def test_get_storage_db_connection_success():
 
     with patch("database.connection.platform.system", return_value="Windows"), \
          patch("database.connection.pyodbc.connect", return_value=mock_conn) as mock_connect, \
-         patch("database.connection.get_appdata_db_path", return_value=mock_path):
+         patch("database.connection.get_db_path", return_value=mock_path):
 
         result = db_conn.get_storage_db_connection()
         assert result is mock_conn
@@ -77,7 +77,7 @@ def test_get_storage_db_connection_missing_file():
     mock_path.exists.return_value = False
     mock_path.is_file.return_value = False
 
-    with patch("database.connection.get_appdata_db_path", return_value=mock_path), \
+    with patch("database.connection.get_db_path", return_value=mock_path), \
          patch("database.connection.platform.system", return_value="Windows"), \
          patch("database.connection.QtWidgets.QMessageBox.warning") as mock_warning:
 
@@ -92,7 +92,7 @@ def test_get_storage_db_connection_non_windows():
     mock_path.exists.return_value = True
     mock_path.is_file.return_value = True
 
-    with patch("database.connection.get_appdata_db_path", return_value=mock_path), \
+    with patch("database.connection.get_db_path", return_value=mock_path), \
          patch("database.connection.platform.system", return_value="Linux"), \
          patch("database.connection.QtWidgets.QMessageBox.warning") as mock_warning:
 
