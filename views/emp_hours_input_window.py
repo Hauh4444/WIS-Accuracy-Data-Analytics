@@ -70,13 +70,9 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "No Data", "No employee data available to print.")
             return
 
-        conn = get_storage_db_connection()
-        if not conn:
-            self.close()
-            return
-
-        save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
         generate_accuracy_report(self.store_data, self.emp_data, self.zone_data)
+        conn = get_storage_db_connection()
+        save_local_data(conn, self.store_data, self.emp_data, self.zone_data)
 
         conn.close()
         self.close()

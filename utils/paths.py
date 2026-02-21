@@ -24,10 +24,10 @@ def read_config_file() -> dict | None:
 
 def resource_path(relative_path: str) -> str:
     """Get absolute path to resource, works for dev and for PyInstaller.
-    
+
     Args:
         relative_path: Path relative to the project root
-        
+
     Returns:
         Absolute path object pointing to the resource file
     """
@@ -58,9 +58,10 @@ def get_db_path() -> Path:
        Absolute Path object pointing to the local database file.
     """
     config = read_config_file()
-    root = config["local_data_path"]
+    root = Path(os.path.expandvars(config["local_data_path"]))
     db_filename = config["database_filename"]
     db_path = root / db_filename
+    print(db_path)
     if not db_path.exists():
         template = Path(resource_path(f"assets/resources/{db_filename}"))
         db_path.write_bytes(template.read_bytes())

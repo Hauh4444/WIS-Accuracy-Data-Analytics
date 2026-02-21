@@ -27,7 +27,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "assets\resources\accessdatabaseengine_X64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "assets\resources\config.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "assets\resources\config.json"; DestDir: "{localappdata}\Accuracy_Report"; Flags: ignoreversion
 Source: "assets\images\checkmark.png"; DestDir: "{app}\assets\images"; Flags: ignoreversion
 Source: "dist\AccuracyReport.exe"; DestDir: "{app}"; Flags: replacesameversion restartreplace
 
