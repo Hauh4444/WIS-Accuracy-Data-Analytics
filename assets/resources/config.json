@@ -1,6 +1,6 @@
 {
-  "local_data_path": "C:\\Users\\%USERNAME%\\AppData\\Local",
+  "local_data_path": "C:\\Users\\%USERNAME%\\AppData\\Local\\Accuracy_Report",
   "database_filename": "accuracy.mdb",
   "log_filename": "app.log",
-  "version": "1.1.4"
+  "version": "1.1.5"
 }

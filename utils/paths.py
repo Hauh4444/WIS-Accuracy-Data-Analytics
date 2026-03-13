@@ -78,5 +78,5 @@ def get_log_path() -> Path:
     log_dir = get_appdata_root() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     config = read_config_file()
-    log_filename = config["database_filename"]
+    log_filename = config["log_filename"]
     return log_dir / log_filename

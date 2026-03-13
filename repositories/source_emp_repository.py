@@ -81,7 +81,7 @@ def fetch_emp_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
     return emp_rows
 
 
-def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.Row | None:
+def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.Row | list | None:
     """Fetch employee totals data from the database.
 
     Args:
@@ -91,6 +91,9 @@ def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.R
     Returns:
         Pyodbc row containing employee totals data
     """
+    if not tags_filter.strip():
+        return [0, 0]
+
     cursor = conn.cursor()
     tag = TagTable()
 
@@ -109,7 +112,7 @@ def fetch_emp_totals_data(conn: pyodbc.Connection, tags_filter: str) -> pyodbc.R
     return emp_totals_row
 
 
-def fetch_emp_line_totals_data(conn: pyodbc.Connection, tags_filter: str, emp_number: str) -> pyodbc.Row | None:
+def fetch_emp_line_totals_data(conn: pyodbc.Connection, tags_filter: str, emp_number: str) -> pyodbc.Row | list | None:
     """Fetch employee totals data by line from the database.
 
     Args:
@@ -120,6 +123,9 @@ def fetch_emp_line_totals_data(conn: pyodbc.Connection, tags_filter: str, emp_nu
     Returns:
         Pyodbc row containing employee totals data
     """
+    if not tags_filter.strip():
+        return [0, 0]
+
     cursor = conn.cursor()
     details = DetailsTable()
 
@@ -149,6 +155,9 @@ def fetch_emp_discrepancies_data(conn: pyodbc.Connection, tags_filter: str) -> l
     Returns:
         List of pyodbc rows containing employee discrepancy data
     """
+    if not tags_filter.strip():
+        return []
+
     cursor = conn.cursor()
     queue = ZoneChangeQueueTable()
     info = ZoneChangeInfoTable()

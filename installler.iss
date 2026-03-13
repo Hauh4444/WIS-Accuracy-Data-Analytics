@@ -1,7 +1,7 @@
 [Setup]
 AppId={{08E49D96-FC81-4729-9CCF-DCE70EFF758E}
 AppName=Accuracy Report
-AppVersion=1.1.4
+AppVersion=1.1.5
 AppPublisher=Preston Fox
 AppPublisherURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
 AppSupportURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
