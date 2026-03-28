@@ -69,10 +69,10 @@ def fetch_emp_data(conn: pyodbc.Connection) -> list[pyodbc.Row] | None:
 
     emp_query = f"""
         SELECT DISTINCT
-            {emp.table}.{emp.emp_number},
-            {emp.table}.{emp.emp_name}
-        FROM {emp.table}
-        INNER JOIN {term.table} ON {term.table}.{term.emp_number} = {emp.table}.{emp.emp_number}
+            {term.table}.{term.emp_number},
+            IIf({emp.table}.{emp.emp_name} IS NULL, '', {emp.table}.{emp.emp_name})
+        FROM {term.table}
+        LEFT JOIN {emp.table} ON {term.table}.{term.emp_number} = {emp.table}.{emp.emp_number}
     """
     cursor.execute(emp_query)
     emp_rows = cursor.fetchall()

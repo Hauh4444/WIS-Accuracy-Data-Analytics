@@ -1,6 +1,6 @@
 """Main employee hours input window for calculating UPH and generating reports."""
 from typing import cast
-from PyQt6 import QtWidgets, uic
+from PyQt6 import QtWidgets, QtGui, uic
 from PyQt6.QtCore import Qt
 
 from services import save_local_data
@@ -105,7 +105,16 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
         txt_hours.setAlignment(Qt.AlignmentFlag.AlignCenter)
         txt_hours.setFixedWidth(75)
         layout.addWidget(txt_hours)
-        txt_hours.returnPressed.connect(lambda: txt_hours.focusNextChild())
+
+        def key_handler(event: QtGui.QKeyEvent):
+            if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter, Qt.Key.Key_Down):
+                txt_hours.focusNextChild()
+            elif event.key() == Qt.Key.Key_Up:
+                txt_hours.focusPreviousChild()
+            else:
+                QtWidgets.QLineEdit.keyPressEvent(txt_hours, event)
+
+        txt_hours.keyPressEvent = key_handler
 
         row_widget.setMinimumHeight(40)
         row_widget.txt_hours = txt_hours
@@ -114,3 +123,4 @@ class EmpHoursInputWindow(QtWidgets.QMainWindow):
 
         apply_style(widget=row_widget, style_path=resource_path("assets/styles/emp_hour_input_row.qss"))
         return row_widget
+

@@ -54,7 +54,7 @@ def fetch_aggregate_zone_data(conn: pyodbc.Connection, date_range: list[datetime
     query = f"""
         SELECT
             z.{zone.zone_id},
-            MIN(z.{zone.zone_description}) AS {zone.zone_description},
+            MAX(z.{zone.zone_description}) AS {zone.zone_description},
             AVG(z.{zone.total_tags}) AS {zone.total_tags},
             AVG(z.{zone.total_quantity}) AS {zone.total_quantity},
             AVG(z.{zone.total_price}) AS {zone.total_price},

@@ -55,7 +55,7 @@ def fetch_aggregate_emp_data(conn: pyodbc.Connection, date_range: list[datetime]
     query = f"""
         SELECT
             e.{emp.emp_number},
-            MIN(e.{emp.emp_name}) AS {emp.emp_name},
+            MAX(e.{emp.emp_name}) AS {emp.emp_name},
             AVG(e.{emp.total_tags}) AS {emp.total_tags},
             AVG(e.{emp.total_quantity}) AS {emp.total_quantity},
             AVG(e.{emp.total_price}) AS {emp.total_price},

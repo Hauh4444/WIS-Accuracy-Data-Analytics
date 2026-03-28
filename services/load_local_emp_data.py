@@ -65,9 +65,9 @@ def load_local_emp_data(conn: pyodbc.Connection, store: str | None, date_range: 
                     "zone_id": emp_discrepancies_row[0] or "",
                     "tag_number": emp_discrepancies_row[1] or "",
                     "upc": emp_discrepancies_row[2] or "",
-                    "counted_quantity": emp_discrepancies_row[3] or 0,
-                    "new_quantity": emp_discrepancies_row[4] or 0,
-                    "price": emp_discrepancies_row[5] or 0.0,
+                    "price": emp_discrepancies_row[3] or 0.0,
+                    "counted_quantity": emp_discrepancies_row[4] or 0,
+                    "new_quantity": emp_discrepancies_row[5] or 0,
                     "price_change": emp_discrepancies_row[6] or 0.0
                 }
                 emp_data_row["discrepancies"].append(discrepancy_row)

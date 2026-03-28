@@ -54,6 +54,8 @@ def load_source_emp_data(conn: pyodbc.Connection) -> list[dict] | None:
         for emp_row in emp_rows:
             if emp_row is None or len(emp_row) != 2:
                 raise RuntimeError(f"Invalid emp query result structure - expected 2 columns, got {len(emp_row) if emp_row else None}")
+            if emp_row[0] == "ZZ9999":
+                continue
 
             emp_data_row: dict = {
                 "emp_number": emp_row[0] or "",

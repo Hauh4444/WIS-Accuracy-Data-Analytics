@@ -1,7 +1,7 @@
 [Setup]
 AppId={{08E49D96-FC81-4729-9CCF-DCE70EFF758E}
 AppName=Accuracy Report
-AppVersion=1.1.5
+AppVersion=1.1.6
 AppPublisher=Preston Fox
 AppPublisherURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
 AppSupportURL=https://github.com/Hauh4444/WIS-Accuracy-Data-Analytics
@@ -15,7 +15,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-OutputBaseFilename=mysetup
+OutputBaseFilename=wis_accuracy_report_installer
 SolidCompression=yes
 WizardStyle=modern dynamic
 
