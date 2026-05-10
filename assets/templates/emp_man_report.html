@@ -16,10 +16,10 @@
                 Inventory Date: {{ "%s"|format(store_data.job_datetime) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
-                Zone Accuracy Report
+                UPH Report
             </td>
             <td style="font-weight: bold; text-align: right;">
-                Page #: 3 of 5
+                Page #: 2 of 5
             </td>
         </tr>
         <tr>
@@ -57,7 +57,7 @@
     <tbody>
         <tr style="border-bottom: 1px solid black">
             <th style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
-                #
+                ID
             </th>
             <th style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
                 NAME
@@ -71,7 +71,7 @@
             <th style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
                 &nbsp;&nbsp;%
             </th>
-            <th style="width: 23%; text-align: right; display: table-cell; vertical-align: middle;">
+            <th style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
                 $&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             </th>
             <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
@@ -80,36 +80,46 @@
             <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
                 QTY
             </th>
+            <th style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                UPH
+            </th>
         </tr>
-        {% for zone in zone_data %}
-        {% if zone.total_qty > 0 %}
+        {% for emp in emp_data %}
+        {% if (emp.zone_error_percent + emp.manual_adjustment_percent) >= 1.5 %}
+        <tr style="background-color: #ffcccc;">
+        {% elif (emp.zone_error_percent + emp.manual_adjustment_percent) >= 1.0 %}
+        <tr style="background-color: #ffffcc;">
+        {% else %}
         <tr>
-            <td style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.zone_id) }}
+        {% endif %}
+            <td style="width: 7%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(emp.emp_id) }}
             </td>
-            <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.zone_desc) }}
+            <td style="width: 28%; display: table-cell; vertical-align: middle;">
+                {{ "%s"|format(emp.emp_name) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(zone.zone_error_total) }}
+                ${{ "%.2f"|format(emp.zone_error_total + emp.manual_adjustment_total) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.zone_error_tags) }}
+                {{ "%i"|format(emp.total_error_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%.2f"|format(zone.zone_error_percent) }}%
+                {{ "%.2f"|format(emp.zone_error_percent + emp.manual_adjustment_percent) }}%
             </td>
-            <td style="width: 23%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(zone.total_price) }}
-            </td>
-            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.total_tags) }}
+            <td style="width: 14%; text-align: right; display: table-cell; vertical-align: middle;">
+                ${{ "%.2f"|format(emp.total_price) }}
             </td>
             <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.total_qty) }}
+                {{ "%i"|format(emp.total_tags) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.total_qty) }}
+            </td>
+            <td style="width: 9%; text-align: right; display: table-cell; vertical-align: middle;">
+                {{ "%i"|format(emp.uph) }}
             </td>
         </tr>
-        {% endif %}
         {% endfor %}
     </tbody>
 </table>

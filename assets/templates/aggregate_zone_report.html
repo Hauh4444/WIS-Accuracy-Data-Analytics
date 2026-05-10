@@ -13,7 +13,7 @@
     <tbody>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Inventory Dates: {{ "%s"|format(page_headers.start_date) }} - {{ "%s"|format(page_headers.end_date) }}
+                Inventory Dates: {{ "%s"|format(store_data.start_date) }} - {{ "%s"|format(store_data.end_date) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 Zone Accuracy Report
@@ -24,7 +24,7 @@
         </tr>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Print Date: {{ "%s"|format(page_headers.print_date) }}
+                Print Date: {{ "%s"|format(store_data.print_date) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 All Inventories
@@ -33,7 +33,7 @@
         </tr>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Print Time: {{ "%s"|format(page_headers.print_time) }}
+                Print Time: {{ "%s"|format(store_data.print_time) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 All Locations
@@ -85,22 +85,22 @@
             </th>
         </tr>
         {% for zone in zone_data %}
-        {% if zone.total_quantity > 0 %}
+        {% if zone.total_qty > 0 %}
         <tr>
             <td style="width: 7%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(zone.zone_id) }}
             </td>
             <td style="width: 28%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(zone.zone_description) }}
+                {{ "%s"|format(zone.zone_desc) }}
             </td>
             <td style="width: 12%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(zone.discrepancy_dollars) }}
+                ${{ "%.2f"|format(zone.zone_error_total) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.discrepancy_tags) }}
+                {{ "%i"|format(zone.zone_error_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%.2f"|format(zone.discrepancy_percent) }}%
+                {{ "%.2f"|format(zone.zone_error_percent) }}%
             </td>
             <td style="width: 17%; text-align: right; display: table-cell; vertical-align: middle;">
                 ${{ "%.2f"|format(zone.total_price) }}
@@ -109,10 +109,10 @@
                 {{ "%i"|format(zone.total_tags) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.total_quantity) }}
+                {{ "%i"|format(zone.total_qty) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(zone.stores) }}
+                {{ "%i"|format(zone.total_stores) }}
             </td>
         </tr>
         {% endif %}

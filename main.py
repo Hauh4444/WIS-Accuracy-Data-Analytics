@@ -1,40 +1,10 @@
-"""WIS Accuracy Data Analytics - Inventory accuracy reporting tool."""
 import sys
 import logging
 from PyQt6 import QtWidgets
 
-from utils import generate_accuracy_report, setup_logging
-from views import (
-    EmpHoursInputWindow, EmpSelectWindow, StatsSourceDialog, LoadLocalDataDialog,
-    LoadSourceDataDynamicDialog, LoadSourceDataManualDialog, LoadAggregateDataDialog
-)
-
-
-def handle_dialog(dialog: QtWidgets.QDialog) -> str | tuple[dict, list[dict], list[dict]] | None:
-    """Run a dialog and return its result.
-
-    Args:
-        dialog: The QDialog to execute.
-
-    Returns:
-        'historical', 'current', or 'aggregate' if a source is selected,
-        tuple containing store_data, emp_data, and zone_data if data is loaded,
-        or None if cancelled or failed.
-    """
-    if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
-        return None
-
-    if hasattr(dialog, "source"):
-        source = dialog.source
-        if source in ("historical", "current", "aggregate"):
-            return source
-
-    if hasattr(dialog, "store_data") and hasattr(dialog, "emp_data") and hasattr(dialog, "zone_data"):
-        data = dialog.store_data, dialog.emp_data, dialog.zone_data
-        if all(data):
-            return data
-
-    return None
+from bootstrap.container import AppContainer
+from controllers.application_controller import ApplicationController
+from utils.logging import setup_logging
 
 
 if __name__ == "__main__":
@@ -42,41 +12,14 @@ if __name__ == "__main__":
 
     try:
         app = QtWidgets.QApplication(sys.argv)
+        container = AppContainer()
+        controller = ApplicationController(container)
+        controller.run()
 
-        stats_source = handle_dialog(StatsSourceDialog())
+        if controller.window:
+            sys.exit(app.exec())
 
-        if stats_source == "historical":
-            result = handle_dialog(LoadLocalDataDialog())
-            if not result:
-                raise Exception("Failed to load local data.")
+        sys.exit(0)
 
-            store_data, emp_data, zone_data = result
-            generate_accuracy_report(store_data, emp_data, zone_data)
-
-        elif stats_source == "current":
-            result = handle_dialog(LoadSourceDataDynamicDialog())
-            if not result:
-                result = handle_dialog(LoadSourceDataManualDialog())
-            if not result:
-                raise Exception("Failed to load source data.")
-
-            store_data, emp_data, zone_data = result
-            window = EmpHoursInputWindow(store_data, emp_data, zone_data)
-            app.exec()
-
-        elif stats_source == "aggregate":
-            result = handle_dialog(LoadAggregateDataDialog())
-            if not result:
-                raise Exception("Failed to load aggregate data.")
-
-            store_data, emp_data, zone_data = result
-            window = EmpSelectWindow(store_data, emp_data, zone_data)
-            app.exec()
-
-    except Exception as e:
+    except Exception:
         logging.exception("Unhandled application error")
-        QtWidgets.QMessageBox.critical(
-            None,
-            "Application Error",
-            f"An unexpected error occurred:\n{e}"
-        )

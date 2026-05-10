@@ -13,7 +13,7 @@
     <tbody>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Inventory Dates: {{ "%s"|format(page_headers.start_date) }} - {{ "%s"|format(page_headers.end_date) }}
+                Inventory Dates: {{ "%s"|format(store_data.start_date) }} - {{ "%s"|format(store_data.end_date) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 UPH Report
@@ -24,7 +24,7 @@
         </tr>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Print Date: {{ "%s"|format(page_headers.print_date) }}
+                Print Date: {{ "%s"|format(store_data.print_date) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 All Inventories
@@ -33,7 +33,7 @@
         </tr>
         <tr>
             <td style="font-weight: bold; text-align: left;">
-                Print Time: {{ "%s"|format(page_headers.print_time) }}
+                Print Time: {{ "%s"|format(store_data.print_time) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
                 All Locations
@@ -88,27 +88,27 @@
             </th>
         </tr>
         {% for emp in emp_data %}
-        {% if emp.discrepancy_percent >= 1.5 %}
+        {% if emp.zone_error_percent >= 1.5 %}
         <tr style="background-color: #ffcccc;">
-        {% elif emp.discrepancy_percent >= 1.0 %}
+        {% elif emp.zone_error_percent >= 1.0 %}
         <tr style="background-color: #ffffcc;">
         {% else %}
         <tr>
         {% endif %}
             <td style="width: 7%; display: table-cell; vertical-align: middle;">
-                {{ "%s"|format(emp.emp_number) }}
+                {{ "%s"|format(emp.emp_id) }}
             </td>
             <td style="width: 28%; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(emp.emp_name) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
-                ${{ "%.2f"|format(emp.discrepancy_dollars) }}
+                ${{ "%.2f"|format(emp.zone_error_total) }}
             </td>
             <td style="width: 6%; text-align: center; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(emp.discrepancy_tags) }}
+                {{ "%i"|format(emp.zone_error_tags) }}
             </td>
             <td style="width: 6%; text-align: left; display: table-cell; vertical-align: middle;">
-                {{ "%.2f"|format(emp.discrepancy_percent) }}%
+                {{ "%.2f"|format(emp.zone_error_percent) }}%
             </td>
             <td style="width: 13%; text-align: right; display: table-cell; vertical-align: middle;">
                 ${{ "%.2f"|format(emp.total_price) }}
@@ -117,13 +117,13 @@
                 {{ "%i"|format(emp.total_tags) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(emp.total_quantity) }}
+                {{ "%i"|format(emp.total_qty) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
                 {{ "%i"|format(emp.uph) }}
             </td>
             <td style="width: 8%; text-align: right; display: table-cell; vertical-align: middle;">
-                {{ "%i"|format(emp.stores) }}
+                {{ "%i"|format(emp.total_stores) }}
             </td>
         </tr>
         {% endfor %}

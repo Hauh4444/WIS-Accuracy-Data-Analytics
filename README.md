@@ -153,8 +153,7 @@ WIS-Accuracy-Data-Analytics
 │   │   ├── emp_report.html
 │   │   └── team_report.html
 │   └── ui/
-│       ├── emp_hours_window.ui
-│       ├── emp_select_window.ui
+│       ├── window.ui
 │       ├── load_aggregate_data_dialog.ui
 │       ├── load_local_data_dialog.ui
 │       ├── load_source_data_dynamic_dialog.ui

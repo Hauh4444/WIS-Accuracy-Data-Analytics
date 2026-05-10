@@ -16,10 +16,10 @@
                 Inventory Date: {{ "%s"|format(store_data.job_datetime) }}
             </td>
             <td style="font-weight: bold; text-align: center;">
-                Service Miscounted Report
+                Manual Adjustment Report
             </td>
             <td style="font-weight: bold; text-align: right;">
-                Page #: 4 of 5
+                Page #: 5 of 5
             </td>
         </tr>
         <tr>
@@ -78,12 +78,12 @@
                 NEW_QTY
             </th>
             <th style="width: 15%; text-align: right; display: table-cell; vertical-align: middle;">
-                DISCREPANCY
+                ADJUSTMENT
             </th>
         </tr>
         {% for emp in emp_data %}
-        {% if emp.zone_errors %}
-        {% for disc in emp.zone_errors %}
+        {% if emp.manual_adjustments %}
+        {% for man in emp.manual_adjustments %}
         <tr>
             <td style="width: 10%; text-align: left; display: table-cell; vertical-align: middle;">
                 {{ "%s"|format(emp.emp_id) }}
